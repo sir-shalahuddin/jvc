@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+    <link href="/static/style.css?v=82" rel="stylesheet">
+</head>
+<body>
+    <div class="container animate-slide-fade" style="max-width: 1000px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>👑 Admin Dashboard</h2>
+            <button class="btn" onclick="window.location.href='/'">🔙 Home</button>
+        </div>
+
+        <div class="card">
+            <h3>Global Sessions Tracker</h3>
+            <table class="table table-mobile-cards">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Email Owner</th>
+                        <th>Session Name</th>
+                        <th>ID (Code)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-body">
+                    <tr><td colspan="5">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadAdmin() {
+            try {
+                const res = await fetch('/api/admin/sessions');
+                if (res.status === 401 || res.status === 403) {
+                    alert("Unauthorized!");
+                    window.location.href = '/';
+                    return;
+                }
+                const sessions = await res.json();
+                const tbody = document.getElementById('admin-body');
+                tbody.innerHTML = '';
+
+                if (!sessions || sessions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No sessions found globally.</td></tr>';
+                    return;
+                }
+
+                sessions.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td data-label="Date">${new Date(s.created_at).toLocaleDateString()}</td>
+                        <td data-label="Email">${s.owner_email}</td>
+                        <td data-label="Session"><strong>${s.name}</strong></td>
+                        <td data-label="Code"><code>${s.id}</code></td>
+                        <td data-label="Action">
+                            <a href="/session/?id=${s.id}&role=sm" class="btn btn-success" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Enter</a>
+                            <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="deleteSession('${s.id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function deleteSession(id) {
+            if(!confirm("Delete this session globally?")) return;
+            await fetch('/api/admin/sessions?id=' + id, { method: 'DELETE' });
+            loadAdmin();
+        }
+
+        loadAdmin();
+    </script>
+</body>
+</html>

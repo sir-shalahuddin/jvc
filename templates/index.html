@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro - Modern Sprint Retrospectives</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+    <link href="/static/style.css?v=82" rel="stylesheet">
+</head>
+
+<body>
+    <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">🌓</button>
+
+    <div id="toast-container"></div>
+    <div class="container landing-hero animate-slide-fade">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <img src="/static/images/logo.svg" alt="Retro Logo" style="width: 100px; height: 100px; border-radius: 24%; box-shadow: var(--shadow-md); border: 2px solid var(--primary); animation: fadeIn 1s ease;">
+            <h1 style="font-size: 3.5rem; margin-bottom: 0;">Retro</h1>
+        </div>
+        <p>A professional way to run sprint retrospectives with AI sentiment analysis.</p>
+
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem;">
+            
+            <!-- Top Row: Host & Join -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem; align-items: start; text-align: left;">
+                
+                <!-- Host Section Card -->
+                <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+                    <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Host Session</h2>
+                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: var(--text-secondary);">Create a room and analyze team feedback with AI power.</p>
+                    <div id="authSection" style="flex-grow: 1; display: flex; flex-direction: column;">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Join Section Card -->
+                <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+                    <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Join Session</h2>
+                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: var(--text-secondary);">Enter a code to provide anonymous feedback.</p>
+                    <div class="join-section" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
+                        <input type="text" id="joinCode" placeholder="Session Room ID" style="margin-bottom: 1rem; font-size: 1.1rem; padding: 1rem;">
+                        <button class="btn btn-success" id="joinSessionBtn" style="width: 100%; font-size: 1.1rem; padding: 1rem;">Join Session</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Row: History (Visible when logged in) -->
+            <div id="historySectionWrapper" class="hidden" style="text-align: left;">
+                <div class="card">
+                    <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem;">📜 My History</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-mobile-cards" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Session Name</th>
+                                    <th>ID / Code</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Theme logic
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        let userEmail = null;
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                const authSection = document.getElementById('authSection');
+
+                if (data.authenticated) {
+                    userEmail = data.email;
+                    
+                    let adminLink = "";
+                    if (userEmail === "sirajshalahuddin@gmail.com") {
+                        adminLink = `<a href="/admin" class="btn btn-warning" style="width: 100%; margin-top: 0.5rem; background: #eab308; color: black;">👑 Admin Dashboard</a>`;
+                    }
+
+                    authSection.innerHTML = `
+                        <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; height: 100%; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <p style="font-size: 0.9rem; margin: 0;">Hi, <strong>${userEmail}</strong></p>
+                                <span style="font-size: 0.8rem; background: var(--bg-primary); padding: 0.2rem 0.6rem; border-radius: 20px; border: 1px solid var(--border);">Quota: <b>${data.quota}</b> Sesi</span>
+                            </div>
+                            <input type="text" id="sessionName" placeholder="My Retro Session Name" value="Sprint Retrospective" style="margin-bottom: 0.5rem;">
+                            <button class="btn" id="createSessionBtn" style="width: 100%;">🚀 Start New Session</button>
+                            <button class="btn btn-success" id="topupBtn" style="width: 100%; margin-top: 0.5rem;" onclick="openTopupModal()">💎 Top Up / Klaim Kuota</button>
+                            ${adminLink}
+                            <div style="text-align: center; margin-top: auto; padding-top: 1rem;">
+                                <a href="/auth/logout" style="color: var(--danger); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Logout</a>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('createSessionBtn').addEventListener('click', createSession);
+                    
+                    // Show History Section
+                    document.getElementById('historySectionWrapper').classList.remove('hidden');
+                    loadHistory();
+                } else {
+                    authSection.innerHTML = `
+                        <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm);">
+                            <button class="btn btn-danger" onclick="window.location.href='/auth/google/login'" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="24" style="margin-right:12px; filter: brightness(10);">
+                                Login with Google
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function createSession() {
+            const name = document.getElementById('sessionName').value.trim() || "Sprint Retrospective";
+            const btn = document.getElementById('createSessionBtn');
+            btn.disabled = true;
+            btn.innerText = "Creating...";
+
+            try {
+                const res = await fetch('/api/session/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name })
+                });
+                if (!res.ok) {
+                    throw new Error(await res.text());
+                }
+                const data = await res.json();
+                if (data.id) {
+                    window.location.href = `/session/?id=${data.id}&role=sm`;
+                }
+            } catch (e) {
+                showToast('Failed to create session! ' + e.message, 'error');
+                btn.disabled = false;
+                btn.innerText = "🚀 Start New Session";
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                if (res.status === 401) return;
+                const data = await res.json();
+
+                const tbody = document.getElementById('history-body');
+                tbody.innerHTML = '';
+
+                if (!data.sessions || data.sessions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No sessions created yet. Start by hosting one!</td></tr>';
+                    return;
+                }
+
+                data.sessions.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td data-label="Date">${new Date(s.created_at).toLocaleDateString()}</td>
+                        <td data-label="Session Name"><strong>${s.name}</strong></td>
+                        <td data-label="ID / Code"><code>${s.id}</code></td>
+                        <td data-label="Status"><span class="badge badge-success">${s.status}</span></td>
+                        <td data-label="Action"><a href="/session/?id=${s.id}&role=sm" class="btn btn-success btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Enter Room</a></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("Failed to load history:", e);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'error') icon = '❌';
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.getElementById('joinSessionBtn').addEventListener('click', () => {
+            const code = document.getElementById('joinCode').value.trim();
+            if (code) {
+                window.location.href = `/session/?id=${code}`;
+            }
+        });
+
+        checkAuth();
+    </script>
+    <button onclick="openTrakteer()" class="trakteer-floating" style="border: none; cursor: pointer;">
+        <img src="https://edge-cdn.trakteer.id/images/embed/trbtn-icon.png" alt="Trakteer Icon">
+        <span class="trakteer-text">Dukung Saya</span>
+    </button>
+
+    <!-- Top Up / Claim Modal -->
+    <div id="topupModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div class="card" style="width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button onclick="closeTopupModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">×</button>
+            <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">Top Up Kuota Sesi</h2>
+            
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Dukung pengembangan aplikasi ini dengan berdonasi via Trakteer. 
+                <strong>1 Cendol (Rp 5.000) = +1 Kuota Sesi.</strong>
+            </p>
+
+            <button onclick="openTrakteer()" class="btn btn-success" style="width: 100%; margin-bottom: 2rem; background: #e50914; border-color: #e50914;">
+                ❤️ Trakteer Sekarang
+            </button>
+
+            <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Klaim Kuota</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                Sudah mentrakteer? Masukkan <strong>Order ID / Transaction ID</strong> dari bukti pembayaran Anda untuk mengklaim kuota secara otomatis.
+            </p>
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                    <div style="font-size: 0.8rem; color: #555;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; position: relative;">
+                            <span>Order ID</span>
+                            <span style="font-family: monospace; font-weight: 600; color: #000; background: #fff3cd; padding: 0.2rem 0.5rem; border-radius: 4px; border: 2px solid #ffc107;">
+                                41b746cf-b5ac-5d51...
+                            </span>
+                            <div style="position: absolute; right: 0; top: -35px; background: #e50914; color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: bold; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(229,9,20,0.3); animation: bounceDown 1s infinite alternate;">
+                                ↓ Copy ID ini!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes bounceDown { from { transform: translateY(0); } to { transform: translateY(5px); } }
+                </style>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="transactionIdInput" placeholder="Contoh: 41b746cf-b5ac..." style="flex-grow: 1; padding: 0.8rem;">
+                <button onclick="claimTopup()" class="btn btn-success" style="padding: 0 1.5rem; white-space: nowrap;">Klaim</button>
+            </div>
+            <div id="claimLoading" class="hidden" style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                Memvalidasi transaksi... <span class="loading-dots"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trakteer Custom Modal -->
+    <div id="trakteerModal" class="modal-overlay hidden">
+        <div class="trakteer-container">
+            <iframe id="trakteerIframe" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let lastTheme = null;
+        function openTrakteer() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const iframe = document.getElementById('trakteerIframe');
+            const themeParam = currentTheme === 'dark' ? '?theme=dark' : '?theme=light';
+            
+            // Always refresh SRC to ensure it's never blank on re-open
+            iframe.src = "https://trakteer.id/v1/sirdev/tip/embed/modal" + themeParam + "&v=" + Date.now();
+            
+            iframe.onload = function() {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({type: 'embed.openModal'}, '*');
+                }
+            };
+
+            document.getElementById('trakteerModal').classList.remove('hidden');
+        }
+
+        function closeTrakteer() {
+            document.getElementById('trakteerModal').classList.add('hidden');
+        }
+
+        // Listen for close event from Trakteer Iframe
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'embed.modalClosed') {
+                closeTrakteer();
+            }
+        });
+
+        function openTopupModal() {
+            const modal = document.getElementById('topupModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.style.opacity = '1', 10);
+        }
+
+        function closeTopupModal() {
+            const modal = document.getElementById('topupModal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function claimTopup() {
+            const txIdInput = document.getElementById('transactionIdInput');
+            const loading = document.getElementById('claimLoading');
+            const txId = txIdInput.value.trim();
+
+            if (!txId) {
+                showToast('Masukkan Transaction ID terlebih dahulu', 'error');
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            
+            try {
+                const res = await fetch('/api/topup/claim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transaction_id: txId })
+                });
+
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showToast(data.message, 'success');
+                    txIdInput.value = '';
+                    closeTopupModal();
+                    // Refresh data
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Gagal mengklaim transaksi', 'error');
+                }
+            } catch (err) {
+                showToast('Terjadi kesalahan jaringan', 'error');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>
