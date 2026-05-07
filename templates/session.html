@@ -127,6 +127,55 @@
         #sessionNameDisplay:hover {
             opacity: 0.7;
         }
+
+        /* GIF & Image Previews */
+        .gif-preview-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background: var(--bg-secondary);
+            min-width: 120px;
+            min-height: 80px;
+            border: 1px solid var(--surface-border);
+        }
+
+        .gif-preview-container img {
+            display: block;
+            max-height: 120px;
+            max-width: 100%;
+            object-fit: cover;
+        }
+
+        .gif-remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0;
+            line-height: 1;
+            transition: transform 0.2s;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .gif-remove-btn:hover {
+            transform: scale(1.1);
+            background: #991b1b;
+        }
     </style>
 </head>
 
@@ -398,6 +447,10 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; gap:8px;">
                             <button class="btn btn-ghost btn-sm" onclick="openGifPicker('ansGif')">🎬 Add GIF</button>
+                            <label class="btn btn-ghost btn-sm" style="margin-bottom:0;">
+                                 📸 Image
+                                <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(this, 'ansGif', 'ansGifPreview')">
+                            </label>
                             <input type="hidden" id="ansGif" value="">
                         </div>
                         <button class="btn" id="submitBtn" onclick="sendAns('${q.id}')" style="padding:10px 30px;">Submit Response</button>
@@ -609,12 +662,12 @@
             const qAns = answers.filter(a => a.question_id === q.id);
             document.getElementById('mainContent').innerHTML = `
                 <div class="card animate-slide-fade">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div style="flex:1;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div style="flex:1; text-align: center;">
                             <h2 style="font-size: 1.5rem; margin-bottom: 1rem; cursor: pointer;" onclick="enterEditMode()">${q.text}</h2>
-                            ${q.gif_url ? `<img src="${q.gif_url}" style="border-radius: var(--radius-sm); max-height: 180px; margin-bottom: 1rem; cursor: pointer;" onclick="enterEditMode()">` : ''}
+                            ${q.gif_url ? `<div style="margin-bottom: 1rem;"><img src="${q.gif_url}" style="border-radius: var(--radius-sm); max-height: 220px; cursor: pointer;" onclick="enterEditMode()"></div>` : ''}
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; position: absolute; top: 2.5rem; right: 2.5rem;">
                             <button class="btn btn-ghost btn-sm" onclick="enterEditMode()">Edit</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">Del</button>
                         </div>
@@ -761,8 +814,8 @@
             const prevId = currentGifTarget === 'cqGif' ? 'cqGif_preview' : 'ansGifPreview';
             const prev = document.getElementById(prevId);
             prev.innerHTML = `<div class="gif-preview-container">
-                <img src="${url}" style="max-height:100px; border-radius:4px;">
-                <button onclick="removeSelectedGif('${currentGifTarget}')" class="gif-remove-btn" title="Remove GIF">✕</button>
+                <img src="${url}" style="border-radius:4px;" onerror="this.src='https://placehold.co/200x100?text=Image+Not+Found'">
+                <button onclick="removeSelectedGif('${currentGifTarget}')" class="gif-remove-btn" title="Remove">✕</button>
             </div>`;
             prev.classList.remove('hidden');
             document.getElementById('gifPickerModal').classList.add('hidden');
@@ -789,9 +842,16 @@
             fd.append('image', file);
             try {
                 const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-                if (data.url) selectGif(data.url);
-            } catch (e) { showToast('Upload failed!', 'error'); }
+                if (data.url) {
+                    currentGifTarget = targetInputId;
+                    selectGif(data.url);
+                }
+            } catch (e) { 
+                console.error(e);
+                showToast('Upload failed: ' + e.message, 'error'); 
+            }
         }
 
         function showToast(message, type = 'info') {
