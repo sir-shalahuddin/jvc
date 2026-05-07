@@ -400,7 +400,7 @@
                             <button class="btn btn-ghost btn-sm" onclick="openGifPicker('ansGif')">🎬 Add GIF</button>
                             <input type="hidden" id="ansGif" value="">
                         </div>
-                        <button class="btn" id="submitBtn" onclick="sendAns(${q.id})" style="padding:10px 30px;">Submit Response</button>
+                        <button class="btn" id="submitBtn" onclick="sendAns('${q.id}')" style="padding:10px 30px;">Submit Response</button>
                     </div>
                     ${pagination()}
                 </div>`;
@@ -438,24 +438,38 @@
             const gif = document.getElementById('ansGif').value;
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
+            btn.innerText = "Sending...";
 
-            const res = await fetch("/api/answer/submit", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ session_id: sessionId, question_id: qId, text, gif_url: gif, author_name: userProfile.name })
-            });
+            try {
+                const res = await fetch("/api/answer/submit", {
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: sessionId, question_id: qId, text, gif_url: gif, author_name: userProfile.name })
+                });
 
-            if (res.ok) {
-                btn.innerText = "Sent ✓";
-                btn.classList.add('btn-success');
+                if (res.ok) {
+                    btn.innerText = "Sent ✓";
+                    btn.classList.add('btn-success');
 
-                // Track submission
-                submittedQuestions.push(qId);
-                localStorage.setItem(`submitted_${sessionId}`, JSON.stringify(submittedQuestions));
+                    // Track submission
+                    submittedQuestions.push(qId);
+                    localStorage.setItem(`submitted_${sessionId}`, JSON.stringify(submittedQuestions));
 
-                setTimeout(() => {
-                    renderView(); // Show results
-                }, 1000);
-            } else btn.disabled = false;
+                    setTimeout(() => {
+                        renderView(); // Show results
+                    }, 1000);
+                } else {
+                    const errText = await res.text();
+                    showToast("Error: " + errText, "error");
+                    btn.disabled = false;
+                    btn.innerText = "Submit Response";
+                }
+            } catch (e) {
+                console.error(e);
+                showToast("Connection error. Please try again.", "error");
+                btn.disabled = false;
+                btn.innerText = "Submit Response";
+            }
         }
 
         async function fetchQuestions() {
@@ -579,7 +593,7 @@
             if (!text) return;
             const path = id ? '/api/question/update' : '/api/question/add';
             const body = { session_id: sessionId, text, gif_url: gif };
-            if (id) body.id = parseInt(id);
+            if (id) body.id = id;
 
             const btn = document.getElementById('saveQuestionBtn');
             btn.disabled = true;
@@ -602,7 +616,7 @@
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button class="btn btn-ghost btn-sm" onclick="enterEditMode()">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})">Del</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">Del</button>
                         </div>
                     </div>
                     <div style="margin-top:2rem; border-top:1px solid var(--surface-border); padding-top:1rem;">
