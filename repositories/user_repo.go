@@ -21,7 +21,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 func (r *UserRepository) CreateOrUpdate(ctx context.Context, user models.User) error {
-	_, err := db.Client.Collection("users").Doc(user.Email).Set(ctx, user, firestore.MergeAll)
+	_, err := db.Client.Collection("users").Doc(user.Email).Set(ctx, user)
 	return err
 }
 

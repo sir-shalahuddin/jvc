@@ -4,14 +4,12 @@ import (
 	"context"
 	"retro-gcp/db"
 	"retro-gcp/models"
-
-	"cloud.google.com/go/firestore"
 )
 
 type TransactionRepository struct{}
 
 func (r *TransactionRepository) Create(ctx context.Context, t models.Transaction) error {
-	_, err := db.Client.Collection("transactions").Doc(t.TransactionID).Set(ctx, t, firestore.MergeAll)
+	_, err := db.Client.Collection("transactions").Doc(t.TransactionID).Set(ctx, t)
 	return err
 }
 
