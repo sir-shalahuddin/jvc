@@ -55,5 +55,3 @@ This project is configured for automated deployment via GitHub Actions. Simply p
 ## 🤖 Built by Antigravity
 This entire project was autonomously developed and optimized by **Antigravity**, an advanced Agentic AI Coding Assistant. From the DDD-inspired backend structure to the premium glassmorphism UI, Antigravity handled the end-to-end development process.
 
-## 📄 License
-This project is open-source. See the LICENSE file for more details.

@@ -1,132 +1,191 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Retro - How it Works</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Inside Retro - Insights & Engineering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
-    <link rel="stylesheet" href="/static/style.css?v=82">
+    <link rel="stylesheet" href="/static/style.css?v=105">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <style>
-        .about-grid {
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .split-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 4rem;
+            align-items: center;
         }
-        .tech-tag {
-            display: inline-block;
-            padding: 4px 12px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
-            margin-bottom: 8px;
+
+        .side-title {
+            text-align: left;
         }
-        .step-card {
-            padding: 1.5rem;
-            border-left: 4px solid var(--primary);
-            background: var(--bg-secondary);
-            border-radius: 0 16px 16px 0;
-            margin-bottom: 1.5rem;
+
+        .side-logo {
+            width: 64px;
+            margin-bottom: 2rem;
+            border-radius: 18px;
+            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.1);
         }
-        .github-hero {
-            background: linear-gradient(135deg, #24292e 0%, #1a1e22 100%);
-            color: white;
-            padding: 3rem;
-            border-radius: var(--radius);
-            text-align: center;
-            margin-top: 4rem;
-            box-shadow: var(--shadow-lg);
+
+        .side-title h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
         }
-        .github-btn {
-            background: white;
-            color: #24292e;
-            padding: 12px 32px;
+
+        .side-title p {
+            color: var(--text-secondary);
             font-size: 1.1rem;
-            margin-top: 1.5rem;
+            max-width: 320px;
+            line-height: 1.5;
         }
-        .github-btn:hover {
-            background: #f1f5f9;
-            color: #24292e;
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .bento-item {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .bento-wide {
+            grid-column: span 2;
+        }
+
+        h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .bento-item p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1000px) {
+            body {
+                height: auto;
+                overflow-y: auto;
+            }
+
+            .split-layout {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 3rem;
+            }
+
+            .side-title {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                padding: 4rem 2rem;
+            }
         }
     </style>
 </head>
+
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+    </button>
+
     <div class="container animate-fade-up">
-        <header style="text-align: center; margin-bottom: 4rem;">
-            <img src="/static/images/logo.svg" alt="Retro Logo" style="width: 80px; margin-bottom: 1rem;">
-            <h1>Behind the Scenes</h1>
-            <p>How we built a performant AI-powered retrospective tool on GCP Always Free Tier.</p>
-        </header>
+        <div class="split-layout">
+            <div class="side-title">
+                <a href="/"><img src="/static/images/logo.svg" alt="Logo" class="side-logo"></a>
+                <h1>Inside Retro</h1>
+                <p>Designed for absolute honesty, powered by industrial-grade engineering.</p>
+                <a href="/" class="btn btn-ghost"
+                    style="margin-top: 2rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;">&larr; Back Home</a>
+            </div>
 
-        <div class="card">
-            <h2>🚀 How it Works</h2>
-            <div class="about-grid">
-                <div class="step-card">
-                    <h3>1. Session Orchestration</h3>
-                    <p>Users create a secure retrospective session. Each session is a unique document in Firestore, managing real-time state for participants.</p>
+            <div class="bento-grid">
+                <!-- USP: Privacy -->
+                <div class="bento-item">
+                    <h3>100% Anonymous</h3>
+                    <p>No accounts required for participants. We ensure absolute privacy so your team can speak the
+                        truth without fear.</p>
                 </div>
-                <div class="step-card">
-                    <h3>2. Anonymous Reflections</h3>
-                    <p>Participants submit feedback anonymously. To ensure high quality, we use Quill.js for rich text and bluemonday for server-side HTML sanitization.</p>
+                <!-- USP: AI -->
+                <div class="bento-item">
+                    <h3>Read the Room</h3>
+                    <p>Our AI (Gemini) analyzes the emotional tone of every response, helping you understand the team
+                        mood instantly.</p>
                 </div>
-                <div class="step-card">
-                    <h3>3. AI Sentiment Analysis</h3>
-                    <p>The core intelligence is powered by <b>Google Gemini AI</b>. As feedback is submitted, our custom background worker leverages Gemini to perform deep sentiment analysis and contextual emotion mapping.</p>
+                <!-- Tech: Cloud & Scaling -->
+                <div class="bento-item bento-wide">
+                    <h3>Built for Infinite Scaling</h3>
+                    <p>Utilizing Google Cloud's serverless infrastructure, Retro handles everything from small teams to
+                        entire organizations with zero lag and 99.9% reliability.</p>
                 </div>
-                <div class="step-card" style="border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05);">
-                    <h3 style="color: #b91c1c;">4. Safety & Guardrails</h3>
-                    <p>Utilizing Gemini's safety filters, the UI automatically highlights toxic content with a pulsing red alert for real-time moderation.</p>
+                <!-- Tech: Real-time -->
+                <div class="bento-item">
+                    <h3>Live Sync Magic</h3>
+                    <p>Watch thoughts appear as they are typed. Powered by Firestore for a "no-refresh" real-time
+                        collaborative experience.</p>
+                </div>
+                <!-- AI Branding -->
+                <div class="bento-item">
+                    <h3>Autonomous Core</h3>
+                    <p>This entire platform was architected and built by <b>Antigravity AI</b>, a demonstration of the
+                        next generation of software engineering.</p>
                 </div>
             </div>
         </div>
 
-        <div class="card" style="border: 1px solid var(--primary); background: linear-gradient(to right, var(--bg-secondary), var(--surface));">
-            <h2>🤖 Built by Antigravity</h2>
-            <p>This entire project—from backend architecture in Go to the premium frontend design—was autonomously developed and optimized by <b>Antigravity</b>, an advanced Agentic AI Coding Assistant. It demonstrates the power of AI-human pair programming in building production-ready applications in record time.</p>
-        </div>
-
-        <div class="about-grid">
-            <div class="card">
-                <h2>🛠️ Backend Architecture</h2>
-                <div style="margin-top: 1.5rem;">
-                    <span class="tech-tag">Golang</span>
-                    <span class="tech-tag">Google Cloud Run</span>
-                    <span class="tech-tag">Google Firestore</span>
-                    <span class="tech-tag">Google Gemini AI</span>
-                    <span class="tech-tag">Clean Architecture</span>
-                </div>
-                <p style="margin-top: 1rem;">The system is built with a <b>Clean Architecture</b> approach, ensuring the application is easy to maintain, test, and scale on Google Cloud's serverless infrastructure.</p>
-            </div>
-
-            <div class="card">
-                <h2>⚡ High Availability & RPM Handling</h2>
-                <p>To overcome <b>Gemini API</b> rate limits and ensure 100% uptime, we implemented a sophisticated failover system:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 1rem; color: var(--text-secondary);">
-                    <li><b>Batch Processing:</b> Multiple feedback items are bundled into a single <b>Gemini API</b> request, reducing RPM usage by up to 90%.</li>
-                    <li><b>Model Failover:</b> If a rate limit is hit, the system automatically switches between a pool of secondary models in real-time.</li>
-                    <li><b>Worker Concurrency:</b> Go routines manage background analysis without blocking the main user experience.</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="github-hero">
-            <h3>Explore the Codebase</h3>
-            <p>This project is open-source and built as part of a technical showcase.</p>
-            <a href="https://github.com/sir-shalahuddin/jvc" class="btn github-btn" target="_blank">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                View on GitHub
-            </a>
-        </div>
-
-        <footer style="text-align: center; margin-top: 4rem; padding-bottom: 2rem; color: var(--text-muted); font-size: 0.9rem;">
-            &copy; 2026 Retro GCP Project. Crafted with precision for efficiency.
+        <footer
+            style="margin-top: 4rem; text-align: center; color: var(--text-muted); font-size: 0.75rem; width: 100%;">
+            &copy; 2026 Retro Platform. Anonymous. Real-time. AI-Powered.
         </footer>
     </div>
+
+    <script>
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
+            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
+        }
+        function toggleTheme() {
+            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+            updateThemeIcon();
+        }
+        updateThemeIcon();
+    </script>
 </body>
+
 </html>

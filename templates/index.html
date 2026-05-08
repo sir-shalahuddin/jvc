@@ -1,379 +1,216 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro - Modern Sprint Retrospectives</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;800&display=swap"
-        rel="stylesheet">
+    <title>Retro - Premium Retrospectives</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
-    <link href="/static/style.css?v=82" rel="stylesheet">
-</head>
+    <link href="/static/style.css?v=105" rel="stylesheet">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        body { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .container { max-width: 1200px; padding: 2rem; width: 100%; display: flex; flex-direction: column; justify-content: center; }
+        
+        .hero-split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center; }
+        .hero-text { text-align: left; }
+        .hero-logo { width: 64px; height: 64px; margin-bottom: 1.5rem; border-radius: 18px; box-shadow: 0 15px 30px rgba(37, 99, 235, 0.2); animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
+        .hero-text h1 { font-size: 4.5rem; margin-bottom: 1rem; }
+        .hero-text p { font-size: 1.1rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6; }
 
-<body>
-    <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">🌓</button>
+        .action-stack { display: flex; flex-direction: column; gap: 1.5rem; }
+        .compact-card { background: var(--glass-bg); backdrop-filter: blur(20px); padding: 1.5rem 2rem; border-radius: 24px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); transition: 0.3s; }
+        .compact-card:hover { transform: scale(1.02); }
+        
+        .auth-status-box { background: rgba(255,255,255,0.3); padding: 1rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 1rem; }
 
-    <div id="toast-container"></div>
-    <div class="container landing-hero animate-slide-fade">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-            <img src="/static/images/logo.svg" alt="Retro Logo" style="width: 100px; height: 100px; border-radius: 24%; box-shadow: var(--shadow-md); border: 2px solid var(--primary); animation: fadeIn 1s ease;">
-            <h1 style="font-size: 3.5rem; margin-bottom: 0;">Retro</h1>
-        </div>
-        <p>A professional way to run sprint retrospectives with AI sentiment analysis.</p>
-        <div style="margin-top: 1rem;">
-            <a href="/about" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.9rem;">✨ How it Works & Tech Stack</a>
-        </div>
+        .nav-links { margin-top: 3rem; display: flex; gap: 2rem; font-weight: 700; }
 
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem;">
+        @media (max-width: 900px) {
+            body { height: auto; overflow-y: auto; }
+            .container { padding: 4rem 2rem; display: flex; flex-direction: column; height: auto; align-items: center; }
+            .hero-split { grid-template-columns: 1fr; text-align: center; gap: 3rem; width: 100%; }
+            .hero-text { display: flex; flex-direction: column; align-items: center; }
+            .hero-text h1 { font-size: 3.5rem; }
             
-            <!-- Top Row: Host & Join -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem; align-items: start; text-align: left;">
+            /* Static bottom position on mobile */
+            .nav-links { 
+                margin-top: 4rem;
+                padding-bottom: 2rem;
+                justify-content: center;
+                width: 100%;
+                border-top: 1px solid var(--glass-border);
+                padding-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+    </button>
+
+    <div id="toast-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 9999;"></div>
+
+    <div class="container animate-fade-up">
+        <div class="hero-split">
+            <div class="hero-text">
+                <img src="/static/images/logo.svg" alt="Logo" class="hero-logo">
+                <h1>Retro</h1>
+                <p>AI-driven retrospectives for engineering excellence. Synchronize feedback, analyze sentiment, and improve team velocity in real-time.</p>
                 
-                <!-- Host Section Card -->
-                <div class="card" style="display: flex; flex-direction: column; height: 100%;">
-                    <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Host Session</h2>
-                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: var(--text-secondary);">Create a room and analyze team feedback with AI power.</p>
-                    <div id="authSection" style="flex-grow: 1; display: flex; flex-direction: column;">
-                        <!-- Filled by JS -->
-                    </div>
-                </div>
-
-                <!-- Join Section Card -->
-                <div class="card" style="display: flex; flex-direction: column; height: 100%;">
-                    <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Join Session</h2>
-                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: var(--text-secondary);">Enter a code to provide anonymous feedback.</p>
-                    <div class="join-section" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
-                        <input type="text" id="joinCode" placeholder="Session Room ID" style="margin-bottom: 1rem; font-size: 1.1rem; padding: 1rem;">
-                        <button class="btn btn-success" id="joinSessionBtn" style="width: 100%; font-size: 1.1rem; padding: 1rem;">Join Session</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Bottom Row: History (Visible when logged in) -->
-            <div id="historySectionWrapper" class="hidden" style="text-align: left;">
-                <div class="card">
-                    <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem;">📜 My History</h2>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-mobile-cards" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Session Name</th>
-                                    <th>ID / Code</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-body">
-                                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- On Desktop, this stays here -->
+                <div class="nav-links desktop-only">
+                    <a href="/about" style="color: var(--primary); text-decoration: none;">Insights</a>
+                    <a href="https://github.com/sir-shalahuddin/jvc" target="_blank" style="color: var(--text-muted); text-decoration: none;">Source</a>
+                    <a href="#" id="historyToggleBtn" class="hidden" style="color: var(--text-muted); text-decoration: none;" onclick="toggleHistory()">Activity</a>
                 </div>
             </div>
 
+            <div class="action-stack">
+                <div class="compact-card">
+                    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Host Session</h2>
+                    <div id="authSection"><div style="color: var(--text-muted); font-size: 0.9rem;">Initializing...</div></div>
+                </div>
+
+                <div class="compact-card">
+                    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Join Session</h2>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <input type="text" id="joinCode" placeholder="Room ID" style="padding: 0.75rem 1.25rem;">
+                        <button id="joinSessionBtn" class="btn btn-primary">Join</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This is a duplicate purely for easier static positioning at bottom of mobile flow -->
+        <style>
+            @media (min-width: 901px) { .mobile-nav { display: none !important; } }
+            @media (max-width: 900px) { .desktop-only { display: none !important; } }
+        </style>
+        <div class="nav-links mobile-nav">
+             <a href="/about" style="color: var(--primary); text-decoration: none;">Insights</a>
+             <a href="https://github.com/sir-shalahuddin/jvc" target="_blank" style="color: var(--text-muted); text-decoration: none;">Source</a>
+             <a href="#" id="historyToggleBtnMob" class="hidden" style="color: var(--text-muted); text-decoration: none;" onclick="toggleHistory()">Activity</a>
+        </div>
+
+        <div id="historyPanel" class="card hidden animate-fade-up" style="margin-top: 3rem; position: relative;">
+            <button onclick="toggleHistory()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 1.5rem;">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Recent Activity</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th>Date</th><th>Topic</th><th>ID</th><th>Action</th></tr></thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="topupModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button onclick="closeTopupModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Scale Quota</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Support our independent AI infrastructure.</p>
+            <a href="https://trakteer.id/sirdev" target="_blank" class="btn btn-ghost" style="width: 100%; border-color: #ef4444; color: #ef4444; margin-bottom: 2rem;">❤️ Trakteer</a>
+            <input type="text" id="transactionIdInput" placeholder="Order ID" style="margin-bottom: 1rem;">
+            <button onclick="claimTopup()" class="btn btn-primary" style="width: 100%;">Claim Quota</button>
         </div>
     </div>
 
     <script>
-        // Theme logic
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
+            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
+        }
 
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
+        function toggleTheme() {
+            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+            updateThemeIcon();
+        }
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-
-        let userEmail = null;
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                loadHistory();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        }
 
         async function checkAuth() {
-            try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                const authSection = document.getElementById('authSection');
-
-                if (data.authenticated) {
-                    userEmail = data.email;
-                    
-                    let adminLink = "";
-                    if (userEmail === "sirajshalahuddin@gmail.com") {
-                        adminLink = `<a href="/admin" class="btn btn-warning" style="width: 100%; margin-top: 0.5rem; background: #eab308; color: black;">👑 Admin Dashboard</a>`;
-                    }
-
-                    authSection.innerHTML = `
-                        <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; height: 100%; display: flex; flex-direction: column;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                <p style="font-size: 0.9rem; margin: 0;">Hi, <strong>${userEmail}</strong></p>
-                                <span style="font-size: 0.8rem; background: var(--bg-primary); padding: 0.2rem 0.6rem; border-radius: 20px; border: 1px solid var(--border);">Quota: <b>${data.quota}</b> Sesi</span>
-                            </div>
-                            <input type="text" id="sessionName" placeholder="My Retro Session Name" value="Sprint Retrospective" style="margin-bottom: 0.5rem;">
-                            <button class="btn" id="createSessionBtn" style="width: 100%;">🚀 Start New Session</button>
-                            <button class="btn btn-success" id="topupBtn" style="width: 100%; margin-top: 0.5rem;" onclick="openTopupModal()">💎 Top Up / Klaim Kuota</button>
-                            ${adminLink}
-                            <div style="text-align: center; margin-top: auto; padding-top: 1rem;">
-                                <a href="/auth/logout" style="color: var(--danger); font-size: 0.85rem; text-decoration: none; font-weight: 600;">Logout</a>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById('createSessionBtn').addEventListener('click', createSession);
-                    
-                    // Show History Section
-                    document.getElementById('historySectionWrapper').classList.remove('hidden');
-                    loadHistory();
-                } else {
-                    authSection.innerHTML = `
-                        <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-sm);">
-                            <button class="btn btn-danger" onclick="window.location.href='/auth/google/login'" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="24" style="margin-right:12px; filter: brightness(10);">
-                                Login with Google
-                            </button>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                console.error(e);
+            const res = await fetch('/api/me');
+            const data = await res.json();
+            const authSection = document.getElementById('authSection');
+            if (data.authenticated) {
+                authSection.innerHTML = `
+                    <div class="auth-status-box">
+                        <div style="font-weight: 700; font-size: 0.9rem;">${data.email.split('@')[0]}</div>
+                        <span class="badge badge-success">${data.quota} Units</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <input type="text" id="sessionName" placeholder="Topic" value="Sprint Sync" style="padding: 0.6rem 1rem;">
+                        <button id="createSessionBtn" class="btn btn-primary">Start</button>
+                    </div>
+                    <div style="display: flex; gap: 1rem; font-size: 0.8rem; font-weight: 700;">
+                        <a href="javascript:openTopupModal()" style="color: var(--primary); text-decoration:none;">Buy Quota</a>
+                        <a href="/auth/logout" style="color: var(--danger); text-decoration:none;">Sign Out</a>
+                    </div>
+                `;
+                document.getElementById('createSessionBtn').onclick = createSession;
+                document.getElementById('historyToggleBtn').classList.remove('hidden');
+                const mobBtn = document.getElementById('historyToggleBtnMob');
+                if (mobBtn) mobBtn.classList.remove('hidden');
+            } else {
+                authSection.innerHTML = `
+                    <button class="btn btn-primary" style="width: 100%; padding: 1rem;" onclick="window.location.href='/auth/google/login'">
+                        Continue with Google
+                    </button>
+                `;
             }
         }
 
         async function createSession() {
-            const name = document.getElementById('sessionName').value.trim() || "Sprint Retrospective";
-            const btn = document.getElementById('createSessionBtn');
-            btn.disabled = true;
-            btn.innerText = "Creating...";
-
-            try {
-                const res = await fetch('/api/session/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name })
-                });
-                if (!res.ok) {
-                    throw new Error(await res.text());
-                }
-                const data = await res.json();
-                if (data.id) {
-                    window.location.href = `/session/?id=${data.id}&role=sm`;
-                }
-            } catch (e) {
-                showToast('Failed to create session! ' + e.message, 'error');
-                btn.disabled = false;
-                btn.innerText = "🚀 Start New Session";
-            }
+            const name = document.getElementById('sessionName').value || "Sprint Sync";
+            const res = await fetch('/api/session/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+            if (res.ok) { const d = await res.json(); window.location.href = `/session/?id=${d.id}&role=sm`; }
         }
 
         async function loadHistory() {
-            try {
-                const res = await fetch('/api/history');
-                if (res.status === 401) return;
-                const data = await res.json();
-
-                const tbody = document.getElementById('history-body');
-                tbody.innerHTML = '';
-
-                if (!data.sessions || data.sessions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No sessions created yet. Start by hosting one!</td></tr>';
-                    return;
-                }
-
-                data.sessions.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td data-label="Date">${new Date(s.created_at).toLocaleDateString()}</td>
-                        <td data-label="Session Name"><strong>${s.name}</strong></td>
-                        <td data-label="ID / Code"><code>${s.id}</code></td>
-                        <td data-label="Status"><span class="badge badge-success">${s.status}</span></td>
-                        <td data-label="Action"><a href="/session/?id=${s.id}&role=sm" class="btn btn-success btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Enter Room</a></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                console.error("Failed to load history:", e);
-            }
+            const res = await fetch('/api/history');
+            const data = await res.json();
+            const tbody = document.getElementById('history-body');
+            tbody.innerHTML = (data.sessions || []).map(s => `
+                <tr>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(s.created_at).toLocaleDateString()}</td>
+                    <td style="font-weight: 700;">${s.name}</td>
+                    <td><code>${s.id}</code></td>
+                    <td><a href="/session/?id=${s.id}&role=sm" class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.75rem;">Enter</a></td>
+                </tr>
+            `).join('') || '<tr><td colspan="4" style="text-align:center; padding: 2rem;">No history.</td></tr>';
         }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            
-            let icon = 'ℹ️';
-            if (type === 'success') icon = '✅';
-            if (type === 'error') icon = '❌';
+        function openTopupModal() { document.getElementById('topupModal').classList.remove('hidden'); }
+        function closeTopupModal() { document.getElementById('topupModal').classList.add('hidden'); }
 
-            toast.innerHTML = `
-                <span class="toast-icon">${icon}</span>
-                <span class="toast-message">${message}</span>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.add('toast-out');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        document.getElementById('joinSessionBtn').addEventListener('click', () => {
+        document.getElementById('joinSessionBtn').onclick = () => {
             const code = document.getElementById('joinCode').value.trim();
-            if (code) {
-                window.location.href = `/session/?id=${code}`;
-            }
-        });
+            if (code) window.location.href = `/session/?id=${code}`;
+        };
 
         checkAuth();
-    </script>
-    <button onclick="openTrakteer()" class="trakteer-floating" style="border: none; cursor: pointer;">
-        <img src="https://edge-cdn.trakteer.id/images/embed/trbtn-icon.png" alt="Trakteer Icon">
-        <span class="trakteer-text">Dukung Saya</span>
-    </button>
-
-    <!-- Top Up / Claim Modal -->
-    <div id="topupModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
-        <div class="card" style="width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button onclick="closeTopupModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">×</button>
-            <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">Top Up Kuota Sesi</h2>
-            
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
-                Dukung pengembangan aplikasi ini dengan berdonasi via Trakteer. 
-                <strong>1 Cendol (Rp 5.000) = +1 Kuota Sesi.</strong>
-            </p>
-
-            <button onclick="openTrakteer()" class="btn btn-success" style="width: 100%; margin-bottom: 2rem; background: #e50914; border-color: #e50914;">
-                ❤️ Trakteer Sekarang
-            </button>
-
-            <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Klaim Kuota</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
-                Sudah mentrakteer? Masukkan <strong>Order ID / Transaction ID</strong> dari bukti pembayaran Anda untuk mengklaim kuota secara otomatis.
-            </p>
-
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 1.5rem; border: 1px solid var(--border);">
-                <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                    <div style="font-size: 0.8rem; color: #555;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; position: relative;">
-                            <span>Order ID</span>
-                            <span style="font-family: monospace; font-weight: 600; color: #000; background: #fff3cd; padding: 0.2rem 0.5rem; border-radius: 4px; border: 2px solid #ffc107;">
-                                41b746cf-b5ac-5d51...
-                            </span>
-                            <div style="position: absolute; right: 0; top: -35px; background: #e50914; color: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: bold; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(229,9,20,0.3); animation: bounceDown 1s infinite alternate;">
-                                ↓ Copy ID ini!
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <style>
-                    @keyframes bounceDown { from { transform: translateY(0); } to { transform: translateY(5px); } }
-                </style>
-            </div>
-
-            <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="transactionIdInput" placeholder="Contoh: 41b746cf-b5ac..." style="flex-grow: 1; padding: 0.8rem;">
-                <button onclick="claimTopup()" class="btn btn-success" style="padding: 0 1.5rem; white-space: nowrap;">Klaim</button>
-            </div>
-            <div id="claimLoading" class="hidden" style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                Memvalidasi transaksi... <span class="loading-dots"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Trakteer Custom Modal -->
-    <div id="trakteerModal" class="modal-overlay hidden">
-        <div class="trakteer-container">
-            <iframe id="trakteerIframe" frameborder="0"></iframe>
-        </div>
-    </div>
-
-    <script>
-        let lastTheme = null;
-        function openTrakteer() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const iframe = document.getElementById('trakteerIframe');
-            const themeParam = currentTheme === 'dark' ? '?theme=dark' : '?theme=light';
-            
-            // Always refresh SRC to ensure it's never blank on re-open
-            iframe.src = "https://trakteer.id/v1/sirdev/tip/embed/modal" + themeParam + "&v=" + Date.now();
-            
-            iframe.onload = function() {
-                if (iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({type: 'embed.openModal'}, '*');
-                }
-            };
-
-            document.getElementById('trakteerModal').classList.remove('hidden');
-        }
-
-        function closeTrakteer() {
-            document.getElementById('trakteerModal').classList.add('hidden');
-        }
-
-        // Listen for close event from Trakteer Iframe
-        window.addEventListener('message', function(e) {
-            if (e.data && e.data.type === 'embed.modalClosed') {
-                closeTrakteer();
-            }
-        });
-
-        function openTopupModal() {
-            const modal = document.getElementById('topupModal');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.style.opacity = '1', 10);
-        }
-
-        function closeTopupModal() {
-            const modal = document.getElementById('topupModal');
-            modal.style.opacity = '0';
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        async function claimTopup() {
-            const txIdInput = document.getElementById('transactionIdInput');
-            const loading = document.getElementById('claimLoading');
-            const txId = txIdInput.value.trim();
-
-            if (!txId) {
-                showToast('Masukkan Transaction ID terlebih dahulu', 'error');
-                return;
-            }
-
-            loading.classList.remove('hidden');
-            
-            try {
-                const res = await fetch('/api/topup/claim', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transaction_id: txId })
-                });
-
-                const data = await res.json();
-                
-                if (res.ok) {
-                    showToast(data.message, 'success');
-                    txIdInput.value = '';
-                    closeTopupModal();
-                    // Refresh data
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    showToast(data.message || 'Gagal mengklaim transaksi', 'error');
-                }
-            } catch (err) {
-                showToast('Terjadi kesalahan jaringan', 'error');
-            } finally {
-                loading.classList.add('hidden');
-            }
-        }
+        updateThemeIcon();
     </script>
 </body>
-
 </html>
