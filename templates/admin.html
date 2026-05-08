@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Retro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
-    <link rel="stylesheet" href="/static/style.css?v=103">
+    <title>Retro Admin - Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
+    <link rel="stylesheet" href="/static/style.css?v=105">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -14,89 +14,111 @@
         })();
     </script>
     <style>
-        .admin-header { padding: 4rem 0 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--surface-border); margin-bottom: 3rem; }
+        .admin-header { padding: 4rem 0 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); margin-bottom: 3rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: var(--glass-bg); padding: 1.5rem; border-radius: 24px; border: 1px solid var(--glass-border); text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 900; color: var(--primary); display: block; }
+        .stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 0.75rem; }
+        th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 800; }
+        td { padding: 1.25rem 1rem; background: var(--glass-bg); backdrop-filter: blur(10px); border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); }
+        td:first-child { border-left: 1px solid var(--glass-border); border-radius: 16px 0 0 16px; }
+        td:last-child { border-right: 1px solid var(--glass-border); border-radius: 0 16px 16px 0; }
+        
+        .action-btn { padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.3s; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.2); }
+        .action-btn:hover { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
     </button>
+
     <div class="container animate-fade-up">
         <header class="admin-header">
             <div>
-                <h1 style="font-size: 1.5rem;">Admin Control</h1>
-                <p style="color: var(--text-secondary); font-size: 0.875rem;">Platform-wide session monitoring and management.</p>
+                <h1 style="font-size: 2.5rem; margin:0;">Command Center</h1>
+                <p style="color: var(--text-secondary); margin-top: 5px;">Platform oversight and global orchestration.</p>
             </div>
-            <a href="/" class="btn btn-ghost">Exit Dashboard</a>
+            <a href="/" class="btn btn-ghost">Back to Home</a>
         </header>
 
-        <section class="card" style="padding: 0;">
-            <div style="padding: 1.5rem 2rem; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="font-size: 1rem;">Active Discussions</h2>
-                <div id="sessionCount" class="badge" style="background: var(--primary-light); color: var(--primary);">0 Sessions</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span id="totalSessions" class="stat-value">0</span>
+                <span class="stat-label">Total Sessions</span>
             </div>
+            <div class="stat-card">
+                <span id="totalUsers" class="stat-value">0</span>
+                <span class="stat-label">Active Users</span>
+            </div>
+            <div class="stat-card">
+                <span id="totalRevenue" class="stat-value">0</span>
+                <span class="stat-label">Units Claimed</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 2rem; font-size: 1.5rem;">Active Sessions</h2>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Organization / Owner</th>
-                            <th>Topic Name</th>
-                            <th>Room ID</th>
-                            <th>Status</th>
-                            <th>Operations</th>
+                            <th>Host</th>
+                            <th>Topic</th>
+                            <th>Created At</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-session-body">
-                        <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted); font-size: 0.875rem;">Fetching real-time data...</td></tr>
+                    <tbody id="sessionList">
+                        <!-- Loaded via API -->
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
     </div>
 
     <script>
         function updateThemeIcon() {
             const theme = document.documentElement.getAttribute('data-theme');
             const icon = document.getElementById('theme-icon');
-            if (theme === 'dark') {
-                icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>';
-            } else {
-                icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-            }
+            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
+            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
         }
+
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const target = current === 'dark' ? 'light' : 'dark';
+            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', target);
             localStorage.setItem('theme', target);
             updateThemeIcon();
         }
-        updateThemeIcon();
 
         async function loadAdminData() {
             try {
-                const res = await fetch('/api/admin/sessions');
-                if (res.status === 403) { window.location.href = "/"; return; }
+                const res = await fetch('/api/admin/stats');
+                if (res.status === 403) return window.location.href = '/';
                 const data = await res.json();
-                const tbody = document.getElementById('admin-session-body');
-                document.getElementById('sessionCount').innerText = `${data.sessions ? data.sessions.length : 0} Total Sessions`;
+                
+                document.getElementById('totalSessions').innerText = data.total_sessions;
+                document.getElementById('totalUsers').innerText = data.total_users;
+                document.getElementById('totalRevenue').innerText = data.total_revenue || 0;
 
-                if (!data.sessions || data.sessions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">No active sessions.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.sessions.map(s => `
+                const sList = document.getElementById('sessionList');
+                sList.innerHTML = data.recent_sessions.map(s => `
                     <tr>
-                        <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${s.owner_email}</td>
-                        <td style="font-weight: 600;">${s.name}</td>
-                        <td><code>${s.id}</code></td>
-                        <td><span class="badge badge-success">Active</span></td>
-                        <td><a href="/session/?id=${s.id}&role=sm" class="btn btn-ghost" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">Manage</a></td>
+                        <td style="font-weight: 700;">${s.creator_email || 'System'}</td>
+                        <td>${s.name}</td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">${new Date(s.created_at).toLocaleString()}</td>
+                        <td>
+                            <a href="/session/?id=${s.id}&role=sm" class="action-btn">Manage</a>
+                        </td>
                     </tr>
                 `).join('');
             } catch (e) { console.error(e); }
         }
+
+        updateThemeIcon();
         loadAdminData();
     </script>
 </body>
