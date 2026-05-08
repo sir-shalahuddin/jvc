@@ -86,6 +86,7 @@ func main() {
 	mux.HandleFunc("/", handlers.HomeHandler)
 	mux.HandleFunc("/session/", handlers.SessionHandler)
 	mux.HandleFunc("/admin", handlers.AdminUIHandler)
+	mux.HandleFunc("/about", handlers.AboutHandler)
 
 	port := config.AppConfig.Port
 	log.Printf("Server starting on :%s...", port)

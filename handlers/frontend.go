@@ -31,3 +31,7 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 func AdminUIHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "admin", nil)
 }
+
+func AboutHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "about", nil)
+}

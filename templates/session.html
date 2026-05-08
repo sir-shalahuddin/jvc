@@ -172,6 +172,24 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        .sm-answer-card.high-alert {
+            border: 2px solid #ef4444 !important;
+            background: #fff5f5 !important;
+            animation: pulse-red 2s infinite;
+            z-index: 5;
+        }
+
+        [data-theme='dark'] .sm-answer-card.high-alert {
+            background: #450a0a !important;
+            border-color: #f87171 !important;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
         .gif-remove-btn:hover {
             transform: scale(1.1);
             background: #991b1b;
@@ -702,8 +720,20 @@
                 let html = `<div class="answer-grid">`;
                 qAns.forEach((ans, index) => {
                     const color = ans.sentiment_color || "var(--bg-secondary)";
+                    
+                    // Logic to detect "Red" or "Negative" sentiment to highlight
+                    const emotion = (ans.sentiment_emotion || "").toLowerCase();
+                    const isNegative = emotion.includes('toxic') || 
+                                     emotion.includes('angry') || 
+                                     emotion.includes('negative') || 
+                                     emotion.includes('inappropriate') ||
+                                     color.toLowerCase() === '#ef4444' ||
+                                     color.toLowerCase().startsWith('#f'); // Roughly red-ish in many hexes
+
+                    const alertClass = isNegative ? 'high-alert' : '';
+
                     html += `
-                        <div class="sm-answer-card shadow-sm" style="border-bottom: 4px solid ${color};" onclick='openModalForAnswer(${index})'>
+                        <div class="sm-answer-card shadow-sm ${alertClass}" style="border-bottom: 4px solid ${color};" onclick='openModalForAnswer(${index})'>
                             <span class="sentiment-badge">${ans.sentiment_emoji || '💬'}</span>
                             <div style="font-size: 0.7rem; font-weight: 700; margin-top: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">${ans.author_name || 'Anonymous'}</div>
                         </div>`;
