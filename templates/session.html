@@ -16,55 +16,46 @@
         })();
     </script>
     <style>
+        :root[data-theme='light'] { --text-main: #0f172a; --text-sub: #475569; --card-bg: rgba(255, 255, 255, 0.9); }
+        :root[data-theme='dark'] { --text-main: #f8fafc; --text-sub: #94a3b8; --card-bg: rgba(15, 23, 42, 0.9); }
+
         .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); margin-bottom: 3rem; }
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; perspective: 1500px; }
         .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
         .answer-card.flipped { transform: rotateY(180deg); }
+        .answer-card.processing { cursor: wait; pointer-events: none; opacity: 0.8; }
+        
         .card-face { position: relative; width: 100%; height: auto; min-height: 280px; backface-visibility: hidden; border-radius: 28px; padding: 1.75rem; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(15px); display: flex; flex-direction: column; transition: 0.5s ease; }
         .card-front { background: var(--glass-bg); color: var(--primary); font-weight: 900; font-size: 1.5rem; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; box-shadow: 0 0 35px -5px var(--mood-color, transparent); transition: 0.8s ease; }
-        .card-back { background: rgba(255, 255, 255, 0.95); color: var(--text); transform: rotateY(180deg); position: relative; min-height: 280px; width: 100%; height: auto; }
-        [data-theme='dark'] .card-back { background: rgba(15, 23, 42, 0.95); }
+        .card-back { background: var(--card-bg); color: var(--text-main); transform: rotateY(180deg); position: relative; min-height: 280px; width: 100%; height: auto; }
         
         /* AI Thinking Animation */
-        @keyframes ai-pulse { 0% { transform: scale(1); opacity: 0.5; filter: blur(2px); } 50% { transform: scale(1.1); opacity: 1; filter: blur(0px); } 100% { transform: scale(1); opacity: 0.5; filter: blur(2px); } }
-        @keyframes ai-scan { 0% { top: -100%; } 100% { top: 200%; } }
-        .ai-thinking { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-        .ai-icon { font-size: 3.5rem; animation: ai-pulse 2s infinite ease-in-out; }
-        .ai-scan-bar { position: absolute; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent, var(--primary), transparent); opacity: 0.1; pointer-events: none; animation: ai-scan 3s infinite linear; }
-        .ai-status { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: var(--primary); opacity: 0.6; }
+        @keyframes ai-pulse { 0% { transform: scale(1); opacity: 0.4; filter: blur(2px); } 50% { transform: scale(1.15); opacity: 1; filter: blur(0px); } 100% { transform: scale(1); opacity: 0.4; filter: blur(2px); } }
+        @keyframes ai-scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(300%); } }
+        .ai-thinking { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; z-index: 5; }
+        .ai-icon { font-size: 4rem; animation: ai-pulse 2s infinite ease-in-out; }
+        .ai-scan-bar { position: absolute; top: 0; left: 0; width: 100%; height: 25%; background: linear-gradient(to bottom, transparent, var(--primary), transparent); opacity: 0.2; pointer-events: none; animation: ai-scan 2.5s infinite linear; }
+        .ai-status { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.3em; color: var(--primary); opacity: 0.8; }
 
-        .warning-overlay { position: absolute; inset: 0; background: rgba(239, 68, 68, 0.95); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 28px; z-index: 10; text-align: center; padding: 1.5rem; backdrop-filter: blur(12px); }
-        .warning-overlay span { font-weight: 900; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
-        .gif-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 1rem; max-height: 200px; overflow-y: auto; padding: 5px; }
-        .gif-item { cursor: pointer; border-radius: 8px; width: 100%; height: 70px; object-fit: cover; transition: 0.3s; }
-        .gif-item:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .gif-item.selected { border: 3px solid var(--primary); transform: scale(0.95); }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 14px; font-weight: 700; font-size: 0.95rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; line-height: 1; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2); }
+        .btn-ghost { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+
+        .modal-content { background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 32px; padding: 3rem; position: relative; box-shadow: var(--glass-shadow); max-height: 90vh; overflow-y: auto; color: var(--text-main); }
+        .modal-content input, .modal-content textarea { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--glass-border); }
+
         #nav-questions { position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: var(--glass-bg); padding: 1rem 2rem; border-radius: 50px; box-shadow: var(--glass-shadow); z-index: 1000; border: 1px solid var(--glass-border); backdrop-filter: blur(25px); }
-        .nav-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-muted); cursor: pointer; transition: 0.4s; }
+        .nav-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-sub); cursor: pointer; transition: 0.4s; }
         .nav-dot.active { background: var(--primary); transform: scale(1.5); }
-        .nav-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--glass-shadow); z-index: 900; transition: 0.3s; color: var(--primary); }
-        .nav-btn:hover { background: var(--primary); color: white; }
+
+        /* PDF Styles */
         #pdf-export-container { display: none; padding: 50px; font-family: 'Arial', sans-serif; color: #1e293b; background: #fff; }
         #pdf-export-container h1 { font-size: 28pt; margin-bottom: 8px; color: #0f172a; font-weight: 800; }
-        #pdf-export-container .meta { font-size: 10pt; color: #64748b; margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; font-style: italic; }
         #pdf-export-container .summary-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 20px; border-radius: 8px; margin-bottom: 40px; }
-        #pdf-export-container .summary-title { font-size: 14pt; font-weight: 800; margin-bottom: 10px; color: #0f172a; }
-        #pdf-export-container .summary-text { font-size: 11pt; line-height: 1.6; color: #334155; }
-        #pdf-export-container .q-section { margin-bottom: 35px; page-break-inside: avoid; }
-        #pdf-export-container .q-title { font-size: 14pt; font-weight: 800; margin-bottom: 20px; background: #f1f5f9; padding: 12px 18px; border-bottom: 2px solid #cbd5e1; color: #1e293b; }
-        #pdf-export-container .ans-block { margin-bottom: 20px; padding-left: 15px; position: relative; border-left: 5px solid var(--mood-color, #e2e8f0); }
-        #pdf-export-container .ans-header { font-size: 11pt; font-weight: 800; margin-bottom: 5px; color: #0f172a; }
         #pdf-export-container .ans-text { font-size: 11pt; line-height: 1.5; color: #475467; }
-
-        /* Modal Stability Fix */
-        .modal-content { 
-            max-height: 90vh; 
-            overflow-y: auto; 
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-        .modal-content::-webkit-scrollbar { width: 6px; }
-        .modal-content::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -76,16 +67,16 @@
     <div class="container animate-fade-up">
         <header class="session-header">
             <div>
-                <h1 id="sessionNameTitle" style="font-size: 2rem; margin:0;">Loading...</h1>
-                <p id="sessionIdDisplay" style="color: var(--text-muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;"></p>
+                <h1 id="sessionNameTitle" style="font-size: 2rem; margin:0; color: var(--text-main);">Loading...</h1>
+                <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;"></p>
             </div>
-            <div style="display: flex; gap: 1rem;">
-                <div id="sm-controls" class="hidden" style="display: flex; gap: 0.5rem; margin-right: 1rem; border-right: 1px solid var(--glass-border); padding-right: 1rem;">
-                    <button onclick="openQuestionModal()" class="btn btn-primary" style="background: var(--success);">+ Add Question</button>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <div id="sm-controls" class="hidden" style="display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 0.5rem;">
+                    <button onclick="openQuestionModal()" class="btn btn-success">+ Add Question</button>
                 </div>
                 <button onclick="exportToPDF()" class="btn btn-ghost" style="border-color: var(--primary); color: var(--primary);">Export PDF</button>
                 <button onclick="copyInvite()" class="btn btn-ghost">Invite Team</button>
-                <a href="/" class="btn btn-ghost" style="color: var(--danger);">Exit</a>
+                <a href="/" class="btn btn-ghost" style="color: var(--danger); border-color: var(--danger);">Exit</a>
             </div>
         </header>
 
@@ -104,54 +95,54 @@
 
     <!-- Submit Answer Modal -->
     <div id="submitModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 650px; padding: 2.5rem;">
-            <button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <div class="modal-content" style="max-width: 650px;">
+            <button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button>
             <h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2>
-            <div id="editor-wrapper" style="border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem; background: var(--bg-color);">
-                <div id="editor-container" style="height: 150px; font-family: 'Inter', sans-serif; font-size: 1.1rem;"></div>
+            <div id="editor-wrapper" style="border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem;">
+                <div id="editor-container" style="height: 150px; font-size: 1.1rem; color: var(--text-main);"></div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;">
                 <div>
-                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase;">Your Alias</label>
+                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Alias</label>
                     <input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase;">Search GIF</label>
+                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Search GIF</label>
                     <input type="text" id="gifSearchQuery" placeholder="Type to find GIFs..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')">
                 </div>
             </div>
             <div id="gif-results" class="gif-results"></div>
             <input type="hidden" id="selectedGifUrl">
-            <button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem; padding: 1rem; font-size: 1.1rem;">Post to Board</button>
+            <button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button>
         </div>
     </div>
 
     <!-- Question Management Modal -->
     <div id="questionModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 650px; padding: 2.5rem;">
-            <button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <div class="modal-content" style="max-width: 650px;">
+            <button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button>
             <h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2>
             <input type="hidden" id="editQId">
             <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Question Text</label>
-                <input type="text" id="qModalText" placeholder="e.g. What went well?" style="width: 100%; font-size: 1.1rem;">
+                <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Question Text</label>
+                <input type="text" id="qModalText" style="width: 100%;">
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div>
-                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Find Topic GIF</label>
-                    <input type="text" id="qGifSearch" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('q-gif-results', 'qModalGif')">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Find GIF</label>
+                    <input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Or Upload Image</label>
-                    <input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%; font-size: 0.8rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload Image</label>
+                    <input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;">
                 </div>
             </div>
             <div id="q-gif-results" class="gif-results"></div>
-            <div id="q-preview" style="margin-top: 1rem; text-align: center;"></div>
+            <div id="q-preview" style="text-align: center;"></div>
             <input type="hidden" id="qModalGif">
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <button onclick="saveQuestion()" class="btn btn-primary" style="flex: 1;">Save Changes</button>
-                <button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="color: var(--danger); border-color: var(--danger);">Delete</button>
+                <button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save Changes</button>
+                <button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--danger); border-color: var(--danger);">Delete</button>
             </div>
         </div>
     </div>
@@ -163,8 +154,7 @@
         const sessionId = urlParams.get('id'); const role = urlParams.get('role');
 
         function updateThemeIcon() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
+            const theme = document.documentElement.getAttribute('data-theme'); const icon = document.getElementById('theme-icon');
             if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
             else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
         }
@@ -182,12 +172,8 @@
         }
 
         function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon();
+            const html = document.documentElement; const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme); localStorage.setItem('theme', newTheme); updateThemeIcon();
         }
 
         async function loadQuestions() {
@@ -200,13 +186,13 @@
                         ${q.gif_url ? `<img src="${q.gif_url}" style="width: 140px; height: 140px; border-radius: 24px; object-fit: cover; box-shadow: var(--glass-shadow);">` : ''}
                         <div style="flex-grow: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1;">${q.text}</h2>
+                                <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1; color: var(--text-main);">${q.text}</h2>
                                 <div style="display: flex; gap: 0.5rem;">
-                                    ${role === 'sm' ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="padding: 0.5rem;">✏️</button>` : ''}
-                                    <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary" style="padding: 0.8rem 1.75rem;">Add Card</button>
+                                    ${role === 'sm' ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="padding: 0.6rem;">✏️</button>` : ''}
+                                    <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary">Add Card</button>
                                 </div>
                             </div>
-                            <p style="color: var(--text-secondary); margin-top: 12px; font-size: 1rem; opacity: 0.8;">Collaborative insights on this topic.</p>
+                            <p style="color: var(--text-sub); margin-top: 12px; font-size: 1rem; opacity: 0.8;">Collaborative insights on this topic.</p>
                         </div>
                     </div>
                     <div id="answers-${q.id}" class="answers-grid"></div>
@@ -233,7 +219,7 @@
                 const aContainer = document.getElementById(`answers-${q.id}`);
                 qAnswers.forEach(a => {
                     const existingCard = document.querySelector(`.answer-card[data-id="${a.id}"]`);
-                    const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '';
+                    const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
                     const frontContent = isProcessing ? `
                         <div class="ai-thinking">
@@ -253,25 +239,25 @@
                                 <span style="font-weight: 800; font-size: 0.75rem; color: var(--primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span>
                                 <div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">${a.sentiment_emoji || ''}</span><div style="background: ${color}; width: 10px; height: 10px; border-radius: 50%;"></div></div>
                             </div>
-                            <div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1;">${a.text}</div>
+                            <div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>
                             ${a.gif_url ? `<img src="${a.gif_url}" style="width: 100%; border-radius: 16px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">` : ''}
                         </div>
                     `;
                     if (!existingCard) {
-                        const card = document.createElement('div'); card.className = 'answer-card'; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => card.classList.toggle('flipped'); card.innerHTML = cardHtml; aContainer.appendChild(card);
+                        const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => { if (!isProcessing) card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
                     } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing)) {
-                        existingCard.dataset.sentiment = color; existingCard.dataset.processing = String(isProcessing); existingCard.innerHTML = cardHtml;
+                        existingCard.dataset.sentiment = color; existingCard.dataset.processing = String(isProcessing); existingCard.className = `answer-card ${isProcessing ? 'processing' : ''}`; existingCard.innerHTML = cardHtml;
                     }
                 });
             });
         }
 
-        // Media & Question functions omitted for brevity (they stay the same as previous)
+        // Shared Media & Admin Functions
         function debouncedSearch(resultId, inputId) { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => searchGifs(resultId, inputId), 600); }
         async function searchGifs(resultId, inputId) {
             const query = (resultId === 'q-gif-results' ? document.getElementById('qGifSearch') : document.getElementById('gifSearchQuery')).value.trim();
             if (query.length < 2) return;
-            const results = document.getElementById(resultId); results.innerHTML = '<p style="grid-column: span 4; text-align: center; color: var(--text-muted); font-size: 0.8rem;">Searching...</p>';
+            const results = document.getElementById(resultId); results.innerHTML = '<p style="grid-column: span 4; text-align: center; color: var(--text-sub); font-size: 0.8rem;">Searching...</p>';
             try {
                 const res = await fetch(`/api/gifs/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
@@ -282,14 +268,14 @@
         async function handleFileUpload(input, targetInputId) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('image', file); try { const res = await fetch('/api/upload', { method: 'POST', body: fd }); const data = await res.json(); if (data.url) { document.getElementById(targetInputId).value = data.url; if (targetInputId === 'qModalGif') document.getElementById('q-preview').innerHTML = `<img src="${data.url}" style="max-height: 100px; border-radius: 12px; margin-top: 1rem;">`; showToast("Image uploaded!", "success"); } } catch (e) { showToast("Upload failed", "error"); } }
         function openQuestionModal(id = '', text = '', gif = '') { document.getElementById('editQId').value = id; document.getElementById('qModalText').value = text; document.getElementById('qModalGif').value = gif; document.getElementById('qModalTitle').innerText = id ? 'Edit Question' : 'Add New Question'; document.getElementById('q-gif-results').innerHTML = ''; document.getElementById('qGifSearch').value = ''; document.getElementById('q-preview').innerHTML = gif ? `<img src="${gif}" style="max-height: 100px; border-radius: 12px; margin-top: 1rem;">` : ''; document.getElementById('deleteQBtn').style.display = id ? 'block' : 'none'; document.getElementById('questionModal').classList.remove('hidden'); }
         function closeQuestionModal() { document.getElementById('questionModal').classList.add('hidden'); }
-        async function saveQuestion() { const id = document.getElementById('editQId').value; const text = document.getElementById('qModalText').value; const gif = document.getElementById('qModalGif').value; const path = id ? '/api/question/update' : '/api/question/add'; const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id ? parseInt(id) : undefined, text, gif_url: gif }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Question saved", "success"); } }
-        async function deleteQuestion() { const id = document.getElementById('editQId').value; if (!confirm("Delete this question?")) return; const res = await fetch('/api/question/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: parseInt(id) }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Deleted", "error"); } }
+        async function saveQuestion() { const id = document.getElementById('editQId').value; const text = document.getElementById('qModalText').value; const gif = document.getElementById('qModalGif').value; const res = await fetch(id ? '/api/question/update' : '/api/question/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id ? parseInt(id) : undefined, text, gif_url: gif }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Saved", "success"); } }
+        async function deleteQuestion() { const id = document.getElementById('editQId').value; if (!confirm("Delete this?")) return; const res = await fetch('/api/question/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: parseInt(id) }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Deleted", "error"); } }
         function openSubmitModal(id, text) { activeQuestionId = id; document.getElementById('modalQuestionTitle').innerText = text; document.getElementById('submitModal').classList.remove('hidden'); quill.setContents([]); document.getElementById('gif-results').innerHTML = ''; document.getElementById('selectedGifUrl').value = ''; document.getElementById('gifSearchQuery').value = ''; }
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
-        document.getElementById('sendAnswerBtn').onclick = async () => { const text = quill.root.innerHTML; const author = document.getElementById('authorName').value; const gif = document.getElementById('selectedGifUrl').value; if (quill.getText().trim().length < 2) return showToast("Write more", "error"); const btn = document.getElementById('sendAnswerBtn'); btn.disabled = true; try { const res = await fetch('/api/answer/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: text, author_name: author, gif_url: gif }) }); if (res.ok) { closeSubmitModal(); loadAnswers(); showToast("Sent!", "success"); } } finally { btn.disabled = false; } };
-        async function exportToPDF() { const pdfContainer = document.getElementById('pdf-export-container'); const pdfContent = document.getElementById('pdf-content'); const sessionName = document.getElementById('sessionNameTitle').innerText; showToast("Preparing report...", "info"); document.getElementById('pdf-session-name').innerText = sessionName; document.getElementById('pdf-session-id').innerText = sessionId; document.getElementById('pdf-date').innerText = new Date().toLocaleString(); const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const allAnswers = await res.json(); pdfContent.innerHTML = `<div class="summary-box"><div class="summary-title">Executive AI Summary</div><div class="summary-text">This retrospective session covers key feedback regarding team performance and project milestones. The following report details sentiment analysis and individual reflections.</div></div>${currentQuestions.map((q, i) => { const qAnswers = allAnswers.filter(a => a.question_id === q.id); return `<div class="q-section"><div class="q-title">${i+1}. ${q.text}</div>${qAnswers.length > 0 ? qAnswers.map(a => `<div class="ans-block" style="--mood-color: ${a.sentiment_color || '#e2e8f0'}"><div class="ans-header">${a.author_name || 'Anonymous'} ${a.sentiment_emotion ? `<span style="color: ${a.sentiment_color};">[${a.sentiment_emotion}]</span>` : ''}</div><div class="ans-text">${a.text.replace(/<[^>]*>/g, '')}</div></div>`).join('') : '<p style="color: #94a3b8; font-style: italic; margin-left: 15px;">(No reflections submitted yet)</p>'}</div>`; }).join('')}`; const opt = { margin: 10, filename: `Retro_Report_${sessionName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; pdfContainer.style.display = 'block'; try { await html2pdf().set(opt).from(pdfContainer).save(); showToast("Downloaded", "success"); } finally { pdfContainer.style.display = 'none'; } }
+        document.getElementById('sendAnswerBtn').onclick = async () => { const t = quill.root.innerHTML; const a = document.getElementById('authorName').value; const g = document.getElementById('selectedGifUrl').value; if (quill.getText().trim().length < 2) return showToast("Write more", "error"); const btn = document.getElementById('sendAnswerBtn'); btn.disabled = true; try { const res = await fetch('/api/answer/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) }); if (res.ok) { closeSubmitModal(); loadAnswers(); showToast("Sent!", "success"); } } finally { btn.disabled = false; } };
+        async function exportToPDF() { const pdfContainer = document.getElementById('pdf-export-container'); const pdfContent = document.getElementById('pdf-content'); const sessionName = document.getElementById('sessionNameTitle').innerText; showToast("Preparing PDF...", "info"); document.getElementById('pdf-session-name').innerText = sessionName; document.getElementById('pdf-session-id').innerText = sessionId; document.getElementById('pdf-date').innerText = new Date().toLocaleString(); const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const allAnswers = await res.json(); pdfContent.innerHTML = `<div class="summary-box"><div class="summary-title">Executive AI Summary</div><div class="summary-text">Retrospective details and sentiment analysis.</div></div>${currentQuestions.map((q, i) => { const qAns = allAnswers.filter(a => a.question_id === q.id); return `<div class="q-section"><div class="q-title">${i+1}. ${q.text}</div>${qAns.length > 0 ? qAns.map(a => `<div class="ans-block" style="--mood-color: ${a.sentiment_color || '#e2e8f0'}"><div class="ans-header">${a.author_name || 'Anonymous'} [${a.sentiment_emotion || 'Neutral'}]</div><div class="ans-text">${a.text.replace(/<[^>]*>/g, '')}</div></div>`).join('') : '<p>(No reflections)</p>'}</div>`; }).join('')}`; const opt = { margin: 10, filename: `Retro_${sessionName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; pdfContainer.style.display = 'block'; try { await html2pdf().set(opt).from(pdfContainer).save(); showToast("Downloaded", "success"); } finally { pdfContainer.style.display = 'none'; } }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Link copied!", "success"); }
-        function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--glass-bg); backdrop-filter: blur(15px); color: var(--text); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 700;`; toast.innerHTML = `<span>${t === 'error' ? '⚠️' : '✨'}</span> <span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
+        function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--glass-bg); backdrop-filter: blur(15px); color: var(--text-main); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 700;`; toast.innerHTML = `<span>${t === 'error' ? '⚠️' : '✨'}</span> <span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
         let tsX = 0; let teX = 0; window.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; }); window.addEventListener('touchend', e => { teX = e.changedTouches[0].screenX; const sd = teX - tsX; if (sd > 80) prevQuestion(); if (sd < -80) nextQuestion(); });
         init();
     </script>
