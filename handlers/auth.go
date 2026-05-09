@@ -168,6 +168,7 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 		"authenticated": true,
 		"email":         email,
 		"quota":         quota,
+		"is_admin":      email == config.AppConfig.AdminEmail,
 	})
 }
 

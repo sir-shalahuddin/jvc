@@ -45,7 +45,7 @@ func (r *SessionRepository) GetAll(ctx context.Context) ([]models.Session, error
 }
 
 func (r *SessionRepository) GetByOwner(ctx context.Context, email string) ([]models.Session, error) {
-	iter := db.Client.Collection("sessions").Where("owner_email", "==", email).OrderBy("created_at", firestore.Desc).Documents(ctx)
+	iter := db.Client.Collection("sessions").Where("owner_email", "==", email).Documents(ctx)
 	var sessions []models.Session
 	for {
 		doc, err := iter.Next()

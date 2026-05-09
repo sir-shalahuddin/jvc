@@ -14,26 +14,38 @@
         })();
     </script>
     <style>
-        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
-        .container { max-width: 1200px; padding: 2rem; width: 100%; display: flex; flex-direction: column; justify-content: center; }
-        .hero-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 4rem; align-items: center; }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-y: auto; background: var(--bg-color); }
+        /* Full width container to allow "mentok kanan" */
+        .container { max-width: 1400px; padding: 2rem 4rem; width: 100%; display: flex; flex-direction: column; justify-content: center; }
+        
+        .hero-split { display: grid; grid-template-columns: 1fr 450px; gap: 4rem; align-items: center; width: 100%; }
         .hero-text { text-align: left; }
-        .hero-logo { width: 64px; height: 64px; margin-bottom: 1.5rem; border-radius: 18px; box-shadow: 0 15px 30px rgba(37, 99, 235, 0.2); animation: float 6s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .hero-text h1 { font-size: 4.5rem; margin-bottom: 1rem; }
-        .hero-text p { font-size: 1.1rem; color: var(--text-secondary); max-width: 440px; line-height: 1.6; }
-        .action-stack { display: flex; flex-direction: column; gap: 1.25rem; }
-        .compact-card { background: var(--glass-bg); backdrop-filter: blur(20px); padding: 1.25rem 1.75rem; border-radius: 24px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); transition: 0.3s; }
-        .compact-card:hover { transform: translateY(-5px); }
-        .auth-status-box { background: rgba(255,255,255,0.3); padding: 0.75rem 1rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 1rem; }
-        .nav-links { margin-top: 3rem; display: flex; gap: 2rem; font-weight: 700; }
-        @media (max-width: 900px) {
-            body { height: auto; overflow-y: auto; }
-            .container { padding: 4rem 2rem 6rem; display: flex; flex-direction: column; height: auto; align-items: center; }
-            .hero-split { grid-template-columns: 1fr; text-align: center; gap: 3rem; width: 100%; }
+        .hero-logo { width: 72px; height: 72px; margin-bottom: 2rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2); animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        
+        .hero-text h1 { font-size: 5.5rem; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+        .hero-text p { font-size: 1.25rem; color: var(--text-secondary); max-width: 520px; line-height: 1.6; margin-bottom: 3rem; }
+
+        .action-stack { display: flex; flex-direction: column; gap: 1.5rem; justify-self: end; width: 100%; }
+        .compact-card { background: var(--glass-bg); backdrop-filter: blur(25px); padding: 2rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .compact-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--primary); }
+        
+        .auth-status-box { background: rgba(255,255,255,0.4); padding: 1rem 1.25rem; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 1.5rem; }
+        
+        .nav-links { display: flex; gap: 2.5rem; font-weight: 700; font-size: 1.1rem; }
+        .nav-links a { transition: 0.3s; color: var(--text-muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links a.active { color: var(--primary); }
+
+        #historyPanel { max-width: 100%; width: 100%; margin-top: 4rem; border-radius: 32px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 3rem; }
+
+        @media (max-width: 1100px) {
+            .container { padding: 4rem 2rem; }
+            .hero-split { grid-template-columns: 1fr; text-align: center; gap: 4rem; }
             .hero-text { display: flex; flex-direction: column; align-items: center; }
-            .hero-text h1 { font-size: 3.5rem; }
-            .nav-links { margin-top: 4rem; justify-content: center; width: 100%; border-top: 1px solid var(--glass-border); padding: 2rem 0; }
+            .hero-text h1 { font-size: 4rem; }
+            .action-stack { justify-self: center; max-width: 500px; }
+            .nav-links { justify-content: center; }
         }
     </style>
 </head>
@@ -42,59 +54,61 @@
         <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
     </button>
     <div id="toast-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 9999;"></div>
+    
     <div class="container animate-fade-up">
         <div class="hero-split">
             <div class="hero-text">
                 <img src="/static/images/logo.svg?v=106" alt="Logo" class="hero-logo">
                 <h1>Retro</h1>
                 <p>AI-driven retrospectives for engineering excellence. Synchronize feedback, analyze sentiment, and improve team velocity in real-time.</p>
-                <div class="nav-links desktop-only">
-                    <a href="/about" style="color: var(--primary); text-decoration: none;">Insights</a>
-                    <a href="https://github.com/sir-shalahuddin/jvc" target="_blank" style="color: var(--text-muted); text-decoration: none;">Source</a>
-                    <a href="javascript:void(0)" onclick="toggleHistory()" style="color: var(--text-muted); text-decoration: none;">Activity Logs</a>
+                
+                <div class="nav-links" id="mainNav">
+                    <a href="/about" class="active">Insights</a>
+                    <a href="https://github.com/sir-shalahuddin/jvc" target="_blank">Source</a>
+                    <!-- Activity Logs injected here via JS if logged in -->
                 </div>
             </div>
+
             <div class="action-stack">
                 <!-- Admin Card (Hidden by default) -->
-                <div id="adminCard" class="compact-card hidden" style="background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(59,130,246,0.1)); border-color: var(--primary);">
+                <div id="adminCard" class="compact-card hidden" style="background: linear-gradient(135deg, rgba(37,99,235,0.05), rgba(59,130,246,0.15)); border-color: var(--primary);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h2 style="font-size: 1.1rem;">Command Center</h2>
-                        <a href="/admin" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Open Admin</a>
+                        <div>
+                            <h2 style="font-size: 1.25rem; margin:0;">Command Center</h2>
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Global System Oversight</p>
+                        </div>
+                        <a href="/admin" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">Enter</a>
                     </div>
                 </div>
 
                 <!-- Host Session Card -->
                 <div class="compact-card">
-                    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">Host Session</h2>
-                    <div id="authSection"><div style="color: var(--text-muted); font-size: 0.8rem;">Authenticating...</div></div>
+                    <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Host Session</h2>
+                    <div id="authSection"><div style="color: var(--text-muted); font-size: 0.9rem;">Connecting to infrastructure...</div></div>
                 </div>
 
                 <!-- Join Session Card -->
                 <div class="compact-card">
-                    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">Join Session</h2>
+                    <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Join Session</h2>
                     <div style="display: flex; gap: 0.75rem;">
-                        <input type="text" id="joinCode" placeholder="Room ID" style="padding: 0.6rem 1rem;">
+                        <input type="text" id="joinCode" placeholder="Enter Room ID" style="padding: 0.75rem 1.25rem; flex-grow: 1;">
                         <button id="joinSessionBtn" class="btn btn-primary" style="padding: 0 1.5rem;">Join</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="historyPanel" class="card hidden animate-fade-up" style="margin-top: 3rem; position: relative; max-width: 900px;">
-            <button onclick="toggleHistory()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 1.5rem;">&times;</button>
-            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Recent Activity</h2>
+        <div id="historyPanel" class="hidden animate-fade-up">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; margin:0;">Recent Activity</h2>
+                <button onclick="toggleHistory()" style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 2rem;">&times;</button>
+            </div>
             <div style="overflow-x: auto;">
                 <table style="width: 100%;">
                     <thead><tr><th>Date</th><th>Topic</th><th>ID</th><th>Action</th></tr></thead>
                     <tbody id="history-body"></tbody>
                 </table>
             </div>
-        </div>
-
-        <div class="nav-links mobile-nav" style="display: none;">
-             <a href="/about" style="color: var(--primary); text-decoration: none;">Insights</a>
-             <a href="https://github.com/sir-shalahuddin/jvc" target="_blank" style="color: var(--text-muted); text-decoration: none;">Source</a>
-             <a href="javascript:void(0)" onclick="toggleHistory()" style="color: var(--text-muted); text-decoration: none;">Activity</a>
         </div>
     </div>
 
@@ -135,36 +149,42 @@
             const res = await fetch('/api/me');
             const data = await res.json();
             const authSection = document.getElementById('authSection');
+            const nav = document.getElementById('mainNav');
+            
             if (data.authenticated) {
                 authSection.innerHTML = `
                     <div class="auth-status-box">
-                        <div style="font-weight: 700; font-size: 0.85rem;">${data.email.split('@')[0]}</div>
+                        <div style="font-weight: 700; font-size: 0.9rem;">${data.email.split('@')[0]}</div>
                         <span class="badge badge-success">${data.quota} Units</span>
                     </div>
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                        <input type="text" id="sessionName" placeholder="Topic" value="Sprint Sync" style="padding: 0.5rem 1rem;">
-                        <button id="createSessionBtn" class="btn btn-primary" style="padding: 0 1rem;">Start</button>
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
+                        <input type="text" id="sessionName" placeholder="Discussion Topic" value="Sprint Sync" style="padding: 0.75rem 1rem; flex-grow: 1;">
+                        <button id="createSessionBtn" class="btn btn-primary" style="padding: 0 1.25rem;">Start</button>
                     </div>
-                    <div style="display: flex; gap: 1rem; font-size: 0.75rem; font-weight: 700;">
+                    <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; font-weight: 700;">
                         <a href="javascript:openTopupModal()" style="color: var(--primary); text-decoration:none;">Buy Quota</a>
                         <a href="/auth/logout" style="color: var(--danger); text-decoration:none;">Sign Out</a>
                     </div>
                 `;
                 document.getElementById('createSessionBtn').onclick = createSession;
+                
+                // Inject Activity Logs link ONLY if logged in
+                const activityLink = document.createElement('a');
+                activityLink.href = 'javascript:void(0)';
+                activityLink.onclick = toggleHistory;
+                activityLink.innerText = 'Activity Logs';
+                nav.appendChild(activityLink);
+
                 if (data.is_admin) { 
                     document.getElementById('adminCard').classList.remove('hidden');
-                }
-                // Also show admin link in nav if admin
-                if (data.is_admin) {
-                    const nav = document.querySelector('.nav-links');
                     const adminLink = document.createElement('a');
                     adminLink.href = '/admin';
-                    adminLink.innerText = 'Admin';
-                    adminLink.style.cssText = 'color: var(--primary); text-decoration: none;';
+                    adminLink.innerText = 'Dashboard';
+                    adminLink.style.color = 'var(--primary)';
                     nav.appendChild(adminLink);
                 }
             } else {
-                authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 0.8rem;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
+                authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 16px;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
             }
         }
         async function createSession() {
@@ -178,12 +198,12 @@
             const tbody = document.getElementById('history-body');
             tbody.innerHTML = (data.sessions || []).map(s => `
                 <tr>
-                    <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(s.created_at).toLocaleDateString()}</td>
-                    <td style="font-weight: 700;">${s.name}</td>
-                    <td><code>${s.id}</code></td>
-                    <td><a href="/session/?id=${s.id}&role=sm" class="btn btn-ghost" style="padding: 4px 12px; font-size: 0.75rem;">Enter</a></td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">${new Date(s.created_at).toLocaleDateString()}</td>
+                    <td style="font-weight: 700; font-size: 1rem;">${s.name}</td>
+                    <td><code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">${s.id}</code></td>
+                    <td><a href="/session/?id=${s.id}&role=sm" class="btn btn-ghost" style="padding: 6px 16px; font-size: 0.8rem;">Open Board</a></td>
                 </tr>
-            `).join('') || '<tr><td colspan="4" style="text-align:center; padding: 2rem;">No history found.</td></tr>';
+            `).join('') || '<tr><td colspan="4" style="text-align:center; padding: 4rem; color: var(--text-muted);">No sessions found in your history. Start a new one to see it here!</td></tr>';
         }
         function openTopupModal() { document.getElementById('topupModal').classList.remove('hidden'); }
         function closeTopupModal() { document.getElementById('topupModal').classList.add('hidden'); }
