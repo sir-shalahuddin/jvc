@@ -80,6 +80,19 @@
         .nav-btn.prev { left: 2rem; }
         .nav-btn.next { right: 2rem; }
 
+        /* PDF Export Styling (Hidden from UI) */
+        #pdf-export-container { 
+            display: none; padding: 40px; font-family: 'Inter', sans-serif; color: #000; background: #fff;
+        }
+        #pdf-export-container h1 { font-size: 24pt; margin-bottom: 5px; color: #2563eb; }
+        #pdf-export-container .meta { font-size: 10pt; color: #64748b; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        #pdf-export-container .q-section { margin-bottom: 40px; page-break-inside: avoid; }
+        #pdf-export-container .q-title { font-size: 16pt; font-weight: 800; margin-bottom: 15px; background: #f8fafc; padding: 10px 15px; border-left: 5px solid #2563eb; }
+        #pdf-export-container table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        #pdf-export-container th { text-align: left; background: #f1f5f9; padding: 10px; font-size: 9pt; text-transform: uppercase; border: 1px solid #e2e8f0; }
+        #pdf-export-container td { padding: 10px; font-size: 10pt; border: 1px solid #e2e8f0; vertical-align: top; }
+        #pdf-export-container .sentiment-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
         @media (max-width: 900px) {
             .nav-btn { display: none; } /* Hide buttons on mobile to avoid overlap, use swipe instead */
         }
@@ -106,6 +119,15 @@
 
         <div id="questions-container"></div>
         <div id="nav-questions"></div>
+
+        <div id="pdf-export-container">
+            <h1 id="pdf-session-name"></h1>
+            <div class="meta">
+                Retro Session ID: <span id="pdf-session-id"></span> | 
+                Generated on: <span id="pdf-date"></span>
+            </div>
+            <div id="pdf-content"></div>
+        </div>
 
         <div class="nav-btn prev" onclick="prevQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
         <div class="nav-btn next" onclick="nextQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -343,30 +365,69 @@
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Link copied!", "success"); }
 
         async function exportToPDF() {
-            const element = document.getElementById('questions-container');
+            const pdfContainer = document.getElementById('pdf-export-container');
+            const pdfContent = document.getElementById('pdf-content');
             const sessionName = document.getElementById('sessionNameTitle').innerText;
             
-            // Temporary reveal all for PDF
-            document.querySelectorAll('[id^="q-"]').forEach(q => q.style.display = 'block');
-            document.querySelectorAll('.answer-card').forEach(c => c.classList.add('flipped'));
+            showToast("Preparing professional report...", "info");
+
+            // Fill PDF Template
+            document.getElementById('pdf-session-name').innerText = sessionName;
+            document.getElementById('pdf-session-id').innerText = sessionId;
+            document.getElementById('pdf-date').innerText = new Date().toLocaleString();
+
+            const answersRes = await fetch(`/api/session/answers?session_id=${sessionId}`);
+            const allAnswers = await answersRes.json();
+
+            pdfContent.innerHTML = currentQuestions.map(q => {
+                const qAnswers = allAnswers.filter(a => a.question_id === q.id);
+                return `
+                    <div class="q-section">
+                        <div class="q-title">${q.text}</div>
+                        ${qAnswers.length > 0 ? `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%;">Author</th>
+                                        <th style="width: 15%;">Sentiment</th>
+                                        <th>Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${qAnswers.map(a => `
+                                        <tr>
+                                            <td><strong>${a.author_name || 'Anonymous'}</strong></td>
+                                            <td>
+                                                <div class="sentiment-indicator" style="background: ${a.sentiment_color || '#94a3b8'};"></div>
+                                                ${a.sentiment_emotion || 'Neutral'}
+                                            </td>
+                                            <td>${a.text} ${a.gif_url ? `<br><small style="color:blue">(GIF: ${a.gif_url})</small>` : ''}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        ` : '<p style="color: #94a3b8; font-style: italic; font-size: 9pt;">No responses recorded for this topic.</p>'}
+                    </div>
+                `;
+            }).join('');
 
             const opt = {
                 margin: 10,
-                filename: `Retro_${sessionName}_${sessionId}.pdf`,
+                filename: `Retro_Report_${sessionName}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            showToast("Generating PDF...", "info");
+            // Show container temporarily for capture
+            pdfContainer.style.display = 'block';
             try {
-                await html2pdf().set(opt).from(element).save();
-                showToast("PDF Downloaded", "success");
+                await html2pdf().set(opt).from(pdfContainer).save();
+                showToast("Report Downloaded", "success");
             } catch (e) {
-                showToast("PDF Export failed", "error");
+                showToast("Export failed", "error");
             } finally {
-                // Restore UI
-                showQuestion(activeQuestionId);
+                pdfContainer.style.display = 'none';
             }
         }
         function showToast(m, t) {

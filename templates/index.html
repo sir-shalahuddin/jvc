@@ -14,7 +14,7 @@
         })();
     </script>
     <style>
-        body { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
         .container { max-width: 1200px; padding: 2rem; width: 100%; display: flex; flex-direction: column; justify-content: center; }
         .hero-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 4rem; align-items: center; }
         .hero-text { text-align: left; }
@@ -151,7 +151,18 @@
                     </div>
                 `;
                 document.getElementById('createSessionBtn').onclick = createSession;
-                if (data.is_admin) { document.getElementById('adminCard').classList.remove('hidden'); }
+                if (data.is_admin) { 
+                    document.getElementById('adminCard').classList.remove('hidden');
+                }
+                // Also show admin link in nav if admin
+                if (data.is_admin) {
+                    const nav = document.querySelector('.nav-links');
+                    const adminLink = document.createElement('a');
+                    adminLink.href = '/admin';
+                    adminLink.innerText = 'Admin';
+                    adminLink.style.cssText = 'color: var(--primary); text-decoration: none;';
+                    nav.appendChild(adminLink);
+                }
             } else {
                 authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 0.8rem;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
             }
