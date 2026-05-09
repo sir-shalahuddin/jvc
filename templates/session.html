@@ -18,7 +18,7 @@
     <style>
         .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); margin-bottom: 3rem; }
         
-        .answers-grid { column-width: 350px; column-gap: 1.5rem; width: 100%; max-width: 100%; perspective: 1500px; }
+        .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; perspective: 1500px; }
         
         .answer-card {
             break-inside: avoid; margin-bottom: 1.5rem; min-height: 220px; 
@@ -35,17 +35,14 @@
             display: flex; flex-direction: column; transition: 0.5s ease;
         }
         
-        /* Mood Bias Glow Effect */
+        /* Mood Bias Aura Effect (Outside) */
         .card-front { 
             background: var(--glass-bg); color: var(--primary); font-weight: 900; 
             font-size: 1.5rem; justify-content: center; align-items: center;
             position: absolute; top: 0; left: 0; height: 100%;
             overflow: hidden;
-        }
-        .card-front::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at center, var(--mood-color, transparent) 0%, transparent 70%);
-            opacity: 0.15; transition: 0.8s;
+            box-shadow: 0 0 35px -5px var(--mood-color, transparent);
+            transition: 0.8s ease;
         }
         
         .card-back { background: rgba(255, 255, 255, 0.95); color: var(--text); transform: rotateY(180deg); position: relative; height: auto; min-height: 100%; }
@@ -281,6 +278,20 @@
             toast.innerHTML = `<span>${t === 'error' ? '⚠️' : '✨'}</span> <span>${m}</span>`;
             c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500);
         }
+
+        // Swipe Navigation Logic
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        function handleGesture() {
+            const swipeDistance = touchendX - touchstartX;
+            if (swipeDistance > 80) prevQuestion(); // Swipe Right -> Prev
+            if (swipeDistance < -80) nextQuestion(); // Swipe Left -> Next
+        }
+
+        window.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        window.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); });
+
         init();
     </script>
 </body>
