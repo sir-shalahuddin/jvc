@@ -39,6 +39,14 @@ func AddQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify Ownership
+	email := GetUserFromRequest(r)
+	session, err := SessionServ.SessionRepo.GetByID(r.Context(), req.SessionID)
+	if err != nil || session.OwnerEmail != email {
+		http.Error(w, "Forbidden: Only owner can add questions", http.StatusForbidden)
+		return
+	}
+
 	qID := uuid.New().String()
 	q := models.Question{
 		ID:        qID,
@@ -65,6 +73,14 @@ func UpdateQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify Ownership
+	email := GetUserFromRequest(r)
+	session, err := SessionServ.SessionRepo.GetByID(r.Context(), req.SessionID)
+	if err != nil || session.OwnerEmail != email {
+		http.Error(w, "Forbidden: Only owner can update questions", http.StatusForbidden)
+		return
+	}
+
 	if err := SessionServ.QuestionRepo.Update(r.Context(), req.SessionID, req.ID, req.Text, req.GifURL); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -77,6 +93,14 @@ func DeleteQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	var req dto.DeleteQuestionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Verify Ownership
+	email := GetUserFromRequest(r)
+	session, err := SessionServ.SessionRepo.GetByID(r.Context(), req.SessionID)
+	if err != nil || session.OwnerEmail != email {
+		http.Error(w, "Forbidden: Only owner can delete questions", http.StatusForbidden)
 		return
 	}
 
