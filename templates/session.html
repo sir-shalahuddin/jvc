@@ -55,6 +55,16 @@
         #pdf-export-container .ans-block { margin-bottom: 20px; padding-left: 15px; position: relative; border-left: 5px solid var(--mood-color, #e2e8f0); }
         #pdf-export-container .ans-header { font-size: 11pt; font-weight: 800; margin-bottom: 5px; color: #0f172a; }
         #pdf-export-container .ans-text { font-size: 11pt; line-height: 1.5; color: #475467; }
+
+        /* Modal Stability Fix */
+        .modal-content { 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .modal-content::-webkit-scrollbar { width: 6px; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -169,6 +179,15 @@
             document.getElementById('sessionNameTitle').innerText = session.name;
             if (role === 'sm') document.getElementById('sm-controls').classList.remove('hidden');
             loadQuestions(); setInterval(loadAnswers, 4000);
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
         }
 
         async function loadQuestions() {
