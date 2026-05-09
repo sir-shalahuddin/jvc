@@ -67,4 +67,5 @@ jobs:
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
             TRAKTEER_WEBHOOK_SECRET=${{ secrets.TRAKTEER_WEBHOOK_SECRET }}
+            GIPHY_API_KEY=${{ secrets.GIPHY_API_KEY }}
           flags: --allow-unauthenticated --memory=512Mi --cpu=1

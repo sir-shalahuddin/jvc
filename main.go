@@ -62,6 +62,7 @@ func main() {
 	mux.HandleFunc("/api/session/get", handlers.GetSessionHandler)
 	mux.HandleFunc("/api/session/update", handlers.UpdateSessionHandler)
 	mux.HandleFunc("/api/session/questions", handlers.GetQuestionsHandler)
+	mux.HandleFunc("/api/gifs/search", handlers.GiphyProxyHandler)
 	mux.HandleFunc("/api/question/add", handlers.AddQuestionHandler)
 	mux.HandleFunc("/api/question/update", handlers.UpdateQuestionHandler)
 	mux.HandleFunc("/api/question/delete", handlers.DeleteQuestionHandler)

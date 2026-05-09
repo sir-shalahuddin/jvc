@@ -14,6 +14,7 @@ type Config struct {
 	JWTSecret          string
 	Port               string
 	AdminEmail         string
+	GiphyAPIKey        string
 }
 
 var AppConfig Config
@@ -29,6 +30,7 @@ func LoadConfig() {
 		JWTSecret:          getEnv("JWT_SECRET", "super-secret-key"),
 		Port:               getEnv("PORT", "8080"),
 		AdminEmail:         getEnv("ADMIN_EMAIL", "sirajshalahuddin@gmail.com"),
+		GiphyAPIKey:        getEnv("GIPHY_API_KEY", ""),
 	}
 }
 

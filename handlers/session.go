@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"retro-gcp/config"
 	"retro-gcp/dto"
 	"retro-gcp/services"
 )
@@ -84,4 +85,27 @@ func UpdateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func GiphyProxyHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		http.Error(w, "Query required", http.StatusBadRequest)
+		return
+	}
+
+	apiKey := config.AppConfig.GiphyAPIKey
+	url := "https://api.giphy.com/v1/gifs/search?api_key=" + apiKey + "&q=" + query + "&limit=12&rating=g"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		http.Error(w, "Failed to reach Giphy", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	var data interface{}
+	json.NewDecoder(resp.Body).Decode(&data)
+	json.NewEncoder(w).Encode(data)
 }
