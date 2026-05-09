@@ -30,11 +30,13 @@
             break-inside: avoid;
             margin-bottom: 1.5rem;
             min-height: 220px; 
+            max-width: 400px; /* Prevent stretching when few cards */
+            width: 100%;
             cursor: pointer; 
             position: relative;
             transform-style: preserve-3d; 
             transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: block; /* Required for column-layout */
+            display: inline-block; /* Better for masonry than block */
         }
         .answer-card.flipped { transform: rotateY(180deg); }
         
