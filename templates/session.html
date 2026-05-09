@@ -21,7 +21,8 @@
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; perspective: 1500px; }
         
         .answer-card {
-            break-inside: avoid; margin-bottom: 1.5rem; min-height: 220px; 
+            break-inside: avoid; margin-bottom: 1.5rem; 
+            min-height: 280px; /* Increased and stabilized */
             width: 100%; cursor: pointer; position: relative;
             transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: inline-block;
@@ -45,7 +46,11 @@
             transition: 0.8s ease;
         }
         
-        .card-back { background: rgba(255, 255, 255, 0.95); color: var(--text); transform: rotateY(180deg); position: relative; height: auto; min-height: 100%; }
+        .card-back { 
+            background: rgba(255, 255, 255, 0.95); color: var(--text); 
+            transform: rotateY(180deg); position: relative; 
+            min-height: 280px; width: 100%; height: auto;
+        }
         [data-theme='dark'] .card-back { background: rgba(15, 23, 42, 0.95); }
 
         .warning-overlay {
@@ -77,6 +82,22 @@
             cursor: pointer; box-shadow: var(--glass-shadow); z-index: 900; transition: 0.3s; color: var(--primary);
         }
         .nav-btn:hover { background: var(--primary); color: white; }
+
+        /* Old PDF Format Styling */
+        #pdf-export-container { display: none; padding: 50px; font-family: 'Arial', sans-serif; color: #1e293b; background: #fff; }
+        #pdf-export-container h1 { font-size: 28pt; margin-bottom: 8px; color: #0f172a; font-weight: 800; }
+        #pdf-export-container .meta { font-size: 10pt; color: #64748b; margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; font-style: italic; }
+        
+        #pdf-export-container .summary-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 20px; border-radius: 8px; margin-bottom: 40px; }
+        #pdf-export-container .summary-title { font-size: 14pt; font-weight: 800; margin-bottom: 10px; color: #0f172a; }
+        #pdf-export-container .summary-text { font-size: 11pt; line-height: 1.6; color: #334155; }
+
+        #pdf-export-container .q-section { margin-bottom: 35px; page-break-inside: avoid; }
+        #pdf-export-container .q-title { font-size: 14pt; font-weight: 800; margin-bottom: 20px; background: #f1f5f9; padding: 12px 18px; border-bottom: 2px solid #cbd5e1; color: #1e293b; }
+        
+        #pdf-export-container .ans-block { margin-bottom: 20px; padding-left: 15px; position: relative; border-left: 5px solid var(--mood-color, #e2e8f0); }
+        #pdf-export-container .ans-header { font-size: 11pt; font-weight: 800; margin-bottom: 5px; color: #0f172a; }
+        #pdf-export-container .ans-text { font-size: 11pt; line-height: 1.5; color: #475467; }
     </style>
 </head>
 <body>
@@ -100,6 +121,15 @@
 
         <div id="questions-container"></div>
         <div id="nav-questions"></div>
+
+        <div id="pdf-export-container">
+            <h1 id="pdf-session-name"></h1>
+            <div class="meta">
+                Retro Session ID: <span id="pdf-session-id"></span> | 
+                Generated on: <span id="pdf-date"></span>
+            </div>
+            <div id="pdf-content"></div>
+        </div>
 
         <div class="nav-btn prev" onclick="prevQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 18l-6-6 6-6"/></svg></div>
         <div class="nav-btn next" onclick="nextQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -291,6 +321,48 @@
 
         window.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
         window.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); });
+
+        async function exportToPDF() {
+            const pdfContainer = document.getElementById('pdf-export-container');
+            const pdfContent = document.getElementById('pdf-content');
+            const sessionName = document.getElementById('sessionNameTitle').innerText;
+            showToast("Preparing report...", "info");
+            document.getElementById('pdf-session-name').innerText = sessionName;
+            document.getElementById('pdf-session-id').innerText = sessionId;
+            document.getElementById('pdf-date').innerText = new Date().toLocaleString();
+            
+            const res = await fetch(`/api/session/answers?session_id=${sessionId}`);
+            const allAnswers = await res.json();
+            
+            // Replicate the old "List with Vertical Bars" format
+            pdfContent.innerHTML = `
+                <div class="summary-box">
+                    <div class="summary-title">Executive AI Summary</div>
+                    <div class="summary-text">This retrospective session covers key feedback regarding team performance and project milestones. The following report details sentiment analysis and individual reflections.</div>
+                </div>
+                ${currentQuestions.map((q, i) => {
+                    const qAnswers = allAnswers.filter(a => a.question_id === q.id);
+                    return `
+                        <div class="q-section">
+                            <div class="q-title">${i+1}. ${q.text}</div>
+                            ${qAnswers.length > 0 ? qAnswers.map(a => `
+                                <div class="ans-block" style="--mood-color: ${a.sentiment_color || '#e2e8f0'}">
+                                    <div class="ans-header">
+                                        ${a.author_name || 'Anonymous'} 
+                                        ${a.sentiment_emotion ? `<span style="color: ${a.sentiment_color};">[${a.sentiment_emotion}]</span>` : ''}
+                                    </div>
+                                    <div class="ans-text">${a.text.replace(/<[^>]*>/g, '')}</div>
+                                </div>
+                            `).join('') : '<p style="color: #94a3b8; font-style: italic; margin-left: 15px;">(No reflections submitted yet)</p>'}
+                        </div>
+                    `;
+                }).join('')}
+            `;
+            const opt = { margin: 10, filename: `Retro_Report_${sessionName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            pdfContainer.style.display = 'block';
+            try { await html2pdf().set(opt).from(pdfContainer).save(); showToast("Downloaded", "success"); }
+            finally { pdfContainer.style.display = 'none'; }
+        }
 
         init();
     </script>
