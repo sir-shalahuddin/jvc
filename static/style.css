@@ -52,12 +52,13 @@ body::before {
     top: -50%; left: -50%; width: 200%; height: 200%;
     z-index: -1;
     background: 
-        radial-gradient(circle at 30% 30%, var(--mesh-1) 0%, transparent 40%),
-        radial-gradient(circle at 70% 20%, var(--mesh-2) 0%, transparent 35%),
-        radial-gradient(circle at 80% 80%, var(--mesh-3) 0%, transparent 40%),
-        radial-gradient(circle at 20% 70%, var(--mesh-4) 0%, transparent 35%);
-    filter: blur(80px);
-    animation: meshMove 30s ease infinite;
+        radial-gradient(circle at 10% 10%, var(--mesh-1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 15%, var(--mesh-2) 0%, transparent 35%),
+        radial-gradient(circle at 85% 85%, var(--mesh-3) 0%, transparent 40%),
+        radial-gradient(circle at 15% 90%, var(--mesh-4) 0%, transparent 35%);
+    filter: blur(100px);
+    animation: meshMove 40s ease infinite;
+    opacity: 0.6;
 }
 
 :root {
@@ -68,10 +69,10 @@ body::before {
 }
 
 [data-theme='dark'] {
-    --mesh-1: #1e1b4b; /* Deep Indigo */
-    --mesh-2: #4c1d95; /* Deep Violet */
-    --mesh-3: #0f172a; /* Deep Slate */
-    --mesh-4: #172554; /* Deep Blue */
+    --mesh-1: #020617; 
+    --mesh-2: #0f172a; 
+    --mesh-3: #1e1b4b; 
+    --mesh-4: #020617;
 }
 
 @keyframes meshMove {
@@ -114,6 +115,7 @@ h1 {
     line-height: 1.1;
     background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 1.5rem;
     filter: drop-shadow(0 4px 12px var(--primary-glow));
@@ -122,6 +124,7 @@ h1 {
 .text-gradient {
     background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
