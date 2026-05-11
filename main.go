@@ -35,6 +35,8 @@ func main() {
 		UserRepo:        userRepo,
 	}
 	handlers.AnswerRepo = ansRepo
+	handlers.UserRepo = userRepo
+	handlers.TranRepo = tranRepo
 
 	// Load configuration
 	config.LoadConfig()
@@ -74,6 +76,7 @@ func main() {
 	// Monetization & Admin API
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)
 	mux.HandleFunc("/api/admin/sessions", handlers.AdminAPIHandler)
+	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
 	mux.HandleFunc("/api/webhook/trakteer", handlers.TrakteerWebhookHandler)
 	mux.HandleFunc("/api/topup/claim", handlers.ClaimTopupHandler)
 

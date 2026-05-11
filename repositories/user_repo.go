@@ -6,6 +6,7 @@ import (
 	"retro-gcp/models"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
 
 type UserRepository struct{}
@@ -30,4 +31,22 @@ func (r *UserRepository) UpdateQuota(ctx context.Context, email string, inc int)
 		{Path: "session_quota", Value: firestore.Increment(inc)},
 	})
 	return err
+}
+
+func (r *UserRepository) GetAll(ctx context.Context) ([]models.User, error) {
+	iter := db.Client.Collection("users").Documents(ctx)
+	var users []models.User
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		var u models.User
+		doc.DataTo(&u)
+		users = append(users, u)
+	}
+	return users, nil
 }
