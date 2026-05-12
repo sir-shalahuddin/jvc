@@ -50,10 +50,15 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PaymentCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Callback received: Method=%s, URL=%s", r.Method, r.URL.String())
+	
 	if err := r.ParseForm(); err != nil {
+		log.Printf("Parse form error: %v", err)
 		http.Error(w, "Parse form error", http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("Callback Form Data: %+v", r.Form)
 
 	req := dto.DuitkuCallbackRequest{
 		MerchantCode:     r.FormValue("merchantCode"),

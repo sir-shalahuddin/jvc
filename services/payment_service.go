@@ -52,7 +52,7 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		ItemDetails: []dto.DuitkuItem{
 			{Name: product.Name, Price: product.Price, Quantity: 1},
 		},
-		CallbackUrl:  "https://jvc.hanya.click/api/payment/callback",
+		CallbackUrl:  "https://retro-gcp-12571180850.asia-southeast1.run.app/api/payment/callback",
 		ReturnUrl:    "https://jvc.hanya.click/",
 		ExpiryPeriod: 1440,
 	}
