@@ -244,23 +244,23 @@
                 const data = await response.json();
                 console.log("Duitku Response:", data);
                 
-                const token = data.paymentUrl || data.reference;
+                const token = data.reference; // Duitku Pop prefers reference
                 if (token) {
                     checkout.process(token, {
-                        done: function(result) {
-                            console.log('payment done', result);
+                        successEvent: function(result) {
+                            console.log('payment success', result);
                             showToast("Payment Successful!", "success");
                             checkAuth();
                         },
-                        pending: function(result) {
+                        pendingEvent: function(result) {
                             console.log('payment pending', result);
                             showToast("Payment Pending...", "info");
                         },
-                        error: function(result) {
+                        errorEvent: function(result) {
                             console.log('payment error', result);
                             showToast("Payment Failed", "error");
                         },
-                        close: function() {
+                        closeEvent: function(result) {
                             console.log('customer closed the popup');
                         }
                     });
@@ -271,6 +271,44 @@
                 console.error("Checkout System Error:", e);
                 showToast("System error", "error");
             }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type} animate-fade-up`;
+            toast.style.cssText = `
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                padding: 1rem 2rem;
+                border-radius: 16px;
+                margin-bottom: 1rem;
+                box-shadow: var(--glass-shadow);
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                color: var(--text);
+                font-weight: 700;
+                font-size: 0.9rem;
+            `;
+            
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                info: '#3b82f6'
+            };
+            
+            const dot = `<div style="width: 10px; height: 10px; border-radius: 50%; background: ${colors[type] || colors.info}"></div>`;
+            toast.innerHTML = `${dot} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                toast.style.transition = 'all 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
         }
         // payWithDuitku is the entry point from HTML
 
