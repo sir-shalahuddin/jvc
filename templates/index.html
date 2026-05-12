@@ -14,37 +14,63 @@
         })();
     </script>
     <style>
-        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-y: auto; background: var(--bg-base); }
-        /* Full width container to allow "mentok kanan" */
-        .container { max-width: 1400px; padding: 2rem 4rem; width: 100%; display: flex; flex-direction: column; justify-content: center; }
+        body { 
+            min-height: 100vh; 
+            background: var(--bg-base); 
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            width: 100%;
+        }
         
-        .hero-split { display: grid; grid-template-columns: 1fr 450px; gap: 4rem; align-items: center; width: 100%; }
+        .hero-split { 
+            display: grid; 
+            grid-template-columns: 1fr 450px; 
+            gap: 6rem; 
+            align-items: center; 
+            width: 100%; 
+            min-height: 80vh;
+        }
+
         .hero-text { text-align: left; }
-        .hero-logo { width: 72px; height: 72px; margin-bottom: 2rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2); animation: float 6s ease-in-out infinite; }
+        .hero-logo { width: 80px; height: 80px; margin-bottom: 2.5rem; border-radius: 24px; box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2); animation: float 6s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
         
-        .hero-text h1 { font-size: 6rem; font-weight: 950; margin-bottom: 1.5rem; letter-spacing: -0.04em; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 20px var(--primary-glow)); }
-        .hero-text p { font-size: 1.35rem; color: var(--text-secondary); max-width: 550px; line-height: 1.7; margin-bottom: 3.5rem; font-weight: 500; }
+        .hero-text h1 { font-size: 7rem; font-weight: 950; margin-bottom: 2rem; letter-spacing: -0.04em; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 20px var(--primary-glow)); line-height: 1; }
+        .hero-text p { font-size: 1.4rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 4rem; font-weight: 500; }
 
-        .action-stack { display: flex; flex-direction: column; gap: 1.5rem; justify-self: end; width: 100%; }
-        .compact-card { background: var(--glass-bg); backdrop-filter: blur(25px); padding: 2rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .compact-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--primary); }
+        .action-stack { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
+        .compact-card { background: var(--glass-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .compact-card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--primary); }
         
-        .auth-status-box { background: rgba(255,255,255,0.4); padding: 1rem 1.25rem; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 1.5rem; }
+        .auth-status-box { background: rgba(255,255,255,0.4); padding: 1.25rem 1.5rem; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); margin-bottom: 1.5rem; }
         
-        .nav-links { display: flex; gap: 2.5rem; font-weight: 700; font-size: 1.1rem; }
-        .nav-links a { transition: 0.3s; color: var(--text-muted); text-decoration: none; }
-        .nav-links a:hover { color: var(--primary); }
+        .nav-links { display: flex; gap: 3rem; font-weight: 800; font-size: 1.15rem; }
+        .nav-links a { transition: 0.3s; color: var(--text-muted); text-decoration: none; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 0; height: 3px; background: var(--primary); transition: 0.3s; border-radius: 2px; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a:hover::after { width: 100%; }
         .nav-links a.active { color: var(--primary); }
+        .nav-links a.active::after { width: 100%; }
 
-        #historyPanel { max-width: 100%; width: 100%; margin-top: 4rem; border-radius: 32px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 3rem; }
+        #historyPanel { width: 100%; margin-top: 6rem; border-radius: 40px; background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); padding: 4rem; }
 
-        @media (max-width: 1100px) {
-            .container { padding: 4rem 2rem; }
-            .hero-split { grid-template-columns: 1fr; text-align: center; gap: 4rem; }
+        @media (max-width: 1200px) {
+            .hero-split { grid-template-columns: 1fr; gap: 4rem; text-align: center; }
             .hero-text { display: flex; flex-direction: column; align-items: center; }
-            .hero-text h1 { font-size: 4rem; }
-            .action-stack { justify-self: center; max-width: 500px; }
+            .hero-text h1 { font-size: 5rem; }
+            .action-stack { max-width: 500px; margin: 0 auto; }
             .nav-links { justify-content: center; }
         }
     </style>
@@ -55,152 +81,154 @@
     </button>
     <div id="toast-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 9999;"></div>
     
-    <div class="container animate-fade-up">
-        <div class="hero-split">
-            <div class="hero-text">
-                <img src="/static/images/logo.svg?v=106" alt="Logo" class="hero-logo">
-                <h1>Retro</h1>
-                <p>AI-driven retrospectives for engineering excellence. Synchronize feedback, analyze sentiment, and improve team velocity in real-time.</p>
-                
-                <div class="nav-links" id="mainNav">
-                    <a href="/about" class="active">Insights</a>
-                    <a href="https://github.com/sir-shalahuddin/jvc" target="_blank">Source</a>
-                    <!-- Activity Logs injected here via JS if logged in -->
+    <div class="main-wrapper">
+        <!-- Hero Section -->
+        <div class="container animate-fade-up">
+            <div class="hero-split">
+                <div class="hero-text">
+                    <img src="/static/images/logo.svg?v=106" alt="Logo" class="hero-logo">
+                    <h1>Retro</h1>
+                    <p>AI-driven retrospectives for engineering excellence. Synchronize feedback, analyze sentiment, and improve team velocity in real-time.</p>
+                    
+                    <div class="nav-links" id="mainNav">
+                        <a href="/about" class="active">Insights</a>
+                        <a href="https://github.com/sir-shalahuddin/jvc" target="_blank">Source</a>
+                        <!-- Activity Logs injected here via JS if logged in -->
+                    </div>
                 </div>
-            </div>
 
-            <div class="action-stack">
-                <!-- Admin Card (Hidden by default) -->
-                <div id="adminCard" class="compact-card hidden" style="background: linear-gradient(135deg, var(--primary-glow), rgba(6, 182, 212, 0.1)); border-color: var(--primary);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h2 style="font-size: 1.25rem; margin:0;">Command Center</h2>
-                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Global System Oversight</p>
+                <div class="action-stack">
+                    <!-- Admin Card -->
+                    <div id="adminCard" class="compact-card hidden" style="background: linear-gradient(135deg, var(--primary-glow), rgba(6, 182, 212, 0.1)); border-color: var(--primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; margin:0;">Command Center</h2>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Global System Oversight</p>
+                            </div>
+                            <a href="/admin" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">Enter</a>
                         </div>
-                        <a href="/admin" class="btn btn-primary" style="padding: 0.6rem 1.25rem;">Enter</a>
+                    </div>
+
+                    <!-- Host Session Card -->
+                    <div class="compact-card">
+                        <h2 style="font-size: 1.5rem; margin-bottom: 2rem;">Host Session</h2>
+                        <div id="authSection"><div style="color: var(--text-muted); font-size: 0.9rem;">Connecting to infrastructure...</div></div>
+                    </div>
+
+                    <!-- Join Session Card -->
+                    <div class="compact-card">
+                        <h2 style="font-size: 1.5rem; margin-bottom: 2rem;">Join Session</h2>
+                        <div style="display: flex; gap: 1rem;">
+                            <input type="text" id="joinCode" placeholder="Enter Room ID" style="padding: 1rem 1.5rem; flex-grow: 1;">
+                            <button id="joinSessionBtn" class="btn btn-primary" style="padding: 0 2rem;">Join</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Host Session Card -->
-                <div class="compact-card">
-                    <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Host Session</h2>
-                    <div id="authSection"><div style="color: var(--text-muted); font-size: 0.9rem;">Connecting to infrastructure...</div></div>
+            <div id="historyPanel" class="hidden animate-fade-up">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                    <h2 style="font-size: 2.5rem; margin:0;">Recent Activity</h2>
+                    <button onclick="toggleHistory()" style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 2.5rem;">&times;</button>
                 </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Date</th><th>Topic</th><th>ID</th><th>Action</th></tr></thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-                <!-- Join Session Card -->
-                <div class="compact-card">
-                    <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Join Session</h2>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <input type="text" id="joinCode" placeholder="Enter Room ID" style="padding: 0.75rem 1.25rem; flex-grow: 1;">
-                        <button id="joinSessionBtn" class="btn btn-primary" style="padding: 0 1.5rem;">Join</button>
+        <!-- Product Showcase -->
+        <div id="products" class="container animate-fade-up">
+            <div style="text-align: center; margin-bottom: 6rem;">
+                <h2 style="font-size: 4rem; margin-bottom: 1.5rem; font-weight: 900;">Scale Your Vision</h2>
+                <p style="color: var(--text-secondary); font-size: 1.4rem; max-width: 700px; margin: 0 auto;">Choose a plan that fits your team's velocity and unlocks full AI potential.</p>
+            </div>
+            
+            <div class="product-grid">
+                <div class="product-card">
+                    <div>
+                        <span class="badge badge-success" style="margin-bottom: 2rem;">Starter</span>
+                        <h3>Starter Pack</h3>
+                        <p class="desc">Perfect for small teams or individual facilitators starting their agile journey.</p>
+                        <div class="price">Rp 25.000</div>
+                        <ul style="text-align: left; margin-bottom: 3rem; color: var(--text-secondary); padding-left: 2rem; line-height: 2;">
+                            <li>5 Session Credits</li>
+                            <li>Basic AI Insights</li>
+                            <li>Standard Reports</li>
+                        </ul>
                     </div>
+                    <button onclick="payWithDuitku('starter')" class="btn btn-primary" style="width: 100%; padding: 1.25rem;">Buy Now</button>
+                </div>
+
+                <div class="product-card" style="border-color: var(--primary); box-shadow: 0 40px 80px var(--primary-glow);">
+                    <div>
+                        <span class="badge badge-success" style="background: var(--primary); color: white; margin-bottom: 2rem;">Popular</span>
+                        <h3>Professional</h3>
+                        <p class="desc">Advanced analytics and higher limits for growing engineering departments.</p>
+                        <div class="price">Rp 75.000</div>
+                        <ul style="text-align: left; margin-bottom: 3rem; color: var(--text-secondary); padding-left: 2rem; line-height: 2;">
+                            <li>20 Session Credits</li>
+                            <li>Sentiment Analysis</li>
+                            <li>PDF & CSV Exports</li>
+                        </ul>
+                    </div>
+                    <button onclick="payWithDuitku('pro')" class="btn btn-primary" style="width: 100%; padding: 1.25rem;">Buy Now</button>
+                </div>
+
+                <div class="product-card">
+                    <div>
+                        <span class="badge badge-success" style="margin-bottom: 2rem;">Enterprise</span>
+                        <h3>Enterprise</h3>
+                        <p class="desc">Unlimited power for large organizations with deep focus on culture.</p>
+                        <div class="price">Rp 500.000</div>
+                        <ul style="text-align: left; margin-bottom: 3rem; color: var(--text-secondary); padding-left: 2rem; line-height: 2;">
+                            <li>Unlimited Sessions</li>
+                            <li>Custom AI Models</li>
+                            <li>Dedicated Support</li>
+                        </ul>
+                    </div>
+                    <button onclick="payWithDuitku('ent')" class="btn btn-primary" style="width: 100%; padding: 1.25rem;">Buy Now</button>
                 </div>
             </div>
         </div>
 
-        <div id="historyPanel" class="hidden animate-fade-up">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2 style="font-size: 2rem; margin:0;">Recent Activity</h2>
-                <button onclick="toggleHistory()" style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 2rem;">&times;</button>
+        <!-- Contact Support / Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="/static/images/logo.svg?v=106" alt="Logo" style="width: 64px; margin-bottom: 2rem;">
+                    <p style="font-size: 1.1rem; line-height: 1.8;">Empowering engineering teams to build better through honest feedback and AI-driven insights.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <p>Email: <a href="mailto:support@hanya.click">support@hanya.click</a></p>
+                    <p>Phone: <a href="tel:+6281234567890">+62 812-3456-7890</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Office</h4>
+                    <p>Jl. Jenderal Sudirman Kav. 52-53<br>Jakarta Selatan, 12190<br>Indonesia</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <p><a href="/about">Insights</a></p>
+                    <p><a href="https://github.com/sir-shalahuddin/jvc">Source Code</a></p>
+                </div>
             </div>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%;">
-                    <thead><tr><th>Date</th><th>Topic</th><th>ID</th><th>Action</th></tr></thead>
-                    <tbody id="history-body"></tbody>
-                </table>
+            <div style="text-align: center; margin-top: 6rem; padding-top: 3rem; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 1rem;">
+                &copy; 2026 Retro GCP. Built for Engineering Excellence.
             </div>
-        </div>
+        </footer>
     </div>
-
-
-    <!-- Product Showcase -->
-    <div id="products" class="container animate-fade-up" style="margin-top: 6rem;">
-        <div style="text-align: center; margin-bottom: 4rem;">
-            <h2 style="font-size: 3rem; margin-bottom: 1rem;">Scale Your Vision</h2>
-            <p style="color: var(--text-secondary); font-size: 1.2rem;">Choose a plan that fits your team's velocity.</p>
-        </div>
-        
-        <div class="product-grid">
-            <div class="product-card">
-                <div>
-                    <span class="badge badge-success" style="margin-bottom: 1.5rem;">Starter</span>
-                    <h3>Starter Pack</h3>
-                    <p class="desc">Perfect for small teams or individual facilitators starting their agile journey.</p>
-                    <div class="price">Rp 25.000</div>
-                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
-                        <li>5 Session Credits</li>
-                        <li>Basic AI Insights</li>
-                        <li>Standard Reports</li>
-                    </ul>
-                </div>
-                <button onclick="checkout('starter')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
-            </div>
-
-            <div class="product-card" style="border-color: var(--primary); box-shadow: 0 20px 40px var(--primary-glow);">
-                <div>
-                    <span class="badge badge-success" style="background: var(--primary); color: white; margin-bottom: 1.5rem;">Popular</span>
-                    <h3>Professional</h3>
-                    <p class="desc">Advanced analytics and higher limits for growing engineering departments.</p>
-                    <div class="price">Rp 75.000</div>
-                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
-                        <li>20 Session Credits</li>
-                        <li>Sentiment Analysis</li>
-                        <li>PDF & CSV Exports</li>
-                    </ul>
-                </div>
-                <button onclick="checkout('pro')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
-            </div>
-
-            <div class="product-card">
-                <div>
-                    <span class="badge badge-success" style="margin-bottom: 1.5rem;">Enterprise</span>
-                    <h3>Enterprise</h3>
-                    <p class="desc">Unlimited power for large organizations with deep focus on culture.</p>
-                    <div class="price">Rp 500.000</div>
-                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
-                        <li>Unlimited Sessions</li>
-                        <li>Custom AI Models</li>
-                        <li>Dedicated Support</li>
-                    </ul>
-                </div>
-                <button onclick="checkout('ent')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Contact Support / Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <img src="/static/images/logo.svg?v=106" alt="Logo" style="width: 48px; margin-bottom: 1.5rem;">
-                <p>Empowering engineering teams to build better through honest feedback and AI-driven insights.</p>
-            </div>
-            <div class="footer-section">
-                <h4>Contact Us</h4>
-                <p>Email: <a href="mailto:support@hanya.click">support@hanya.click</a></p>
-                <p>Phone: <a href="tel:+6281234567890">+62 812-3456-7890</a></p>
-            </div>
-            <div class="footer-section">
-                <h4>Office</h4>
-                <p>Jl. Jenderal Sudirman Kav. 52-53<br>Jakarta Selatan, 12190<br>Indonesia</p>
-            </div>
-            <div class="footer-section">
-                <h4>Links</h4>
-                <p><a href="/about">Insights</a></p>
-                <p><a href="https://github.com/sir-shalahuddin/jvc">Source Code</a></p>
-            </div>
-        </div>
-        <div style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.85rem;">
-            &copy; 2026 Retro GCP. Built for Engineering Excellence.
-        </div>
-    </footer>
 
     <!-- Duitku Pop JS -->
     <script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
 
     <script>
         // ... (existing script)
-        async function checkout(productId) {
+        async function payWithDuitku(productId) {
             const res = await fetch('/api/me');
             const user = await res.json();
             if (!user.authenticated) {
@@ -238,8 +266,7 @@
                 showToast("System error", "error");
             }
         }
-        // Ensure checkout is globally accessible for Duitku
-        window.checkout = checkout;
+        // payWithDuitku is the entry point from HTML
 
         function updateThemeIcon() {
             const theme = document.documentElement.getAttribute('data-theme');
