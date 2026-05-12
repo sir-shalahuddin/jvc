@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"retro-gcp/config"
 	"retro-gcp/db"
@@ -28,7 +29,8 @@ type PaymentService struct {
 }
 
 func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product) (*dto.DuitkuCreateResponse, error) {
-	merchantOrderId := fmt.Sprintf("RETRO-%d", time.Now().UnixNano())
+	// Use a shorter ID (max 20 chars) using milliseconds
+	merchantOrderId := fmt.Sprintf("R%d", time.Now().UnixNano()/1e6)
 	
 	// signature = md5(merchantCode + merchantOrderId + paymentAmount + apiKey)
 	signatureStr := fmt.Sprintf("%s%s%d%s", 
@@ -53,7 +55,8 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
-	resp, err := http.Post("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", "application/json", bytes.NewBuffer(jsonData))
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Post("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +68,7 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	}
 
 	if result.StatusCode != "00" {
+		log.Printf("Duitku Inquiry Error: Code=%s, Message=%s", result.StatusCode, result.StatusMessage)
 		return nil, fmt.Errorf("duitku error: %s", result.StatusMessage)
 	}
 

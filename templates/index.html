@@ -242,27 +242,33 @@
                     body: JSON.stringify({ product_id: productId })
                 });
                 const data = await response.json();
+                console.log("Duitku Response:", data);
                 
-                if (data.paymentUrl) {
-                    checkout.process(data.paymentUrl, {
+                const token = data.paymentUrl || data.reference;
+                if (token) {
+                    checkout.process(token, {
                         done: function(result) {
+                            console.log('payment done', result);
                             showToast("Payment Successful!", "success");
                             checkAuth();
                         },
                         pending: function(result) {
+                            console.log('payment pending', result);
                             showToast("Payment Pending...", "info");
                         },
                         error: function(result) {
+                            console.log('payment error', result);
                             showToast("Payment Failed", "error");
                         },
                         close: function() {
-                            console.log('customer closed the popup without finishing the payment');
+                            console.log('customer closed the popup');
                         }
                     });
                 } else {
-                    showToast(data.statusMessage || "Checkout failed", "error");
+                    showToast(data.statusMessage || "Checkout failed: No token received", "error");
                 }
             } catch (e) {
+                console.error("Checkout System Error:", e);
                 showToast("System error", "error");
             }
         }
