@@ -50,33 +50,31 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PaymentCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	var req dto.DuitkuCallbackRequest
-	if err := r.ParseForm(); err == nil && len(r.Form) > 0 {
-		req = dto.DuitkuCallbackRequest{
-			MerchantCode:     r.FormValue("merchantCode"),
-			Amount:           r.FormValue("amount"),
-			MerchantOrderId:  r.FormValue("merchantOrderId"),
-			ProductDetail:    r.FormValue("productDetail"),
-			AdditionalParam:  r.FormValue("additionalParam"),
-			PaymentCode:      r.FormValue("paymentCode"),
-			ResultCode:       r.FormValue("resultCode"),
-			MerchantUserId:   r.FormValue("merchantUserId"),
-			Reference:        r.FormValue("reference"),
-			Signature:        r.FormValue("signature"),
-			PublisherOrderId: r.FormValue("publisherOrderId"),
-			SpUserHash:       r.FormValue("spUserHash"),
-			SettlementDate:   r.FormValue("settlementDate"),
-			SettlementAmount: r.FormValue("settlementAmount"),
-		}
-	} else {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid body", http.StatusBadRequest)
-			return
-		}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Parse form error", http.StatusBadRequest)
+		return
 	}
 
-	if err := PaymentServ.ProcessDuitkuCallback(r.Context(), req); err != nil {
-		log.Printf("Payment Callback Error: %v", err)
+	req := dto.DuitkuCallbackRequest{
+		MerchantCode:     r.FormValue("merchantCode"),
+		Amount:           r.FormValue("amount"),
+		MerchantOrderId:  r.FormValue("merchantOrderId"),
+		ProductDetail:    r.FormValue("productDetail"),
+		AdditionalParam:  r.FormValue("additionalParam"),
+		PaymentCode:      r.FormValue("paymentCode"),
+		ResultCode:       r.FormValue("resultCode"),
+		MerchantUserId:   r.FormValue("merchantUserId"),
+		Reference:        r.FormValue("reference"),
+		Signature:        r.FormValue("signature"),
+		PublisherOrderId: r.FormValue("publisherOrderId"),
+		SpUserHash:       r.FormValue("spUserHash"),
+		SettlementDate:   r.FormValue("settlementDate"),
+		SettlementAmount: r.FormValue("settlementAmount"),
+	}
+
+	err := PaymentServ.ProcessDuitkuCallback(r.Context(), req)
+	if err != nil {
+		log.Printf("Callback Error: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

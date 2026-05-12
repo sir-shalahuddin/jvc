@@ -79,6 +79,7 @@ func main() {
 	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
 	mux.HandleFunc("/api/payment/create", handlers.CreatePaymentHandler)
 	mux.HandleFunc("/api/payment/callback", handlers.PaymentCallbackHandler)
+	// mux.HandleFunc("/duitku/callback", handlers.PaymentCallbackHandler)
 
 	// Auth Routes
 	mux.HandleFunc("/auth/google/login", handlers.GoogleLoginHandler)

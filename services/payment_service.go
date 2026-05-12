@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -29,17 +30,16 @@ type PaymentService struct {
 }
 
 func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product) (*dto.DuitkuCreateResponse, error) {
-	// Use a shorter ID (max 20 chars) using milliseconds
 	merchantOrderId := fmt.Sprintf("R%d", time.Now().UnixNano()/1e6)
+	timestamp := time.Now().UnixNano() / 1e6 // milliseconds
 	
-	// signature = md5(merchantCode + merchantOrderId + paymentAmount + apiKey)
-	signatureStr := fmt.Sprintf("%s%s%d%s", 
+	// signature = sha256(merchantCode + timestamp + apiKey)
+	signatureStr := fmt.Sprintf("%s%d%s", 
 		config.AppConfig.DuitkuMerchantCode, 
-		merchantOrderId, 
-		product.Price, 
+		timestamp,
 		config.AppConfig.DuitkuAPIKey,
 	)
-	hash := md5.Sum([]byte(signatureStr))
+	hash := sha256.Sum256([]byte(signatureStr))
 	signature := hex.EncodeToString(hash[:])
 
 	reqBody := dto.DuitkuCreateRequest{
@@ -48,15 +48,29 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		MerchantOrderId: merchantOrderId,
 		ProductDetails:  product.Name,
 		Email:           email,
-		Signature:       signature,
-		CallbackUrl:     "https://jvc.hanya.click/api/payment/callback",
-		ReturnUrl:       "https://jvc.hanya.click/",
-		ExpiryPeriod:    1440,
+		ItemDetails: []dto.DuitkuItem{
+			{Name: product.Name, Price: product.Price, Quantity: 1},
+		},
+		CallbackUrl:  "https://jvc.hanya.click/api/payment/callback",
+		ReturnUrl:    "https://jvc.hanya.click/",
+		ExpiryPeriod: 1440,
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Post("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", "application/json", bytes.NewBuffer(jsonData))
+	
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://api-sandbox.duitku.com/api/merchant/createInvoice", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("x-duitku-signature", signature)
+	req.Header.Set("x-duitku-timestamp", fmt.Sprintf("%d", timestamp))
+	req.Header.Set("x-duitku-merchantcode", config.AppConfig.DuitkuMerchantCode)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

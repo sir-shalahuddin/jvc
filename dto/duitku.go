@@ -1,16 +1,22 @@
 package dto
 
+type DuitkuItem struct {
+	Name     string `json:"name"`
+	Price    int    `json:"price"`
+	Quantity int    `json:"quantity"`
+}
+
 type DuitkuCreateRequest struct {
-	MerchantCode      string `json:"merchantCode"`
-	PaymentAmount     int    `json:"paymentAmount"`
-	MerchantOrderId   string `json:"merchantOrderId"`
-	ProductDetails    string `json:"productDetails"`
-	Email             string `json:"email"`
-	PhoneNumber       string `json:"phoneNumber"`
-	Signature         string `json:"signature"`
-	CallbackUrl       string `json:"callbackUrl"`
-	ReturnUrl         string `json:"returnUrl"`
-	ExpiryPeriod      int    `json:"expiryPeriod"`
+	MerchantCode    string       `json:"merchantCode"`
+	PaymentAmount   int          `json:"paymentAmount"`
+	MerchantOrderId string       `json:"merchantOrderId"`
+	ProductDetails  string       `json:"productDetails"`
+	Email           string       `json:"email"`
+	PhoneNumber     string       `json:"phoneNumber"`
+	ItemDetails     []DuitkuItem `json:"itemDetails"`
+	CallbackUrl     string       `json:"callbackUrl"`
+	ReturnUrl       string       `json:"returnUrl"`
+	ExpiryPeriod    int          `json:"expiryPeriod"`
 }
 
 type DuitkuCreateResponse struct {
