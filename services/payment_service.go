@@ -128,7 +128,8 @@ func (s *PaymentService) ProcessDuitkuCallback(ctx context.Context, req dto.Duit
 	}
 
 	if req.ResultCode != "00" {
-		return fmt.Errorf("payment failed with result code %s", req.ResultCode)
+		log.Printf("Duitku Callback received with non-success code: %s (OrderId: %s)", req.ResultCode, req.MerchantOrderId)
+		return nil // Return nil so handler sends 200 OK to Duitku
 	}
 
 	// Update transaction and user quota
