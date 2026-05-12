@@ -77,8 +77,8 @@ func main() {
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)
 	mux.HandleFunc("/api/admin/sessions", handlers.AdminAPIHandler)
 	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
-	mux.HandleFunc("/api/webhook/trakteer", handlers.TrakteerWebhookHandler)
-	mux.HandleFunc("/api/topup/claim", handlers.ClaimTopupHandler)
+	mux.HandleFunc("/api/payment/create", handlers.CreatePaymentHandler)
+	mux.HandleFunc("/api/payment/callback", handlers.PaymentCallbackHandler)
 
 	// Auth Routes
 	mux.HandleFunc("/auth/google/login", handlers.GoogleLoginHandler)

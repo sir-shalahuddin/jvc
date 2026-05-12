@@ -2,73 +2,85 @@ package handlers
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"retro-gcp/dto"
 	"retro-gcp/models"
 	"retro-gcp/services"
-	"time"
 )
 
 var PaymentServ *services.PaymentService
 
-func TrakteerWebhookHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	expectedToken := os.Getenv("TRAKTEER_WEBHOOK_SECRET")
-	receivedToken := r.Header.Get("X-Webhook-Token")
-	if expectedToken != "" && receivedToken != expectedToken {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	body, _ := io.ReadAll(r.Body)
-	var req dto.TrakteerWebhookRequest
-	if err := json.Unmarshal(body, &req); err != nil {
-		http.Error(w, "Invalid body", http.StatusBadRequest)
-		return
-	}
-
-	err := PaymentServ.TransactionRepo.Create(r.Context(), models.Transaction{
-		TransactionID: req.TransactionID,
-		SupporterName: req.SupporterName,
-		Quantity:      req.Quantity,
-		Price:         req.Price,
-		Status:        "unclaimed",
-		CreatedAt:     time.Now(),
-	})
-
-	if err != nil {
-		log.Printf("Repo Error: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func ClaimTopupHandler(w http.ResponseWriter, r *http.Request) {
+func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	email := GetUserFromRequest(r)
 	if email == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	var req dto.ClaimTopupRequest
+	var req struct {
+		ProductID string `json:"product_id"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if err := PaymentServ.ClaimTopup(r.Context(), email, req.TransactionID); err != nil {
+	// Hardcoded products
+	products := map[string]models.Product{
+		"starter": {ID: "starter", Name: "Starter Pack", Description: "5 Session Credits", Price: 25000, Quantity: 5},
+		"pro":     {ID: "pro", Name: "Professional Pack", Description: "20 Session Credits", Price: 75000, Quantity: 20},
+		"ent":     {ID: "ent", Name: "Enterprise Pack", Description: "Unlimited Sessions (Annual)", Price: 500000, Quantity: 9999},
+	}
+
+	product, ok := products[req.ProductID]
+	if !ok {
+		http.Error(w, "Product not found", http.StatusNotFound)
+		return
+	}
+
+	resp, err := PaymentServ.CreateDuitkuPayment(r.Context(), email, product)
+	if err != nil {
+		log.Printf("Payment Create Error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(resp)
+}
+
+func PaymentCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	var req dto.DuitkuCallbackRequest
+	if err := r.ParseForm(); err == nil && len(r.Form) > 0 {
+		req = dto.DuitkuCallbackRequest{
+			MerchantCode:     r.FormValue("merchantCode"),
+			Amount:           r.FormValue("amount"),
+			MerchantOrderId:  r.FormValue("merchantOrderId"),
+			ProductDetail:    r.FormValue("productDetail"),
+			AdditionalParam:  r.FormValue("additionalParam"),
+			PaymentCode:      r.FormValue("paymentCode"),
+			ResultCode:       r.FormValue("resultCode"),
+			MerchantUserId:   r.FormValue("merchantUserId"),
+			Reference:        r.FormValue("reference"),
+			Signature:        r.FormValue("signature"),
+			PublisherOrderId: r.FormValue("publisherOrderId"),
+			SpUserHash:       r.FormValue("spUserHash"),
+			SettlementDate:   r.FormValue("settlementDate"),
+			SettlementAmount: r.FormValue("settlementAmount"),
+		}
+	} else {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid body", http.StatusBadRequest)
+			return
+		}
+	}
+
+	if err := PaymentServ.ProcessDuitkuCallback(r.Context(), req); err != nil {
+		log.Printf("Payment Callback Error: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

@@ -112,33 +112,135 @@
         </div>
     </div>
 
-    <!-- Topup Modal -->
-    <div id="topupModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button onclick="closeTopupModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
-            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Scale Quota</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">Support our independent AI infrastructure to get more session units.</p>
-            
-            <div style="background: rgba(0,0,0,0.03); padding: 1.25rem; border-radius: 16px; margin-bottom: 2rem; font-size: 0.85rem; line-height: 1.6;">
-                <strong style="display: block; margin-bottom: 0.5rem; color: var(--primary);">How to claim:</strong>
-                <ol style="padding-left: 1.25rem; margin: 0; color: var(--text-secondary);">
-                    <li>Click the <strong>Trakteer</strong> button below.</li>
-                    <li>Complete the support (min. 1 Unit).</li>
-                    <li>Copy your <strong>Transaction ID</strong> from the success page/email.</li>
-                    <li>Paste it into the box below and click <strong>Claim</strong>.</li>
-                </ol>
+
+    <!-- Product Showcase -->
+    <div id="products" class="container animate-fade-up" style="margin-top: 6rem;">
+        <div style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-size: 3rem; margin-bottom: 1rem;">Scale Your Vision</h2>
+            <p style="color: var(--text-secondary); font-size: 1.2rem;">Choose a plan that fits your team's velocity.</p>
+        </div>
+        
+        <div class="product-grid">
+            <div class="product-card">
+                <div>
+                    <span class="badge badge-success" style="margin-bottom: 1.5rem;">Starter</span>
+                    <h3>Starter Pack</h3>
+                    <p class="desc">Perfect for small teams or individual facilitators starting their agile journey.</p>
+                    <div class="price">Rp 25.000</div>
+                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>5 Session Credits</li>
+                        <li>Basic AI Insights</li>
+                        <li>Standard Reports</li>
+                    </ul>
+                </div>
+                <button onclick="checkout('starter')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
             </div>
 
-            <a href="https://trakteer.id/sirdev" target="_blank" class="btn btn-ghost" style="width: 100%; border-color: #ef4444; color: #ef4444; margin-bottom: 1.5rem; font-weight: 800;">❤️ Support on Trakteer</a>
-            
-            <div style="display: flex; gap: 0.75rem;">
-                <input type="text" id="transactionIdInput" placeholder="Order ID (e.g. TRK-XXXX)" style="flex-grow: 1;">
-                <button onclick="claimTopup()" class="btn btn-primary">Claim</button>
+            <div class="product-card" style="border-color: var(--primary); box-shadow: 0 20px 40px var(--primary-glow);">
+                <div>
+                    <span class="badge badge-success" style="background: var(--primary); color: white; margin-bottom: 1.5rem;">Popular</span>
+                    <h3>Professional</h3>
+                    <p class="desc">Advanced analytics and higher limits for growing engineering departments.</p>
+                    <div class="price">Rp 75.000</div>
+                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>20 Session Credits</li>
+                        <li>Sentiment Analysis</li>
+                        <li>PDF & CSV Exports</li>
+                    </ul>
+                </div>
+                <button onclick="checkout('pro')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
+            </div>
+
+            <div class="product-card">
+                <div>
+                    <span class="badge badge-success" style="margin-bottom: 1.5rem;">Enterprise</span>
+                    <h3>Enterprise</h3>
+                    <p class="desc">Unlimited power for large organizations with deep focus on culture.</p>
+                    <div class="price">Rp 500.000</div>
+                    <ul style="text-align: left; margin-bottom: 2rem; color: var(--text-secondary); padding-left: 1.5rem;">
+                        <li>Unlimited Sessions</li>
+                        <li>Custom AI Models</li>
+                        <li>Dedicated Support</li>
+                    </ul>
+                </div>
+                <button onclick="checkout('ent')" class="btn btn-primary" style="width: 100%;">Buy Now</button>
             </div>
         </div>
     </div>
 
+    <!-- Contact Support / Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <img src="/static/images/logo.svg?v=106" alt="Logo" style="width: 48px; margin-bottom: 1.5rem;">
+                <p>Empowering engineering teams to build better through honest feedback and AI-driven insights.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p>Email: <a href="mailto:support@hanya.click">support@hanya.click</a></p>
+                <p>Phone: <a href="tel:+6281234567890">+62 812-3456-7890</a></p>
+            </div>
+            <div class="footer-section">
+                <h4>Office</h4>
+                <p>Jl. Jenderal Sudirman Kav. 52-53<br>Jakarta Selatan, 12190<br>Indonesia</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <p><a href="/about">Insights</a></p>
+                <p><a href="https://github.com/sir-shalahuddin/jvc">Source Code</a></p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.85rem;">
+            &copy; 2026 Retro GCP. Built for Engineering Excellence.
+        </div>
+    </footer>
+
+    <!-- Duitku Pop JS -->
+    <script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
+
     <script>
+        // ... (existing script)
+        async function checkout(productId) {
+            const res = await fetch('/api/me');
+            const user = await res.json();
+            if (!user.authenticated) {
+                return window.location.href = '/auth/google/login';
+            }
+
+            try {
+                const response = await fetch('/api/payment/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId })
+                });
+                const data = await response.json();
+                
+                if (data.paymentUrl) {
+                    checkout.process(data.paymentUrl, {
+                        done: function(result) {
+                            showToast("Payment Successful!", "success");
+                            checkAuth();
+                        },
+                        pending: function(result) {
+                            showToast("Payment Pending...", "info");
+                        },
+                        error: function(result) {
+                            showToast("Payment Failed", "error");
+                        },
+                        close: function() {
+                            console.log('customer closed the popup without finishing the payment');
+                        }
+                    });
+                } else {
+                    showToast(data.statusMessage || "Checkout failed", "error");
+                }
+            } catch (e) {
+                showToast("System error", "error");
+            }
+        }
+        // Ensure checkout is globally accessible for Duitku
+        window.checkout = checkout;
+
         function updateThemeIcon() {
             const theme = document.documentElement.getAttribute('data-theme');
             const icon = document.getElementById('theme-icon');
@@ -176,7 +278,7 @@
                         <button id="createSessionBtn" class="btn btn-primary" style="padding: 0 1.25rem;">Start</button>
                     </div>
                     <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; font-weight: 700;">
-                        <a href="javascript:openTopupModal()" style="color: var(--primary); text-decoration:none;">Buy Quota</a>
+                        <a href="#products" style="color: var(--primary); text-decoration:none;">Buy Quota</a>
                         <a href="/auth/logout" style="color: var(--danger); text-decoration:none;">Sign Out</a>
                     </div>
                 `;
@@ -220,30 +322,6 @@
             `).join('') || '<tr><td colspan="4" style="text-align:center; padding: 4rem; color: var(--text-muted);">No sessions found in your history. Start a new one to see it here!</td></tr>';
         }
 
-        async function claimTopup() {
-            const transactionId = document.getElementById('transactionIdInput').value.trim();
-            if (!transactionId) return showToast("Enter your Order ID", "error");
-            
-            try {
-                const res = await fetch('/api/topup/claim', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transaction_id: transactionId })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(`Success! Added ${data.units} units.`, "success");
-                    closeTopupModal();
-                    checkAuth(); // Refresh quota display
-                } else {
-                    showToast(data.error || "Claim failed", "error");
-                }
-            } catch (e) {
-                showToast("Server error", "error");
-            }
-        }
-        function openTopupModal() { document.getElementById('topupModal').classList.remove('hidden'); }
-        function closeTopupModal() { document.getElementById('topupModal').classList.add('hidden'); }
         document.getElementById('joinSessionBtn').onclick = () => {
             const code = document.getElementById('joinCode').value.trim();
             if (code) window.location.href = `/session/?id=${code}`;

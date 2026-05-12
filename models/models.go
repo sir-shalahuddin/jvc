@@ -50,3 +50,12 @@ type Transaction struct {
 	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
 	ClaimedAt     time.Time `json:"claimed_at" firestore:"claimed_at"`
 }
+
+type Product struct {
+	ID          string `json:"id" firestore:"id"`
+	Name        string `json:"name" firestore:"name"`
+	Description string `json:"description" firestore:"description"`
+	Price       int    `json:"price" firestore:"price"`
+	Quantity    int    `json:"quantity" firestore:"quantity"` // Session units granted
+}
+

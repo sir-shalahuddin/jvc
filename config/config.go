@@ -15,6 +15,8 @@ type Config struct {
 	Port               string
 	AdminEmail         string
 	GiphyAPIKey        string
+	DuitkuMerchantCode string
+	DuitkuAPIKey       string
 }
 
 var AppConfig Config
@@ -31,6 +33,8 @@ func LoadConfig() {
 		Port:               getEnv("PORT", "8080"),
 		AdminEmail:         getEnv("ADMIN_EMAIL", "sirajshalahuddin@gmail.com"),
 		GiphyAPIKey:        getEnv("GIPHY_API_KEY", ""),
+		DuitkuMerchantCode: getEnv("DUITKU_MERCHANT_CODE", ""),
+		DuitkuAPIKey:       getEnv("DUITKU_API_KEY", ""),
 	}
 }
 
