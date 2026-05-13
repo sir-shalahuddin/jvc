@@ -100,7 +100,7 @@
             body { height: auto; overflow: auto; padding: 4rem 1rem; }
             .contact-container { grid-template-columns: 1fr; text-align: center; }
             .contact-info { align-items: center; }
-            .info-item { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .info-item { flex-direction: row; align-items: center; justify-content: center; text-align: left; gap: 1rem; }
         }
     </style>
 </head>
@@ -114,7 +114,9 @@
             <a href="/"><img src="/static/images/logo.svg" alt="Logo" style="width: 64px; margin-bottom: 2rem;"></a>
             <h1>Get in Touch</h1>
             <p>Have questions or need assistance? Our team is here to help you get the most out of Retro.</p>
-            <a href="/" class="back-btn">&larr; Back to Home</a>
+            <div style="text-align: left; width: 100%;">
+                <a href="/" class="back-btn">&larr; Back to Home</a>
+            </div>
         </div>
 
         <div class="contact-card">
