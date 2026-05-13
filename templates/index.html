@@ -6,7 +6,7 @@
     <title>Retro - Premium Retrospectives</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
-    <link href="/static/style.css?v=105" rel="stylesheet">
+    <link href="/static/style.css?v=106" rel="stylesheet">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -72,7 +72,13 @@
             .hero-text { display: flex; flex-direction: column; align-items: center; }
             .hero-text h1 { font-size: 5rem; }
             .action-stack { max-width: 500px; margin: 0 auto; }
-            .nav-links { justify-content: center; }
+            .nav-links { justify-content: center; flex-wrap: wrap; }
+        }
+
+        @media (max-width: 600px) {
+            .nav-links { gap: 1.25rem; font-size: 1rem; }
+            .hero-text h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+            .hero-text p { font-size: 1.15rem; margin-bottom: 2.5rem; }
         }
     </style>
 </head>
