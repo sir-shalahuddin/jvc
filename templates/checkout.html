@@ -250,9 +250,15 @@
             card.style.maxWidth = "600px";
             card.style.margin = "0 auto";
 
+            // If Duitku returns exact amount (including fees), use it. Otherwise fallback.
+            const exactAmount = data.amount ? parseInt(data.amount) : product.price;
+
             document.getElementById('instructionContent').innerHTML = `
                 <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Virtual Account Number</div>
-                <div style="font-size: 2rem; font-weight: 900; color: var(--primary); letter-spacing: 2px; margin-bottom: 2rem;">${data.vaNumber}</div>
+                <div style="font-size: 2rem; font-weight: 900; color: var(--primary); letter-spacing: 2px; margin-bottom: 1.5rem;">${data.vaNumber}</div>
+
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Total Amount (Termasuk Fee)</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
                 
                 <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 20px;">
                     <h4 style="margin-bottom: 1rem;">Payment Steps:</h4>
@@ -260,7 +266,7 @@
                         <li>Copy the Virtual Account number above.</li>
                         <li>Log in to your banking app or ATM.</li>
                         <li>Select <b>Transfer</b> &rsaquo; <b>Virtual Account</b>.</li>
-                        <li>Paste the number and enter the exact amount.</li>
+                        <li>Paste the number and enter the exact amount (<strong>Rp ${exactAmount.toLocaleString('id-ID')}</strong>).</li>
                         <li>Complete the transaction. Your credits will be added automatically.</li>
                     </ol>
                 </div>
