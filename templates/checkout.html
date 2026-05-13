@@ -152,17 +152,32 @@
         };
 
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('product_id') || 'single';
-        const product = products[productId];
-        let selectedMethod = null;
-
-        if (product) {
-            document.getElementById('prodName').innerText = product.name;
-            document.getElementById('prodPrice').innerText = `Rp ${product.price.toLocaleString()}`;
-            document.getElementById('prodDesc').innerText = product.desc;
-            document.getElementById('totalPrice').innerText = `Rp ${product.price.toLocaleString()}`;
-            loadMethods(product.price);
+        
+        if (urlParams.get('status') === 'success') {
+            document.querySelector('.checkout-grid').innerHTML = `
+                <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                    <div style="width: 80px; height: 80px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 2rem; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <h2 style="font-size: 2rem; margin-bottom: 1rem;">Payment Successful!</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Your transaction is complete. The credits should be added to your account shortly.</p>
+                    <a href="/" class="btn btn-primary" style="padding: 1rem 3rem;">Go to Dashboard</a>
+                </div>
+            `;
+        } else {
+            const productId = urlParams.get('product_id') || 'single';
+            const product = products[productId];
+            
+            if (product) {
+                document.getElementById('prodName').innerText = product.name;
+                document.getElementById('prodPrice').innerText = `Rp ${product.price.toLocaleString()}`;
+                document.getElementById('prodDesc').innerText = product.desc;
+                document.getElementById('totalPrice').innerText = `Rp ${product.price.toLocaleString()}`;
+                loadMethods(product.price);
+            }
         }
+
+        let selectedMethod = null;
 
         async function loadMethods(amount) {
             try {
@@ -224,6 +239,7 @@
                         startPolling(data.merchantOrderId);
                     } else if (data.qrString) {
                         showQRInstruction(data);
+                        startPolling(data.merchantOrderId);
                     } else if (data.paymentUrl) {
                         window.location.href = data.paymentUrl;
                     }
@@ -303,7 +319,37 @@
         }
 
         function showQRInstruction(data) {
-            window.location.href = data.paymentUrl;
+            document.querySelector('.checkout-grid').style.gridTemplateColumns = "1fr";
+            document.getElementById('methodsCard').style.display = 'none';
+            document.getElementById('summaryCard').style.display = 'none';
+            
+            const card = document.getElementById('instructionCard');
+            card.style.display = 'block';
+            card.style.maxWidth = "600px";
+            card.style.margin = "0 auto";
+
+            const exactAmount = data.amount ? parseInt(data.amount) : product.price;
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qrString)}`;
+
+            document.getElementById('instructionContent').innerHTML = `
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Scan QR Code (QRIS)</div>
+                <div style="margin: 2rem auto; text-align: center; background: white; padding: 1.5rem; border-radius: 20px; width: fit-content; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                    <img src="${qrImageUrl}" alt="QRIS" style="width: 250px; height: 250px; display: block;">
+                </div>
+
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Total Amount (Termasuk Fee)</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
+                
+                <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 20px;">
+                    <h4 style="margin-bottom: 1rem;">Payment Steps:</h4>
+                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8;">
+                        <li>Open your banking or e-wallet app (OVO, GoPay, Dana, BCA, dll).</li>
+                        <li>Select the <b>Scan QRIS</b> option.</li>
+                        <li>Scan the QR code shown above.</li>
+                        <li>Verify the exact amount (<strong>Rp ${exactAmount.toLocaleString('id-ID')}</strong>) and complete the payment.</li>
+                    </ol>
+                </div>
+            `;
         }
     </script>
 </body>
