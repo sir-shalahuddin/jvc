@@ -53,8 +53,8 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		ItemDetails: []dto.DuitkuItem{
 			{Name: product.Name, Price: product.Price, Quantity: 1},
 		},
-		CallbackUrl:  "https://retro-gcp-12571180850.asia-southeast1.run.app/api/payment/callback",
-		ReturnUrl:    "https://jvc.hanya.click/",
+		CallbackUrl:  "https://jvc.hanya.click/api/payment/callback",
+		ReturnUrl:    "https://jvc.hanya.click/checkout?status=success",
 		ExpiryPeriod: 1440,
 		PaymentMethod: paymentMethod,
 	}
@@ -68,11 +68,13 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("x-duitku-signature", signature)
-	req.Header.Set("x-duitku-timestamp", fmt.Sprintf("%d", timestamp))
-	req.Header.Set("x-duitku-merchantcode", config.AppConfig.DuitkuMerchantCode)
+	// CRITICAL: Duitku V2 requires LOWERCASE headers. 
+	// Go's Header.Set() will capitalize them, so we must set them manually.
+	req.Header["Content-Type"] = []string{"application/json"}
+	req.Header["Accept"] = []string{"application/json"}
+	req.Header["x-duitku-signature"] = []string{signature}
+	req.Header["x-duitku-timestamp"] = []string{fmt.Sprintf("%d", timestamp)}
+	req.Header["x-duitku-merchantcode"] = []string{config.AppConfig.DuitkuMerchantCode}
 
 	resp, err := client.Do(req)
 	if err != nil {

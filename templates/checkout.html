@@ -21,12 +21,20 @@
         .card { background: var(--glass-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
         .section-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
         
-        .method-grid {
+        .methods-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.75rem;
             margin-top: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
         }
+        /* Custom Scrollbar for better aesthetics */
+        .methods-grid::-webkit-scrollbar { width: 6px; }
+        .methods-grid::-webkit-scrollbar-track { background: transparent; }
+        .methods-grid::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
         .method-item {
             padding: 1rem;
             border: 2px solid var(--glass-border);
@@ -39,6 +47,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            background: rgba(255,255,255,0.05);
         }
         .method-item img {
             max-height: 25px;
