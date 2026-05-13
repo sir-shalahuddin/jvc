@@ -21,19 +21,35 @@
         .card { background: var(--glass-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
         .section-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
         
-        .methods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.25rem; }
-        .method-item { 
-            background: rgba(255,255,255,0.4); 
-            border: 1px solid var(--glass-border); 
-            padding: 1.5rem 1rem; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 1rem;
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .method-item {
+            padding: 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 16px;
+            cursor: pointer;
             text-align: center;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .method-item img {
+            max-height: 25px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .method-item span {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
         }
         .method-item:hover { transform: translateY(-5px); border-color: var(--primary); background: rgba(255,255,255,0.6); }
         .method-item.selected { border-color: var(--primary); background: rgba(37, 99, 235, 0.1); box-shadow: 0 0 0 2px var(--primary); }
@@ -146,13 +162,19 @@
                 
                 const container = document.getElementById('methodsContainer');
                 const loader = document.getElementById('loader');
-                
-                container.innerHTML = methods.map(m => `
-                    <div class="method-item" onclick="selectMethod('${m.paymentMethod}', this)">
-                        <img src="${m.paymentImage}" alt="${m.paymentName}" class="method-img">
-                        <div class="method-name">${m.paymentName}</div>
-                    </div>
-                `).join('');
+
+                // MASUKKAN KODE DI SINI UNTUK MEMATIKAN METODE TERTENTU
+                // Contoh: 'VC' (Credit Card), 'IR' (Indomaret), 'FT' (Retail)
+                const disabledMethods = ['VC', 'IR']; 
+
+                container.innerHTML = methods
+                    .filter(m => !disabledMethods.includes(m.paymentMethod))
+                    .map(m => `
+                        <div class="method-item" onclick="selectMethod('${m.paymentMethod}', this)">
+                            <img src="${m.paymentImage}" alt="${m.paymentName}" class="method-img">
+                            <div class="method-name">${m.paymentName}</div>
+                        </div>
+                    `).join('');
                 
                 loader.style.display = 'none';
                 container.style.display = 'grid';
