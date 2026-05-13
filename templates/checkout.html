@@ -145,7 +145,7 @@
 
     <script>
         const products = {
-            "single": { name: "Single Session", price: 5000, desc: "1 Session Credit" },
+            "single": { name: "Trial Session", price: 10000, desc: "2 Session Credits" },
             "starter": { name: "Starter Pack", price: 25000, desc: "5 Session Credits" },
             "pro": { name: "Professional Pack", price: 75000, desc: "20 Session Credits" },
             "ent": { name: "Enterprise Pack", price: 500000, desc: "Unlimited Sessions" }
@@ -221,6 +221,7 @@
                 if (data.statusCode === "00") {
                     if (data.vaNumber) {
                         showVAInstruction(data);
+                        startPolling(data.merchantOrderId);
                     } else if (data.qrString) {
                         showQRInstruction(data);
                     } else if (data.paymentUrl) {
@@ -264,6 +265,35 @@
                     </ol>
                 </div>
             `;
+        }
+
+        function startPolling(orderId) {
+            if (!orderId) return;
+            const card = document.getElementById('instructionCard');
+            const pollDiv = document.createElement('div');
+            pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div class="spinner" style="width: 20px; height: 20px; border: 2px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                Waiting for payment...
+            </div>`;
+            card.insertBefore(pollDiv, card.querySelector('.btn-ghost'));
+
+            const style = document.createElement('style');
+            style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
+            document.head.appendChild(style);
+
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/payment/status?order_id=${orderId}`);
+                    const statusData = await res.json();
+                    if (statusData.status === "claimed" || statusData.status === "paid") {
+                        clearInterval(interval);
+                        pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: #10b981; border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;">
+                            ✓ Payment Successful! Redirecting...
+                        </div>`;
+                        setTimeout(() => window.location.href = "/", 2000);
+                    }
+                } catch (e) {}
+            }, 3000);
         }
 
         function showQRInstruction(data) {

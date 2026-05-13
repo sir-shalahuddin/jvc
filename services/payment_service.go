@@ -108,6 +108,8 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		return nil, err
 	}
 
+	result.MerchantOrderId = merchantOrderId
+
 	return &result, nil
 }
 

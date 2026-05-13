@@ -30,7 +30,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Hardcoded products
 	products := map[string]models.Product{
-		"single":  {ID: "single", Name: "Single Session", Description: "1 Session Credit", Price: 5000, Quantity: 1},
+		"single":  {ID: "single", Name: "Trial Session", Description: "2 Session Credits", Price: 10000, Quantity: 2},
 		"starter": {ID: "starter", Name: "Starter Pack", Description: "5 Session Credits", Price: 25000, Quantity: 5},
 		"pro":     {ID: "pro", Name: "Professional Pack", Description: "20 Session Credits", Price: 75000, Quantity: 20},
 		"ent":     {ID: "ent", Name: "Enterprise Pack", Description: "Unlimited Sessions (Annual)", Price: 500000, Quantity: 9999},
@@ -108,4 +108,22 @@ func PaymentCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
+}
+
+func CheckPaymentStatusHandler(w http.ResponseWriter, r *http.Request) {
+	orderID := r.URL.Query().Get("order_id")
+	if orderID == "" {
+		http.Error(w, "Order ID required", http.StatusBadRequest)
+		return
+	}
+
+	tx, err := PaymentServ.TransactionRepo.GetByID(r.Context(), orderID)
+	if err != nil {
+		http.Error(w, "Transaction not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": tx.Status,
+	})
 }

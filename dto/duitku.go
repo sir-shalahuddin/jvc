@@ -29,6 +29,7 @@ type DuitkuCreateResponse struct {
 	QrString           string `json:"qrString"`
 	StatusCode         string `json:"statusCode"`
 	StatusMessage      string `json:"statusMessage"`
+	MerchantOrderId    string `json:"merchantOrderId"`
 }
 
 type DuitkuCallbackRequest struct {
