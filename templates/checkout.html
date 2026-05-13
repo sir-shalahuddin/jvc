@@ -152,6 +152,8 @@
         };
 
         const urlParams = new URLSearchParams(window.location.search);
+        let productId = urlParams.get('product_id') || 'single';
+        let product = products[productId];
         
         if (urlParams.get('status') === 'success') {
             document.querySelector('.checkout-grid').innerHTML = `
@@ -165,9 +167,6 @@
                 </div>
             `;
         } else {
-            const productId = urlParams.get('product_id') || 'single';
-            const product = products[productId];
-            
             if (product) {
                 document.getElementById('prodName').innerText = product.name;
                 document.getElementById('prodPrice').innerText = `Rp ${product.price.toLocaleString()}`;
