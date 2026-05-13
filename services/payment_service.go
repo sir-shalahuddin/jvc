@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -140,9 +141,17 @@ func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]d
 	}
 	defer resp.Body.Close()
 
+	// Read body for logging/debugging
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	log.Printf("Duitku GetPaymentMethods Status: %d, Body: %s", resp.StatusCode, string(bodyBytes))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("duitku error: status %d", resp.StatusCode)
+	}
+
 	var result dto.DuitkuPaymentMethodResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal duitku response: %v", err)
 	}
 
 	return result.PaymentFee, nil
