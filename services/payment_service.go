@@ -61,7 +61,7 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	// Duitku V2 Direct Payment (Inquiry) URL
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", bytes.NewBuffer(jsonData))
@@ -134,7 +134,7 @@ func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]d
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	// Correct Sandbox URL from Duitku Docs: https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod", bytes.NewBuffer(jsonData))
