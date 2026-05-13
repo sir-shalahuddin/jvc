@@ -64,9 +64,12 @@
         .nav-links a.active { color: var(--primary); }
         .nav-links a.active::after { width: 100%; }
 
+        .product-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
         #historyPanel { width: 100%; margin-top: 6rem; border-radius: 40px; background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); padding: 4rem; }
 
         @media (max-width: 1200px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr) !important; }
             .hero-split { grid-template-columns: 1fr; gap: 4rem; text-align: center; }
             .hero-text { display: flex; flex-direction: column; align-items: center; }
             .hero-text h1 { font-size: 5rem; }
