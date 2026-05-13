@@ -80,13 +80,20 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	}
 	defer resp.Body.Close()
 
-	var result dto.DuitkuCreateResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	log.Printf("Duitku CreateInvoice Status: %d, Body: %s", resp.StatusCode, string(bodyBytes))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("duitku api error (status %d): %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	if result.StatusCode != "00" {
-		log.Printf("Duitku Inquiry Error: Code=%s, Message=%s", result.StatusCode, result.StatusMessage)
+	var result dto.DuitkuCreateResponse
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode duitku response: %v | body: %s", err, string(bodyBytes))
+	}
+
+	if result.StatusCode != "00" && result.StatusCode != "01" { // 00 is success, 01 is pending/waiting
+		log.Printf("Duitku Error: Code=%s, Message=%s", result.StatusCode, result.StatusMessage)
 		return nil, fmt.Errorf("duitku error: %s", result.StatusMessage)
 	}
 
