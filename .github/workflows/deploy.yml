@@ -57,20 +57,20 @@ jobs:
           service: ${{ env.SERVICE_NAME }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
           region: ${{ env.REGION }}
-          env_vars: |
-            GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
-            GCS_BUCKET_NAME="${{ secrets.GCS_BUCKET_NAME }}"
-            GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
-            GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
-            JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            ADMIN_EMAIL="${{ secrets.ADMIN_EMAIL }}"
-            AUTH_REDIRECT_URL="${{ secrets.AUTH_REDIRECT_URL }}"
-            TRAKTEER_WEBHOOK_SECRET="${{ secrets.TRAKTEER_WEBHOOK_SECRET }}"
-            GIPHY_API_KEY="${{ secrets.GIPHY_API_KEY }}"
-            DUITKU_MERCHANT_CODE="${{ secrets.DUITKU_MERCHANT_CODE }}"
-            DUITKU_API_KEY="${{ secrets.DUITKU_API_KEY }}"
-            CONTACT_EMAIL="${{ secrets.CONTACT_EMAIL }}"
-            CONTACT_PHONE="${{ secrets.CONTACT_PHONE }}"
-            CONTACT_ADDRESS="${{ secrets.CONTACT_ADDRESS }}"
+          env_vars: |-
+            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
+            TRAKTEER_WEBHOOK_SECRET=${{ secrets.TRAKTEER_WEBHOOK_SECRET }}
+            GIPHY_API_KEY=${{ secrets.GIPHY_API_KEY }}
+            DUITKU_MERCHANT_CODE=${{ secrets.DUITKU_MERCHANT_CODE }}
+            DUITKU_API_KEY=${{ secrets.DUITKU_API_KEY }}
+            CONTACT_EMAIL=${{ secrets.CONTACT_EMAIL }}
+            CONTACT_PHONE=${{ secrets.CONTACT_PHONE }}
+            CONTACT_ADDRESS=${{ secrets.CONTACT_ADDRESS }}
           flags: --allow-unauthenticated --memory=512Mi --cpu=1
