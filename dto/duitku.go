@@ -18,6 +18,7 @@ type DuitkuCreateRequest struct {
 	ReturnUrl       string       `json:"returnUrl"`
 	ExpiryPeriod    int          `json:"expiryPeriod"`
 	PaymentMethod   string       `json:"paymentMethod"`
+	Signature       string       `json:"signature"`
 }
 
 type DuitkuCreateResponse struct {

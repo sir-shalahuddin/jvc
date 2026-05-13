@@ -11,11 +11,11 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"retro-gcp/config"
 	"retro-gcp/db"
 	"retro-gcp/dto"
 	"retro-gcp/models"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -33,15 +33,15 @@ type PaymentService struct {
 
 func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product, paymentMethod string) (*dto.DuitkuCreateResponse, error) {
 	merchantOrderId := fmt.Sprintf("R%d", time.Now().UnixNano()/1e6)
-	timestamp := time.Now().UnixNano() / 1e6 // milliseconds
-	
-	// signature = sha256(merchantCode + timestamp + apiKey)
-	signatureStr := fmt.Sprintf("%s%d%s", 
-		config.AppConfig.DuitkuMerchantCode, 
-		timestamp,
+
+	// Duitku V2 Inquiry Signature formula: MD5(merchantCode + merchantOrderId + paymentAmount + apiKey)
+	signatureStr := fmt.Sprintf("%s%s%d%s",
+		config.AppConfig.DuitkuMerchantCode,
+		merchantOrderId,
+		product.Price,
 		config.AppConfig.DuitkuAPIKey,
 	)
-	hash := sha256.Sum256([]byte(signatureStr))
+	hash := md5.Sum([]byte(signatureStr))
 	signature := hex.EncodeToString(hash[:])
 
 	reqBody := dto.DuitkuCreateRequest{
@@ -53,28 +53,24 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		ItemDetails: []dto.DuitkuItem{
 			{Name: product.Name, Price: product.Price, Quantity: 1},
 		},
-		CallbackUrl:  "https://jvc.hanya.click/api/payment/callback",
-		ReturnUrl:    "https://jvc.hanya.click/checkout?status=success",
-		ExpiryPeriod: 1440,
+		CallbackUrl:   "https://jvc.hanya.click/api/payment/callback",
+		ReturnUrl:     "https://jvc.hanya.click/checkout?status=success",
+		ExpiryPeriod:  1440,
 		PaymentMethod: paymentMethod,
+		Signature:     signature,
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
 	client := &http.Client{Timeout: 10 * time.Second}
-	
+
 	// Duitku V2 Direct Payment (Inquiry) URL
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
 
-	// CRITICAL: Duitku V2 requires LOWERCASE headers. 
-	// Go's Header.Set() will capitalize them, so we must set them manually.
-	req.Header["Content-Type"] = []string{"application/json"}
-	req.Header["Accept"] = []string{"application/json"}
-	req.Header["x-duitku-signature"] = []string{signature}
-	req.Header["x-duitku-timestamp"] = []string{fmt.Sprintf("%d", timestamp)}
-	req.Header["x-duitku-merchantcode"] = []string{config.AppConfig.DuitkuMerchantCode}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -117,10 +113,10 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 
 func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]dto.DuitkuPaymentMethod, error) {
 	datetime := time.Now().Format("2006-01-02 15:04:05")
-	
+
 	// signature = sha256(merchantCode + amount + datetime + apiKey)
-	signatureStr := fmt.Sprintf("%s%d%s%s", 
-		config.AppConfig.DuitkuMerchantCode, 
+	signatureStr := fmt.Sprintf("%s%d%s%s",
+		config.AppConfig.DuitkuMerchantCode,
 		amount,
 		datetime,
 		config.AppConfig.DuitkuAPIKey,
@@ -137,7 +133,7 @@ func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]d
 
 	jsonData, _ := json.Marshal(reqBody)
 	client := &http.Client{Timeout: 10 * time.Second}
-	
+
 	// Correct Sandbox URL from Duitku Docs: https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod", bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -145,7 +141,7 @@ func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]d
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -176,16 +172,16 @@ func (s *PaymentService) ProcessDuitkuCallback(ctx context.Context, req dto.Duit
 	}
 
 	// signature = md5(merchantCode + amount + merchantOrderId + apiKey)
-	signatureStr := fmt.Sprintf("%s%s%s%s", 
-		req.MerchantCode, 
-		amountStr, 
-		req.MerchantOrderId, 
+	signatureStr := fmt.Sprintf("%s%s%s%s",
+		req.MerchantCode,
+		amountStr,
+		req.MerchantOrderId,
 		config.AppConfig.DuitkuAPIKey,
 	)
 	hash := md5.Sum([]byte(signatureStr))
 	expectedSignature := hex.EncodeToString(hash[:])
 
-	log.Printf("Duitku Callback: OrderId=%s, Amount=%s, Signature=%s, Expected=%s", 
+	log.Printf("Duitku Callback: OrderId=%s, Amount=%s, Signature=%s, Expected=%s",
 		req.MerchantOrderId, req.Amount, req.Signature, expectedSignature)
 
 	if req.Signature != expectedSignature {
@@ -216,7 +212,7 @@ func (s *PaymentService) ProcessDuitkuCallback(ctx context.Context, req dto.Duit
 		}
 
 		userRef := db.Client.Collection("users").Doc(transaction.SupporterName)
-		
+
 		err = tx.Update(txRef, []firestore.Update{
 			{Path: "status", Value: "claimed"},
 			{Path: "claimed_at", Value: time.Now()},
@@ -240,7 +236,7 @@ func (s *PaymentService) ProcessDuitkuCallback(ctx context.Context, req dto.Duit
 func (s *PaymentService) ClaimTopup(ctx context.Context, email string, transactionID string) error {
 	// In a real TDD with Firestore Transaction, it's hard to mock without abstracting the transaction logic.
 	// For this exercise, we'll keep the firestore.Transaction call but use the interface where possible.
-	
+
 	return db.Client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		txRef := db.Client.Collection("transactions").Doc(transactionID)
 		doc, err := tx.Get(txRef)
@@ -255,7 +251,7 @@ func (s *PaymentService) ClaimTopup(ctx context.Context, email string, transacti
 		}
 
 		userRef := db.Client.Collection("users").Doc(email)
-		
+
 		err = tx.Update(txRef, []firestore.Update{
 			{Path: "status", Value: "claimed"},
 			{Path: "claimed_by", Value: email},
