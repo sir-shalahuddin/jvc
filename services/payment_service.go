@@ -128,7 +128,8 @@ func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]d
 	jsonData, _ := json.Marshal(reqBody)
 	client := &http.Client{Timeout: 10 * time.Second}
 	
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://api-sandbox.duitku.com/api/merchant/paymentmethod/getpaymentmethod", bytes.NewBuffer(jsonData))
+	// Duitku API is case-sensitive: paymentMethod/getPaymentMethod
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://api-sandbox.duitku.com/api/merchant/paymentMethod/getPaymentMethod", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}

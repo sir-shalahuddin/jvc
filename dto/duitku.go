@@ -46,7 +46,7 @@ type DuitkuCallbackRequest struct {
 }
 
 type DuitkuPaymentMethodRequest struct {
-	MerchantCode string `json:"merchantCode"`
+	MerchantCode string `json:"merchantcode"`
 	Amount       int    `json:"amount"`
 	Datetime     string `json:"datetime"`
 	Signature    string `json:"signature"`
