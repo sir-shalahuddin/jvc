@@ -67,7 +67,7 @@
         </div>
 
         <div class="checkout-grid">
-            <div class="card">
+            <div class="card" id="methodsCard">
                 <div class="section-title">
                     <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">1</div>
                     Select Payment Method
@@ -77,7 +77,7 @@
                 <div id="methodsContainer" class="methods-grid" style="display: none;"></div>
             </div>
 
-            <div class="card">
+            <div class="card" id="summaryCard">
                 <div class="section-title">
                     <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">2</div>
                     Order Summary
@@ -101,6 +101,19 @@
                 <p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem;">
                     Secure checkout powered by Duitku.
                 </p>
+            </div>
+
+            <div class="card" id="instructionCard" style="display: none;">
+                <div class="section-title">
+                    <div style="width: 32px; height: 32px; background: #10b981; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">✓</div>
+                    Payment Instructions
+                </div>
+                
+                <div id="instructionContent" style="text-align: center; padding: 1rem 0;">
+                    <!-- Dynamically filled -->
+                </div>
+
+                <a href="/" class="btn btn-ghost" style="width: 100%; margin-top: 2rem;">I have completed payment</a>
             </div>
         </div>
     </div>
@@ -160,7 +173,7 @@
             
             const btn = document.getElementById('payBtn');
             const originalText = btn.innerText;
-            btn.innerText = "Processing...";
+            btn.innerText = "Generating Invoice...";
             btn.disabled = true;
 
             try {
@@ -174,8 +187,14 @@
                 });
                 const data = await response.json();
                 
-                if (data.paymentUrl) {
-                    window.location.href = data.paymentUrl;
+                if (data.statusCode === "00") {
+                    if (data.vaNumber) {
+                        showVAInstruction(data);
+                    } else if (data.qrString) {
+                        showQRInstruction(data);
+                    } else if (data.paymentUrl) {
+                        window.location.href = data.paymentUrl;
+                    }
                 } else {
                     alert(data.statusMessage || "Payment failed to initialize");
                     btn.innerText = originalText;
@@ -187,6 +206,37 @@
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
+        }
+
+        function showVAInstruction(data) {
+            document.querySelector('.checkout-grid').style.gridTemplateColumns = "1fr";
+            document.getElementById('methodsCard').style.display = 'none';
+            document.getElementById('summaryCard').style.display = 'none';
+            
+            const card = document.getElementById('instructionCard');
+            card.style.display = 'block';
+            card.style.maxWidth = "600px";
+            card.style.margin = "0 auto";
+
+            document.getElementById('instructionContent').innerHTML = `
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Virtual Account Number</div>
+                <div style="font-size: 2rem; font-weight: 900; color: var(--primary); letter-spacing: 2px; margin-bottom: 2rem;">${data.vaNumber}</div>
+                
+                <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 20px;">
+                    <h4 style="margin-bottom: 1rem;">Payment Steps:</h4>
+                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8;">
+                        <li>Copy the Virtual Account number above.</li>
+                        <li>Log in to your banking app or ATM.</li>
+                        <li>Select <b>Transfer</b> &rsaquo; <b>Virtual Account</b>.</li>
+                        <li>Paste the number and enter the exact amount.</li>
+                        <li>Complete the transaction. Your credits will be added automatically.</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        function showQRInstruction(data) {
+            window.location.href = data.paymentUrl;
         }
     </script>
 </body>

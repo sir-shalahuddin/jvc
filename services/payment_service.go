@@ -62,7 +62,8 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	jsonData, _ := json.Marshal(reqBody)
 	client := &http.Client{Timeout: 10 * time.Second}
 	
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://api-sandbox.duitku.com/api/merchant/createInvoice", bytes.NewBuffer(jsonData))
+	// Duitku V2 Create Invoice URL
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://sandbox.duitku.com/webapi/api/merchant/v2/createInvoice", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}

@@ -21,11 +21,13 @@ type DuitkuCreateRequest struct {
 }
 
 type DuitkuCreateResponse struct {
-	MerchantCode    string `json:"merchantCode"`
-	Reference       string `json:"reference"`
-	PaymentUrl      string `json:"paymentUrl"`
-	StatusCode      string `json:"statusCode"`
-	StatusMessage   string `json:"statusMessage"`
+	MerchantCode       string `json:"merchantCode"`
+	Reference          string `json:"reference"`
+	PaymentUrl         string `json:"paymentUrl"`
+	VaNumber           string `json:"vaNumber"`
+	QrString           string `json:"qrString"`
+	StatusCode         string `json:"statusCode"`
+	StatusMessage      string `json:"statusMessage"`
 }
 
 type DuitkuCallbackRequest struct {
