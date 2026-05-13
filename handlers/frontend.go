@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"retro-gcp/config"
 )
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
@@ -21,17 +22,25 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	renderTemplate(w, "index", nil)
+	renderTemplate(w, "index", config.AppConfig)
 }
 
 func SessionHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "session", nil)
+	renderTemplate(w, "session", config.AppConfig)
 }
 
 func AdminUIHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "admin", nil)
+	renderTemplate(w, "admin", config.AppConfig)
 }
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "about", nil)
+	renderTemplate(w, "about", config.AppConfig)
+}
+
+func ContactHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "contact", config.AppConfig)
+}
+
+func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "checkout", config.AppConfig)
 }

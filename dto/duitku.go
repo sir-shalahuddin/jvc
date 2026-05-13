@@ -17,6 +17,7 @@ type DuitkuCreateRequest struct {
 	CallbackUrl     string       `json:"callbackUrl"`
 	ReturnUrl       string       `json:"returnUrl"`
 	ExpiryPeriod    int          `json:"expiryPeriod"`
+	PaymentMethod   string       `json:"paymentMethod"`
 }
 
 type DuitkuCreateResponse struct {
@@ -42,4 +43,22 @@ type DuitkuCallbackRequest struct {
 	SpUserHash        string `json:"spUserHash"`
 	SettlementDate    string `json:"settlementDate"`
 	SettlementAmount  string `json:"settlementAmount"`
+}
+
+type DuitkuPaymentMethodRequest struct {
+	MerchantCode string `json:"merchantCode"`
+	Amount       int    `json:"amount"`
+	Datetime     string `json:"datetime"`
+	Signature    string `json:"signature"`
+}
+
+type DuitkuPaymentMethod struct {
+	PaymentMethod string `json:"paymentMethod"`
+	PaymentName   string `json:"paymentName"`
+	PaymentImage  string `json:"paymentImage"`
+	TotalFee      string `json:"totalFee"`
+}
+
+type DuitkuPaymentMethodResponse struct {
+	PaymentFee []DuitkuPaymentMethod `json:"paymentFee"`
 }

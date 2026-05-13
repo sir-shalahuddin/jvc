@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Retro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
+    <link href="/static/style.css?v=105" rel="stylesheet">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        body { 
+            min-height: 100vh; 
+            background: var(--bg-base); 
+            color: var(--text);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { 
+            max-width: 800px; 
+            margin: 4rem auto;
+            padding: 4rem 2rem;
+            width: 100%;
+        }
+
+        .contact-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            padding: 4rem;
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+        }
+
+        .contact-header h1 {
+            font-size: 4rem;
+            font-weight: 950;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.04em;
+        }
+
+        .contact-header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .info-item {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .info-item h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .info-item p, .info-item a {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text);
+            text-decoration: none;
+            word-break: break-word;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 700;
+            transition: 0.3s;
+            margin-bottom: 3rem;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        [data-theme='dark'] .info-item {
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container animate-fade-up">
+        <a href="/" class="back-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Home
+        </a>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <h1>Hubungi Kami</h1>
+                <p>We're here to help you build better teams. Reach out to us through any of the following channels.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <h3>Email Support</h3>
+                    <a href="mailto:{{.ContactEmail}}">{{.ContactEmail}}</a>
+                </div>
+                <div class="info-item">
+                    <h3>Phone</h3>
+                    <a href="tel:{{.ContactPhone}}">{{.ContactPhone}}</a>
+                </div>
+                <div class="info-item">
+                    <h3>Office Address</h3>
+                    <p>{{.ContactAddress}}</p>
+                </div>
+            </div>
+
+            <div style="padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Available Monday - Friday, 09:00 - 18:00 WIB</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        }
+    </script>
+</body>
+</html>

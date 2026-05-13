@@ -78,8 +78,9 @@ func main() {
 	mux.HandleFunc("/api/admin/sessions", handlers.AdminAPIHandler)
 	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
 	mux.HandleFunc("/api/payment/create", handlers.CreatePaymentHandler)
+	mux.HandleFunc("/api/payment/methods", handlers.GetPaymentMethodsHandler)
 	mux.HandleFunc("/api/payment/callback", handlers.PaymentCallbackHandler)
-	// mux.HandleFunc("/duitku/callback", handlers.PaymentCallbackHandler)
+	mux.HandleFunc("/duitku/callback", handlers.PaymentCallbackHandler)
 
 	// Auth Routes
 	mux.HandleFunc("/auth/google/login", handlers.GoogleLoginHandler)
@@ -92,12 +93,21 @@ func main() {
 	mux.HandleFunc("/session/", handlers.SessionHandler)
 	mux.HandleFunc("/admin", handlers.AdminUIHandler)
 	mux.HandleFunc("/about", handlers.AboutHandler)
+	mux.HandleFunc("/contact", handlers.ContactHandler)
+	mux.HandleFunc("/checkout", handlers.CheckoutHandler)
 
 	port := config.AppConfig.Port
 	log.Printf("Server starting on :%s...", port)
+
+	// Global logger middleware
+	loggingMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[REQ] %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+		mux.ServeHTTP(w, r)
+	})
+
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      mux,
+		Handler:      loggingMux,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

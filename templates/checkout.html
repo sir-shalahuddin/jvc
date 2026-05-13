@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Retro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
+    <link href="/static/style.css?v=105" rel="stylesheet">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <style>
+        body { min-height: 100vh; background: var(--bg-base); color: var(--text); padding: 4rem 2rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .checkout-grid { display: grid; grid-template-columns: 1fr 350px; gap: 3rem; align-items: start; }
+        
+        .card { background: var(--glass-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+        .section-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
+        
+        .methods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.25rem; }
+        .method-item { 
+            background: rgba(255,255,255,0.4); 
+            border: 1px solid var(--glass-border); 
+            padding: 1.5rem 1rem; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 1rem;
+            text-align: center;
+        }
+        .method-item:hover { transform: translateY(-5px); border-color: var(--primary); background: rgba(255,255,255,0.6); }
+        .method-item.selected { border-color: var(--primary); background: rgba(37, 99, 235, 0.1); box-shadow: 0 0 0 2px var(--primary); }
+        .method-img { height: 32px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .method-name { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); }
+
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 1rem; font-weight: 500; }
+        .summary-total { border-top: 1px solid var(--glass-border); margin-top: 1.5rem; padding-top: 1.5rem; font-size: 1.5rem; font-weight: 900; }
+
+        .btn-pay { width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: 800; border-radius: 20px; margin-top: 2rem; }
+        
+        #loader { display: flex; justify-content: center; padding: 4rem; width: 100%; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        [data-theme='dark'] .method-item { background: rgba(0,0,0,0.2); }
+        [data-theme='dark'] .method-item:hover { background: rgba(0,0,0,0.3); }
+
+        @media (max-width: 800px) {
+            .checkout-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container animate-fade-up">
+        <div style="margin-bottom: 3rem;">
+            <a href="/" style="text-decoration: none; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to Pricing
+            </a>
+        </div>
+
+        <div class="checkout-grid">
+            <div class="card">
+                <div class="section-title">
+                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">1</div>
+                    Select Payment Method
+                </div>
+                
+                <div id="loader"><div class="spinner"></div></div>
+                <div id="methodsContainer" class="methods-grid" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">
+                    <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">2</div>
+                    Order Summary
+                </div>
+                
+                <div id="orderSummary">
+                    <div class="summary-item">
+                        <span id="prodName">Loading...</span>
+                        <span id="prodPrice">Rp 0</span>
+                    </div>
+                    <div class="summary-item" style="font-size: 0.9rem; color: var(--text-muted);">
+                        <span id="prodDesc">...</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span id="totalPrice">Rp 0</span>
+                    </div>
+                </div>
+
+                <button id="payBtn" class="btn btn-primary btn-pay" disabled onclick="handlePayment()">Confirm & Pay</button>
+                <p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem;">
+                    Secure checkout powered by Duitku.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const products = {
+            "single": { name: "Single Session", price: 5000, desc: "1 Session Credit" },
+            "starter": { name: "Starter Pack", price: 25000, desc: "5 Session Credits" },
+            "pro": { name: "Professional Pack", price: 75000, desc: "20 Session Credits" },
+            "ent": { name: "Enterprise Pack", price: 500000, desc: "Unlimited Sessions" }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id') || 'single';
+        const product = products[productId];
+        let selectedMethod = null;
+
+        if (product) {
+            document.getElementById('prodName').innerText = product.name;
+            document.getElementById('prodPrice').innerText = `Rp ${product.price.toLocaleString()}`;
+            document.getElementById('prodDesc').innerText = product.desc;
+            document.getElementById('totalPrice').innerText = `Rp ${product.price.toLocaleString()}`;
+            loadMethods(product.price);
+        }
+
+        async function loadMethods(amount) {
+            try {
+                const res = await fetch(`/api/payment/methods?amount=${amount}`);
+                const methods = await res.json();
+                
+                const container = document.getElementById('methodsContainer');
+                const loader = document.getElementById('loader');
+                
+                container.innerHTML = methods.map(m => `
+                    <div class="method-item" onclick="selectMethod('${m.paymentMethod}', this)">
+                        <img src="${m.paymentImage}" alt="${m.paymentName}" class="method-img">
+                        <div class="method-name">${m.paymentName}</div>
+                    </div>
+                `).join('');
+                
+                loader.style.display = 'none';
+                container.style.display = 'grid';
+            } catch (e) {
+                console.error("Failed to load methods", e);
+            }
+        }
+
+        function selectMethod(id, el) {
+            selectedMethod = id;
+            document.querySelectorAll('.method-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('payBtn').disabled = false;
+        }
+
+        async function handlePayment() {
+            if (!selectedMethod) return;
+            
+            const btn = document.getElementById('payBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/payment/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        product_id: productId,
+                        payment_method: selectedMethod
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.paymentUrl) {
+                    window.location.href = data.paymentUrl;
+                } else {
+                    alert(data.statusMessage || "Payment failed to initialize");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error(e);
+                alert("System error. Please try again.");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

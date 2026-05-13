@@ -70,4 +70,7 @@ jobs:
             GIPHY_API_KEY=${{ secrets.GIPHY_API_KEY }}
             DUITKU_MERCHANT_CODE=${{ secrets.DUITKU_MERCHANT_CODE }}
             DUITKU_API_KEY=${{ secrets.DUITKU_API_KEY }}
+            CONTACT_EMAIL=${{ secrets.CONTACT_EMAIL }}
+            CONTACT_PHONE=${{ secrets.CONTACT_PHONE }}
+            CONTACT_ADDRESS=${{ secrets.CONTACT_ADDRESS }}
           flags: --allow-unauthenticated --memory=512Mi --cpu=1

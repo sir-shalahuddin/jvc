@@ -30,7 +30,7 @@ type PaymentService struct {
 	UserRepo        IUserRepository
 }
 
-func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product) (*dto.DuitkuCreateResponse, error) {
+func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product, paymentMethod string) (*dto.DuitkuCreateResponse, error) {
 	merchantOrderId := fmt.Sprintf("R%d", time.Now().UnixNano()/1e6)
 	timestamp := time.Now().UnixNano() / 1e6 // milliseconds
 	
@@ -55,6 +55,7 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		CallbackUrl:  "https://retro-gcp-12571180850.asia-southeast1.run.app/api/payment/callback",
 		ReturnUrl:    "https://jvc.hanya.click/",
 		ExpiryPeriod: 1440,
+		PaymentMethod: paymentMethod,
 	}
 
 	jsonData, _ := json.Marshal(reqBody)
@@ -101,6 +102,50 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 	}
 
 	return &result, nil
+}
+
+func (s *PaymentService) GetPaymentMethods(ctx context.Context, amount int) ([]dto.DuitkuPaymentMethod, error) {
+	datetime := time.Now().Format("2006-01-02 15:04:05")
+	
+	// signature = sha256(merchantCode + amount + datetime + apiKey)
+	signatureStr := fmt.Sprintf("%s%d%s%s", 
+		config.AppConfig.DuitkuMerchantCode, 
+		amount,
+		datetime,
+		config.AppConfig.DuitkuAPIKey,
+	)
+	hash := sha256.Sum256([]byte(signatureStr))
+	signature := hex.EncodeToString(hash[:])
+
+	reqBody := dto.DuitkuPaymentMethodRequest{
+		MerchantCode: config.AppConfig.DuitkuMerchantCode,
+		Amount:       amount,
+		Datetime:     datetime,
+		Signature:    signature,
+	}
+
+	jsonData, _ := json.Marshal(reqBody)
+	client := &http.Client{Timeout: 10 * time.Second}
+	
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://api-sandbox.duitku.com/api/merchant/paymentmethod/getpaymentmethod", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result dto.DuitkuPaymentMethodResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return result.PaymentFee, nil
 }
 
 func (s *PaymentService) ProcessDuitkuCallback(ctx context.Context, req dto.DuitkuCallbackRequest) error {

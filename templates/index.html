@@ -92,6 +92,7 @@
                     
                     <div class="nav-links" id="mainNav">
                         <a href="/about" class="active">Insights</a>
+                        <a href="/contact">Contact</a>
                         <a href="https://github.com/sir-shalahuddin/jvc" target="_blank">Source</a>
                         <!-- Activity Logs injected here via JS if logged in -->
                     </div>
@@ -150,6 +151,21 @@
             <div class="product-grid">
                 <div class="product-card">
                     <div>
+                        <span class="badge badge-success" style="margin-bottom: 2rem; background: var(--accent); color: white;">Trial</span>
+                        <h3>Single Session</h3>
+                        <p class="desc">Quick sync or one-time retro. No commitment, full power.</p>
+                        <div class="price">Rp 5.000</div>
+                        <ul style="text-align: left; margin-bottom: 3rem; color: var(--text-secondary); padding-left: 2rem; line-height: 2;">
+                            <li>1 Session Credit</li>
+                            <li>Basic AI Insights</li>
+                            <li>Standard Reports</li>
+                        </ul>
+                    </div>
+                    <button onclick="payWithDuitku('single')" class="btn btn-primary" style="width: 100%; padding: 1.25rem;">Buy Now</button>
+                </div>
+
+                <div class="product-card">
+                    <div>
                         <span class="badge badge-success" style="margin-bottom: 2rem;">Starter</span>
                         <h3>Starter Pack</h3>
                         <p class="desc">Perfect for small teams or individual facilitators starting their agile journey.</p>
@@ -203,17 +219,13 @@
                     <p style="font-size: 1.1rem; line-height: 1.8;">Empowering engineering teams to build better through honest feedback and AI-driven insights.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Contact Us</h4>
-                    <p>Email: <a href="mailto:support@hanya.click">support@hanya.click</a></p>
-                    <p>Phone: <a href="tel:+6281234567890">+62 812-3456-7890</a></p>
+                    <h4>Support</h4>
+                    <p><a href="/contact">Contact Us</a></p>
+                    <p><a href="/about">How it Works</a></p>
                 </div>
                 <div class="footer-section">
-                    <h4>Office</h4>
-                    <p>Jl. Jenderal Sudirman Kav. 52-53<br>Jakarta Selatan, 12190<br>Indonesia</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Links</h4>
-                    <p><a href="/about">Insights</a></p>
+                    <h4>Company</h4>
+                    <p><a href="/about">About Us</a></p>
                     <p><a href="https://github.com/sir-shalahuddin/jvc">Source Code</a></p>
                 </div>
             </div>
@@ -223,8 +235,7 @@
         </footer>
     </div>
 
-    <!-- Duitku Pop JS -->
-    <script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
+    <!-- Duitku Full API (Redirect) used instead of Pop JS -->
 
     <script>
         // ... (existing script)
@@ -234,43 +245,8 @@
             if (!user.authenticated) {
                 return window.location.href = '/auth/google/login';
             }
-
-            try {
-                const response = await fetch('/api/payment/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: productId })
-                });
-                const data = await response.json();
-                console.log("Duitku Response:", data);
-                
-                const token = data.reference; // Duitku Pop prefers reference
-                if (token) {
-                    checkout.process(token, {
-                        successEvent: function(result) {
-                            console.log('payment success', result);
-                            showToast("Payment Successful!", "success");
-                            checkAuth();
-                        },
-                        pendingEvent: function(result) {
-                            console.log('payment pending', result);
-                            showToast("Payment Pending...", "info");
-                        },
-                        errorEvent: function(result) {
-                            console.log('payment error', result);
-                            showToast("Payment Failed", "error");
-                        },
-                        closeEvent: function(result) {
-                            console.log('customer closed the popup');
-                        }
-                    });
-                } else {
-                    showToast(data.statusMessage || "Checkout failed: No token received", "error");
-                }
-            } catch (e) {
-                console.error("Checkout System Error:", e);
-                showToast("System error", "error");
-            }
+            // Redirect to custom checkout page
+            window.location.href = `/checkout?product_id=${productId}`;
         }
 
         function showToast(message, type = 'info') {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"retro-gcp/dto"
@@ -19,7 +20,8 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		ProductID string `json:"product_id"`
+		ProductID     string `json:"product_id"`
+		PaymentMethod string `json:"payment_method"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -28,6 +30,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Hardcoded products
 	products := map[string]models.Product{
+		"single":  {ID: "single", Name: "Single Session", Description: "1 Session Credit", Price: 5000, Quantity: 1},
 		"starter": {ID: "starter", Name: "Starter Pack", Description: "5 Session Credits", Price: 25000, Quantity: 5},
 		"pro":     {ID: "pro", Name: "Professional Pack", Description: "20 Session Credits", Price: 75000, Quantity: 20},
 		"ent":     {ID: "ent", Name: "Enterprise Pack", Description: "Unlimited Sessions (Annual)", Price: 500000, Quantity: 9999},
@@ -39,7 +42,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := PaymentServ.CreateDuitkuPayment(r.Context(), email, product)
+	resp, err := PaymentServ.CreateDuitkuPayment(r.Context(), email, product, req.PaymentMethod)
 	if err != nil {
 		log.Printf("Payment Create Error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,6 +50,25 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(resp)
+}
+
+func GetPaymentMethodsHandler(w http.ResponseWriter, r *http.Request) {
+	amountStr := r.URL.Query().Get("amount")
+	if amountStr == "" {
+		http.Error(w, "Amount required", http.StatusBadRequest)
+		return
+	}
+	var amount int
+	fmt.Sscanf(amountStr, "%d", &amount)
+
+	methods, err := PaymentServ.GetPaymentMethods(r.Context(), amount)
+	if err != nil {
+		log.Printf("GetPaymentMethods Error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(methods)
 }
 
 func PaymentCallbackHandler(w http.ResponseWriter, r *http.Request) {
