@@ -98,14 +98,18 @@
 
             .split-layout {
                 grid-template-columns: 1fr;
-                text-align: center;
+                text-align: left;
                 gap: 3rem;
             }
 
             .side-title {
                 display: flex;
                 flex-direction: column;
-                align-items: center;
+                align-items: flex-start;
+            }
+
+            .side-logo {
+                margin: 0 auto 2rem 0;
             }
 
             .container {
@@ -122,14 +126,17 @@
     </button>
 
     <div class="container animate-fade-up">
+        <div style="margin-bottom: 2rem; text-align: left;">
+            <a href="/" style="text-decoration: none; color: var(--text-muted); font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to Home
+            </a>
+        </div>
         <div class="split-layout">
             <div class="side-title">
                 <a href="/"><img src="/static/images/logo.svg" alt="Logo" class="side-logo"></a>
                 <h1>Inside Retro</h1>
                 <p>Designed for absolute honesty, powered by industrial-grade engineering.</p>
-                <div style="text-align: left; width: 100%;">
-                    <a href="/" class="btn btn-ghost" style="margin-top: 2rem; padding: 0.6rem 1.5rem; font-size: 0.85rem;">&larr; Back Home</a>
-                </div>
             </div>
 
             <div class="bento-grid">
