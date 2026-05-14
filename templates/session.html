@@ -36,6 +36,8 @@
         }
 
         .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); margin-bottom: 3rem; }
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+        #sm-controls { display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 0.5rem; }
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; perspective: 1500px; padding-top: 1rem; }
         .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
         .answer-card.flipped { transform: rotateY(180deg); }
@@ -98,7 +100,9 @@
         @media (max-width: 768px) {
             .session-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; padding: 2rem 0 1rem; margin-bottom: 1.5rem; }
             .session-header h1 { font-size: 1.5rem !important; }
-            #sm-controls { border-right: none; padding-right: 0; margin-right: 0; flex-wrap: wrap; }
+            .header-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            #sm-controls { display: contents; }
+            .header-actions .btn { width: 100%; padding: 0.8rem 0.5rem; font-size: 0.85rem; }
             
             .sticky-wrapper { top: 0.5rem; }
             .question-header { padding: 1rem 1.5rem; border-radius: 24px; }
@@ -127,8 +131,8 @@
                 <h1 id="sessionNameTitle" style="font-size: 2rem; margin:0; color: var(--text-main);">Loading...</h1>
                 <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;"></p>
             </div>
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <div id="sm-controls" class="hidden" style="display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 0.5rem;">
+            <div class="header-actions">
+                <div id="sm-controls" class="hidden">
                     <button onclick="openQuestionModal()" class="btn btn-success">+ Add Question</button>
                     <button onclick="exportToPDF()" class="btn btn-ghost" style="border-color: var(--accent-primary); color: var(--accent-primary);">Export PDF</button>
                 </div>
