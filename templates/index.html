@@ -6,7 +6,7 @@
     <title>Retro - Premium Retrospectives</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
-    <link href="/static/style.css?v=106" rel="stylesheet">
+    <link href="/static/style.css?v=110" rel="stylesheet">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -255,10 +255,10 @@
             const colors = {
                 success: '#10b981',
                 error: '#ef4444',
-                info: '#3b82f6'
+                info: '#ff8552'
             };
             
-            const dot = `<div style="width: 10px; height: 10px; border-radius: 50%; background: ${colors[type] || colors.info}"></div>`;
+            const dot = `<div style="width: 10px; height: 10px; border-radius: 0px; background: ${colors[type] || colors.info}"></div>`;
             toast.innerHTML = `${dot} <span>${message}</span>`;
             
             container.appendChild(toast);
@@ -330,7 +330,7 @@
                     nav.appendChild(adminLink);
                 }
             } else {
-                authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 16px;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
+                authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 0px;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
             }
         }
         async function createSession() {
@@ -349,10 +349,10 @@
                             <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">${new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</div>
                             <h3 style="margin: 0; font-size: 1.2rem; line-height: 1.4; color: var(--text);">${s.name}</h3>
                         </div>
-                        <code style="background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.2);">${s.id.substring(0, 8)}</code>
+                        <code style="background: rgba(255, 95, 31, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 0px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color);">${s.id.substring(0, 8)}</code>
                     </div>
                     <div style="margin-top: 1rem;">
-                        <a href="/session/?id=${s.id}&role=sm" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.9rem; border-radius: 12px;">Open Board</a>
+                        <a href="/session/?id=${s.id}&role=sm" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.9rem; border-radius: 0px;">Open Board</a>
                     </div>
                 </div>
             `).join('') || '<div style="grid-column: 1 / -1; text-align:center; padding: 4rem; color: var(--text-muted);">No sessions found in your history. Start a new one to see it here!</div>';

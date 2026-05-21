@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Session - Discussion</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
-    <link rel="stylesheet" href="/static/style.css?v=105">
+    <link rel="stylesheet" href="/static/style.css?v=110">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
@@ -19,7 +19,7 @@
         :root[data-theme='light'] { 
             --text-main: var(--text); 
             --text-sub: var(--text-secondary); 
-            --card-bg: var(--glass-bg); 
+            --card-bg: var(--bg-card); 
             --accent-primary: var(--primary); 
             --accent-success: #10b981; 
             --accent-danger: #f43f5e;
@@ -28,24 +28,24 @@
         :root[data-theme='dark'] { 
             --text-main: var(--text); 
             --text-sub: var(--text-secondary); 
-            --card-bg: var(--glass-bg); 
+            --card-bg: var(--bg-card); 
             --accent-primary: var(--primary); 
             --accent-success: #34d399; 
             --accent-danger: #fb7185;
             --btn-text: #ffffff;
         }
 
-        .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); margin-bottom: 3rem; }
+        .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border-color); margin-bottom: 3rem; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; }
-        #sm-controls { display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 0.5rem; }
+        #sm-controls { display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 3px solid var(--border-color); padding-right: 0.5rem; }
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; perspective: 1500px; padding-top: 1rem; }
-        .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
+        .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); display: inline-block; }
         .answer-card.flipped { transform: rotateY(180deg); }
         .answer-card.processing { cursor: wait; pointer-events: none; }
         
-        .card-face { position: relative; width: 100%; height: auto; min-height: 280px; backface-visibility: hidden; border-radius: 28px; padding: 1.75rem; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(15px); display: flex; flex-direction: column; transition: 0.5s ease; }
-        .card-front { background: var(--glass-bg); color: var(--primary); font-weight: 900; font-size: 1.5rem; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; box-shadow: 0 0 35px -5px var(--mood-color, transparent); transition: 0.8s ease; }
-        .card-back { background: var(--card-bg); color: var(--text-main); transform: rotateY(180deg); position: relative; min-height: 280px; width: 100%; height: auto; }
+        .card-face { position: relative; width: 100%; height: auto; min-height: 280px; backface-visibility: hidden; border-radius: 0px !important; padding: 1.75rem; border: 3px solid var(--border-color); box-shadow: var(--glass-shadow); backdrop-filter: none !important; -webkit-backdrop-filter: none !important; display: flex; flex-direction: column; transition: all var(--transition); }
+        .card-front { background: var(--bg-card); color: var(--primary); font-weight: 900; font-size: 1.5rem; justify-content: center; align-items: center; position: absolute; inset: 0; height: 100%; overflow: hidden; box-shadow: 6px 6px 0px var(--mood-color, var(--border-color)); transition: all var(--transition); }
+        .card-back { background: var(--bg-card); color: var(--text); transform: rotateY(180deg); position: relative; min-height: 280px; width: 100%; height: auto; }
         
         /* Transitions */
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -57,45 +57,50 @@
         /* Sticky Header */
         .sticky-wrapper { position: sticky; top: 1.5rem; z-index: 500; margin-bottom: 2rem; pointer-events: none; }
         .question-header { 
-            background: rgba(255, 255, 255, 0.4); 
-            backdrop-filter: blur(12px) saturate(180%); 
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.3); 
-            border-radius: 32px; 
-            padding: 1.25rem 2.5rem; 
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); 
+            background: var(--bg-card); 
+            backdrop-filter: none !important; 
+            -webkit-backdrop-filter: none !important;
+            border: 3px solid var(--border-color); 
+            border-radius: 0px !important; 
+            padding: 2rem 2.5rem; 
+            box-shadow: 6px 6px 0px var(--border-color); 
             display: inline-flex; 
             flex-direction: column; 
             align-items: center; 
             text-align: center; 
             pointer-events: auto; 
             width: 100%; 
-            transition: all 0.3s ease;
+            transition: all var(--transition);
         }
         :root[data-theme='dark'] .question-header { 
-            background: rgba(15, 23, 42, 0.4); 
-            border-color: rgba(255, 255, 255, 0.1); 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            background: var(--bg-card); 
+            border-color: var(--border-color); 
+            box-shadow: 6px 6px 0px var(--border-color);
         }
 
         /* Buttons & Rest */
-        .btn { padding: 0.8rem 1.6rem; border-radius: 16px; font-weight: 700; font-size: 0.9rem; transition: 0.3s; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; box-shadow: 0 8px 20px -6px var(--primary-glow); border: none; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-ghost { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); }
-        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: var(--glass-bg); }
+        .btn { padding: 0.8rem 1.75rem; border-radius: 0px !important; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; transition: all var(--transition); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 3px solid var(--border-color) !important; font-size: 0.95rem; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 3px 3px 0px var(--border-color) !important; border: none; }
+        .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; }
+        .btn-primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
+        .btn-success { background: #10b981; color: white; box-shadow: 3px 3px 0px var(--border-color) !important; }
+        .btn-success:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; }
+        .btn-ghost { background: var(--bg-card); border: 3px solid var(--border-color); color: var(--text); box-shadow: 3px 3px 0px var(--border-color) !important; }
+        .btn-ghost:hover { border-color: var(--border-color); color: var(--primary); background: var(--bg-card); transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; }
+        .btn-ghost:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
 
-        #nav-questions { position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: var(--glass-bg); padding: 1rem 2rem; border-radius: 50px; box-shadow: var(--glass-shadow); z-index: 1000; border: 1px solid var(--glass-border); backdrop-filter: blur(25px); }
-        .nav-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-sub); cursor: pointer; transition: 0.4s; }
-        .nav-dot.active { background: var(--accent-primary); transform: scale(1.5); }
+        #nav-questions { position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: var(--bg-card); padding: 1rem 2rem; border-radius: 0px !important; box-shadow: var(--glass-shadow); z-index: 1000; border: 3px solid var(--border-color); backdrop-filter: none !important; }
+        .nav-dot { width: 12px; height: 12px; border-radius: 0px !important; background: var(--text-muted); cursor: pointer; transition: all var(--transition); border: 1px solid var(--border-color); }
+        .nav-dot.active { background: var(--primary); transform: scale(1.3); border: 2px solid var(--border-color); }
         
-        .nav-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--glass-shadow); z-index: 900; transition: 0.3s; color: var(--accent-primary); }
-        .nav-btn:hover { background: var(--accent-primary); color: white; transform: translateY(-50%) scale(1.1); }
+        .nav-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--glass-shadow); z-index: 900; transition: all var(--transition); color: var(--primary); }
+        .nav-btn:hover { background: var(--primary); color: white; transform: translateY(-50%) translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); }
+        .nav-btn:active { transform: translateY(-50%) translate(2px, 2px); box-shadow: 2px 2px 0px var(--border-color); }
         .nav-btn.prev { left: 2rem; }
         .nav-btn.next { right: 2rem; }
 
-        .modal-content { background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 32px; padding: 3rem; position: relative; box-shadow: var(--glass-shadow); max-height: 90vh; overflow-y: auto; color: var(--text-main); }
-        #pdf-export-container { display: none; padding: 40px; background: white; color: #1e293b; font-family: 'Inter', sans-serif; }
+        .modal-content { background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; padding: 3rem; position: relative; box-shadow: 8px 8px 0px var(--border-color); max-height: 90vh; overflow-y: auto; color: var(--text); }
+        #pdf-export-container { display: none; padding: 40px; background: white; color: #1e293b; font-family: 'JetBrains Mono', monospace !important; }
 
         @media (max-width: 768px) {
             .session-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; padding: 2rem 0 1rem; margin-bottom: 1.5rem; }
@@ -105,18 +110,19 @@
             .header-actions .btn { width: 100%; padding: 0.8rem 0.5rem; font-size: 0.85rem; }
             
             .sticky-wrapper { top: 0.5rem; }
-            .question-header { padding: 1rem 1.5rem; border-radius: 24px; }
+            .question-header { padding: 1rem 1.5rem; border-radius: 0px !important; }
             .question-header h2 { font-size: 1.5rem !important; }
             
             .nav-btn { width: 44px; height: 44px; top: auto; bottom: 2rem; transform: none; }
-            .nav-btn:hover { transform: scale(1.1); }
+            .nav-btn:hover { transform: translate(-2px, -2px); }
+            .nav-btn:active { transform: translate(2px, 2px); }
             .nav-btn.prev { left: 1rem; }
             .nav-btn.next { right: 1rem; }
             #nav-questions { bottom: 1.5rem; padding: 0.75rem 1.5rem; }
             
             .answers-grid { column-width: 100%; padding-top: 0.5rem; }
             .answer-card { min-height: 200px; margin-bottom: 1rem; }
-            .card-face { min-height: 200px; padding: 1.25rem; border-radius: 20px; }
+            .card-face { min-height: 200px; padding: 1.25rem; border-radius: 0px !important; }
             .card-front { font-size: 1.25rem; }
         }
 
@@ -129,50 +135,58 @@
             width: 100%;
             height: 100%;
             position: relative;
-            gap: 0.75rem;
+            gap: 1rem;
+            background: var(--bg-card);
+            padding: 2rem;
         }
 
         .ai-icon {
-            font-size: 3.5rem;
-            animation: brainPulse 2s infinite ease-in-out;
-            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
+            font-size: 4rem;
+            animation: brainPulse 1.6s infinite ease-in-out;
+            display: inline-block;
         }
 
         .ai-scan-bar {
             position: absolute;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-primary, #6366f1), transparent);
-            box-shadow: 0 0 8px var(--accent-primary, #6366f1);
-            animation: scanMove 2.5s infinite ease-in-out;
+            height: 4px;
+            background: var(--primary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 0 10px var(--primary-glow);
+            animation: scanMove 2s infinite ease-in-out;
         }
 
         .ai-status {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-muted, #64748b);
-            letter-spacing: 0.15em;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 0.2em;
             text-transform: uppercase;
-            animation: textPulse 1.5s infinite ease-in-out;
+            animation: textPulse 1.2s infinite ease-in-out;
+            border: 2px solid var(--border-color);
+            padding: 4px 12px;
+            background: var(--bg-base);
         }
 
         @keyframes brainPulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4)); }
-            50% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.8)); }
-            100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4)); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
         }
 
         @keyframes scanMove {
-            0% { top: 15%; }
-            50% { top: 85%; }
-            100% { top: 15%; }
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
         }
 
         @keyframes textPulse {
-            0% { opacity: 0.4; }
+            0% { opacity: 0.5; }
             50% { opacity: 1; }
-            100% { opacity: 0.4; }
+            100% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -210,7 +224,7 @@
     </div>
 
     <!-- Modals are omitted for space, assuming they are unchanged -->
-    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; margin-bottom: 2rem;"><div id="editor-container" style="height: 150px; font-size: 1.1rem; color: var(--text-main);"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
+    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="border: 3px solid var(--border-color); border-radius: 0px; overflow: hidden; margin-bottom: 2rem;"><div id="editor-container" style="height: 150px; font-size: 1.1rem; color: var(--text-main);"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
@@ -246,7 +260,7 @@
             container.innerHTML = currentQuestions.map(q => `
                 <div id="q-${q.id}" class="topic-container">
                     <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2rem; margin-bottom: 2rem;">
-                        ${q.gif_url ? `<div style="width: 100%; max-width: 450px; height: 260px; background: rgba(0,0,0,0.03); border-radius: 28px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--glass-shadow);"><img src="${q.gif_url}" style="width: 100%; height: 100%; object-fit: contain;"></div>` : ''}
+                        ${q.gif_url ? `<div style="width: 100%; max-width: 450px; height: 260px; background: rgba(0,0,0,0.03); border-radius: 0px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 3px solid var(--border-color); box-shadow: var(--glass-shadow);"><img src="${q.gif_url}" style="width: 100%; height: 100%; object-fit: contain;"></div>` : ''}
                     </div>
                     <div class="sticky-wrapper">
                         <div class="question-header">
@@ -298,12 +312,12 @@
                     const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
                     const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-icon">🧠</div><div class="ai-scan-bar"></div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${a.sentiment_emoji}</div>`;
-                    const cardHtml = `<div class="card-face card-front" style="--mood-color: ${color}">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">${a.sentiment_emoji || ''}</span><div style="background: ${color}; width: 10px; height: 10px; border-radius: 50%;"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
+                    const cardHtml = `<div class="card-face card-front" style="--mood-color: ${color}">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">${a.sentiment_emoji || ''}</span><div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
                     if (!existingCard) {
-                        const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => { if (card.dataset.processing !== 'true') card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
+                        const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => { if (!card.classList.contains('processing')) card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
                     } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing)) {
                         existingCard.dataset.sentiment = color; existingCard.dataset.processing = String(isProcessing); existingCard.className = `answer-card ${isProcessing ? 'processing' : ''}`; existingCard.innerHTML = cardHtml;
-                        existingCard.onclick = () => { if (existingCard.dataset.processing !== 'true') existingCard.classList.toggle('flipped'); };
+                        existingCard.onclick = () => { if (!existingCard.classList.contains('processing')) existingCard.classList.toggle('flipped'); };
                     }
                 });
             });
@@ -312,9 +326,9 @@
         // Common Logic (Gifs, Upload, PDF, CRUD)
         function debouncedSearch(resultId, inputId) { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => searchGifs(resultId, inputId), 600); }
         async function searchGifs(resultId, inputId) { const query = (resultId === 'q-gif-results' ? document.getElementById('qGifSearch') : document.getElementById('gifSearchQuery')).value.trim(); if (query.length < 2) return; const res = await fetch(`/api/gifs/search?q=${encodeURIComponent(query)}`); const data = await res.json(); if (data.data) document.getElementById(resultId).innerHTML = data.data.map(g => `<img src="${g.images.fixed_height_small.url}" class="gif-item" onclick="selectGif('${g.images.fixed_height.url}', this, '${resultId}', '${inputId}')">`).join(''); }
-        function selectGif(url, el, resultId, inputId) { document.getElementById(inputId).value = url; document.querySelectorAll(`#${resultId} .gif-item`).forEach(i => i.classList.remove('selected')); el.classList.add('selected'); if (resultId === 'q-gif-results') document.getElementById('q-preview').innerHTML = `<img src="${url}" style="max-height: 100px; border-radius: 12px; margin-top: 1rem;">`; }
-        async function handleFileUpload(input, targetInputId) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('image', file); try { const res = await fetch('/api/upload', { method: 'POST', body: fd }); const data = await res.json(); if (data.url) { document.getElementById(targetInputId).value = data.url; if (targetInputId === 'qModalGif') document.getElementById('q-preview').innerHTML = `<img src="${data.url}" style="max-height: 100px; border-radius: 12px; margin-top: 1rem;">`; showToast("Uploaded!", "success"); } } catch (e) { showToast("Failed", "error"); } }
-        function openQuestionModal(id = '', text = '', gif = '') { document.getElementById('editQId').value = id; document.getElementById('qModalText').value = text; document.getElementById('qModalGif').value = gif; document.getElementById('qModalTitle').innerText = id ? 'Edit' : 'Add'; document.getElementById('q-preview').innerHTML = gif ? `<img src="${gif}" style="max-height: 100px; border-radius: 12px; margin-top: 1rem;">` : ''; document.getElementById('deleteQBtn').style.display = id ? 'block' : 'none'; document.getElementById('questionModal').classList.remove('hidden'); }
+        function selectGif(url, el, resultId, inputId) { document.getElementById(inputId).value = url; document.querySelectorAll(`#${resultId} .gif-item`).forEach(i => i.classList.remove('selected')); el.classList.add('selected'); if (resultId === 'q-gif-results') document.getElementById('q-preview').innerHTML = `<img src="${url}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">`; }
+        async function handleFileUpload(input, targetInputId) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('image', file); try { const res = await fetch('/api/upload', { method: 'POST', body: fd }); const data = await res.json(); if (data.url) { document.getElementById(targetInputId).value = data.url; if (targetInputId === 'qModalGif') document.getElementById('q-preview').innerHTML = `<img src="${data.url}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">`; showToast("Uploaded!", "success"); } } catch (e) { showToast("Failed", "error"); } }
+        function openQuestionModal(id = '', text = '', gif = '') { document.getElementById('editQId').value = id; document.getElementById('qModalText').value = text; document.getElementById('qModalGif').value = gif; document.getElementById('qModalTitle').innerText = id ? 'Edit' : 'Add'; document.getElementById('q-preview').innerHTML = gif ? `<img src="${gif}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">` : ''; document.getElementById('deleteQBtn').style.display = id ? 'block' : 'none'; document.getElementById('questionModal').classList.remove('hidden'); }
         function closeQuestionModal() { document.getElementById('questionModal').classList.add('hidden'); }
         async function saveQuestion() { const id = document.getElementById('editQId').value; const t = document.getElementById('qModalText').value; const g = document.getElementById('qModalGif').value; const res = await fetch(id ? '/api/question/update' : '/api/question/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id || undefined, text: t, gif_url: g }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Saved", "success"); } }
         async function deleteQuestion() { const id = document.getElementById('editQId').value; if (!confirm("Delete?")) return; const res = await fetch('/api/question/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Deleted", "error"); } }
@@ -323,7 +337,7 @@
         document.getElementById('sendAnswerBtn').onclick = async () => { const t = quill.root.innerHTML; const a = document.getElementById('authorName').value; const g = document.getElementById('selectedGifUrl').value; if (quill.getText().trim().length < 2) return showToast("Empty", "error"); try { const res = await fetch('/api/answer/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) }); if (res.ok) { closeSubmitModal(); loadAnswers(); showToast("Sent!", "success"); } } finally {} };
         async function exportToPDF() { const pdfContainer = document.getElementById('pdf-export-container'); const pdfContent = document.getElementById('pdf-content'); const sessionName = document.getElementById('sessionNameTitle').innerText; showToast("PDF...", "info"); document.getElementById('pdf-session-name').innerText = sessionName; document.getElementById('pdf-session-id').innerText = sessionId; document.getElementById('pdf-date').innerText = new Date().toLocaleString(); const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const allAnswers = await res.json(); pdfContent.innerHTML = `<div class="summary-box">Summary...</div>${currentQuestions.map((q, i) => { const qAns = allAnswers.filter(a => a.question_id === q.id); return `<div class="q-section"><div class="q-header">${i+1}. ${q.text}</div>${qAns.map(a => `<div class="ans-row" style="--mood-color: ${a.sentiment_color}"><div class="ans-author">${a.author_name}</div><div class="ans-content">${a.text.replace(/<[^>]*>/g, '')}</div></div>`).join('')}</div>`; }).join('')}`; const opt = { margin: 10, filename: `Retro.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; pdfContainer.style.display = 'block'; try { await html2pdf().set(opt).from(pdfContainer).save(); showToast("Ready", "success"); } finally { pdfContainer.style.display = 'none'; } }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
-        function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--glass-bg); backdrop-filter: blur(15px); color: var(--text-main); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 700;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
+        function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
         init();
     </script>
 </body>
