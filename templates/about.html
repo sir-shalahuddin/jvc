@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inside Retro - Insights & Engineering</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
     <link rel="stylesheet" href="/static/style.css?v=106">
     <script>
@@ -43,8 +43,15 @@
         .side-logo {
             width: 64px;
             margin-bottom: 2rem;
-            border-radius: 18px;
-            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.1);
+            border-radius: var(--radius);
+            border: 3px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
+            transition: all var(--transition);
+        }
+
+        .side-logo:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--border-color);
         }
 
         .side-title h1 {
@@ -57,6 +64,7 @@
             font-size: 1.1rem;
             max-width: 320px;
             line-height: 1.5;
+            font-family: 'JetBrains Mono', monospace !important;
         }
 
         .bento-grid {
@@ -67,11 +75,16 @@
 
         .bento-item {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
             padding: 1.5rem;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            border: 3px solid var(--border-color);
             box-shadow: var(--glass-shadow);
+            transition: all var(--transition);
+        }
+
+        .bento-item:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 7px 7px 0px var(--border-color);
         }
 
         .bento-wide {
@@ -79,9 +92,9 @@
         }
 
         h3 {
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-bottom: 0.5rem;
-            color: var(--primary);
+            color: var(--primary) !important;
         }
 
         .bento-item p {

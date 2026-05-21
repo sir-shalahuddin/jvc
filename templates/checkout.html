@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Retro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=106">
     <link href="/static/style.css?v=106" rel="stylesheet">
     <script>
@@ -18,8 +18,45 @@
         .container { max-width: 1000px; margin: 0 auto; }
         .checkout-grid { display: grid; grid-template-columns: 1fr 350px; gap: 3rem; align-items: start; }
         
-        .card { background: var(--glass-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
-        .section-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
+        .card { 
+            background: var(--bg-card); 
+            padding: 2.5rem; 
+            border-radius: var(--radius); 
+            border: 3px solid var(--border-color); 
+            box-shadow: var(--glass-shadow); 
+            transition: all var(--transition);
+        }
+        .card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 7px 7px 0px var(--border-color);
+        }
+        .section-title { 
+            font-family: 'Playfair Display', Georgia, serif; 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            margin-bottom: 2rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius);
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .step-primary { background: var(--primary); }
+        .step-accent { background: var(--accent); }
+        .step-success { background: #10b981; }
         
         .methods-grid {
             display: grid;
@@ -33,21 +70,21 @@
         /* Custom Scrollbar for better aesthetics */
         .methods-grid::-webkit-scrollbar { width: 6px; }
         .methods-grid::-webkit-scrollbar-track { background: transparent; }
-        .methods-grid::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
-
+        .methods-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 0px; }
+ 
         .method-item {
             padding: 1rem;
-            border: 2px solid var(--glass-border);
-            border-radius: 16px;
+            border: 3px solid var(--border-color);
+            border-radius: var(--radius);
             cursor: pointer;
             text-align: center;
-            transition: 0.3s;
+            transition: all var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            background: rgba(255,255,255,0.05);
+            background: var(--bg-card);
         }
         .method-item img {
             max-height: 25px;
@@ -60,27 +97,37 @@
             text-transform: uppercase;
             color: var(--text-secondary);
         }
-        .method-item:hover { transform: translateY(-5px); border-color: var(--primary); background: rgba(255,255,255,0.6); }
-        .method-item.selected { border-color: var(--primary); background: rgba(37, 99, 235, 0.1); box-shadow: 0 0 0 2px var(--primary); }
-        .method-img { height: 32px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-        .method-name { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); }
-
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 1rem; font-weight: 500; }
-        .summary-total { border-top: 1px solid var(--glass-border); margin-top: 1.5rem; padding-top: 1.5rem; font-size: 1.5rem; font-weight: 900; }
-
-        .btn-pay { width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: 800; border-radius: 20px; margin-top: 2rem; }
+        .method-item:hover { 
+            transform: translate(-3px, -3px); 
+            border-color: var(--border-color); 
+            box-shadow: 5px 5px 0px var(--border-color);
+            background: var(--bg-base); 
+        }
+        .method-item.selected { 
+            border-color: var(--primary); 
+            background: var(--primary-glow); 
+            box-shadow: 4px 4px 0px var(--border-color);
+            transform: translate(-2px, -2px);
+        }
+        .method-img { height: 32px; object-fit: contain; }
+        .method-name { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+ 
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 1rem; font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+        .summary-total { border-top: 3px solid var(--border-color); margin-top: 1.5rem; padding-top: 1.5rem; font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+ 
+        .btn-pay { width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: 800; border-radius: var(--radius) !important; margin-top: 2rem; }
         
         #loader { display: flex; justify-content: center; padding: 4rem; width: 100%; }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        [data-theme='dark'] .method-item { background: rgba(0,0,0,0.2); }
-        [data-theme='dark'] .method-item:hover { background: rgba(0,0,0,0.3); }
-
+ 
+        [data-theme='dark'] .method-item { background: var(--bg-card); }
+        [data-theme='dark'] .method-item:hover { background: var(--bg-base); }
+ 
         @media (max-width: 800px) {
             body { padding: 2rem 1rem; }
             .checkout-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-            .card { padding: 1.5rem; border-radius: 24px; }
+            .card { padding: 1.5rem; border-radius: var(--radius); }
             .methods-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
             .section-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
         }
@@ -98,7 +145,7 @@
         <div class="checkout-grid">
             <div class="card" id="methodsCard">
                 <div class="section-title">
-                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">1</div>
+                    <div class="step-num step-primary">1</div>
                     Select Payment Method
                 </div>
                 
@@ -108,7 +155,7 @@
 
             <div class="card" id="summaryCard">
                 <div class="section-title">
-                    <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">2</div>
+                    <div class="step-num step-accent">2</div>
                     Order Summary
                 </div>
                 
@@ -134,7 +181,7 @@
 
             <div class="card" id="instructionCard" style="display: none;">
                 <div class="section-title">
-                    <div style="width: 32px; height: 32px; background: #10b981; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white;">✓</div>
+                    <div class="step-num step-success">✓</div>
                     Payment Instructions
                 </div>
                 
@@ -162,7 +209,7 @@
         if (urlParams.get('status') === 'success') {
             document.querySelector('.checkout-grid').innerHTML = `
                 <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
-                    <div style="width: 80px; height: 80px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 2rem; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);">
+                    <div style="width: 80px; height: 80px; background: #10b981; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); display: flex; align-items: center; justify-content: center; color: white; margin: 0 auto 2rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
                     <h2 style="font-size: 2rem; margin-bottom: 1rem;">Payment Successful!</h2>
@@ -273,15 +320,15 @@
             const exactAmount = data.amount ? parseInt(data.amount) : product.price;
 
             document.getElementById('instructionContent').innerHTML = `
-                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Virtual Account Number</div>
-                <div style="font-size: 1.8rem; font-weight: 900; color: var(--primary); letter-spacing: 1px; margin-bottom: 1.5rem; word-break: break-all;">${data.vaNumber}</div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;">Virtual Account Number</div>
+                <div style="font-size: 1.8rem; font-weight: 900; color: var(--primary); letter-spacing: 1px; margin-bottom: 1.5rem; word-break: break-all; font-family: 'JetBrains Mono', monospace;">${data.vaNumber}</div>
 
-                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Total Amount (Termasuk Fee)</div>
-                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;">Total Amount (Termasuk Fee)</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem; font-family: 'JetBrains Mono', monospace;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
                 
-                <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 20px;">
-                    <h4 style="margin-bottom: 1rem;">Payment Steps:</h4>
-                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8;">
+                <div style="text-align: left; background: var(--bg-base); padding: 1.5rem; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color);">
+                    <h4 style="margin-bottom: 1rem; font-family: 'Playfair Display', serif; font-weight: 900;">Payment Steps:</h4>
+                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8; font-family: 'JetBrains Mono', monospace;">
                         <li>Copy the Virtual Account number above.</li>
                         <li>Log in to your banking app or ATM.</li>
                         <li>Select <b>Transfer</b> &rsaquo; <b>Virtual Account</b>.</li>
@@ -296,7 +343,7 @@
             if (!orderId) return;
             const card = document.getElementById('instructionCard');
             const pollDiv = document.createElement('div');
-            pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 10px;">
+            pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: var(--bg-card); border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color); color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
                 <div class="spinner" style="width: 20px; height: 20px; border: 2px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 Waiting for payment...
             </div>`;
@@ -312,7 +359,7 @@
                     const statusData = await res.json();
                     if (statusData.status === "claimed" || statusData.status === "paid") {
                         clearInterval(interval);
-                        pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: #10b981; border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;">
+                        pollDiv.innerHTML = `<div style="margin-top: 2rem; padding: 1rem; background: #10b981; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace;">
                             ✓ Payment Successful! Redirecting...
                         </div>`;
                         setTimeout(() => window.location.href = "/", 2000);
@@ -335,17 +382,17 @@
             const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qrString)}`;
 
             document.getElementById('instructionContent').innerHTML = `
-                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Scan QR Code (QRIS)</div>
-                <div style="margin: 2rem auto; text-align: center; background: white; padding: 1.5rem; border-radius: 20px; width: fit-content; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;">Scan QR Code (QRIS)</div>
+                <div style="margin: 2rem auto; text-align: center; background: white; padding: 1.5rem; border-radius: var(--radius); width: fit-content; border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color);">
                     <img src="${qrImageUrl}" alt="QRIS" style="width: 250px; height: 250px; display: block;">
                 </div>
 
-                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Total Amount (Termasuk Fee)</div>
-                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace;">Total Amount (Termasuk Fee)</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 2rem; font-family: 'JetBrains Mono', monospace;">Rp ${exactAmount.toLocaleString('id-ID')}</div>
                 
-                <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 20px;">
-                    <h4 style="margin-bottom: 1rem;">Payment Steps:</h4>
-                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8;">
+                <div style="text-align: left; background: var(--bg-base); padding: 1.5rem; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color);">
+                    <h4 style="margin-bottom: 1rem; font-family: 'Playfair Display', serif; font-weight: 900;">Payment Steps:</h4>
+                    <ol style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8; font-family: 'JetBrains Mono', monospace;">
                         <li>Open your banking or e-wallet app (OVO, GoPay, Dana, BCA, dll).</li>
                         <li>Select the <b>Scan QRIS</b> option.</li>
                         <li>Scan the QR code shown above.</li>

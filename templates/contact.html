@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Retro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
     <link rel="stylesheet" href="/static/style.css?v=106">
     <script>
@@ -44,17 +44,32 @@
             font-size: 1.1rem;
             margin-bottom: 2.5rem;
             line-height: 1.6;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+        .contact-info img {
+            border-radius: var(--radius);
+            border: 3px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
+            transition: all var(--transition);
+        }
+        .contact-info img:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--border-color);
         }
         .contact-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(25px);
             padding: 2.5rem;
-            border-radius: 32px;
-            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            border: 3px solid var(--border-color);
             box-shadow: var(--glass-shadow);
             display: flex;
             flex-direction: column;
             gap: 2rem;
+            transition: all var(--transition);
+        }
+        .contact-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 7px 7px 0px var(--border-color);
         }
         .info-item {
             display: flex;
@@ -64,12 +79,14 @@
         .info-icon {
             width: 54px;
             height: 54px;
-            background: var(--primary-glow);
-            border-radius: 16px;
+            background: var(--primary);
+            border-radius: var(--radius);
+            border: 3px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary);
+            color: #ffffff;
             flex-shrink: 0;
         }
         .info-text h4 {
@@ -78,11 +95,13 @@
             letter-spacing: 0.1em;
             color: var(--text-muted);
             margin-bottom: 0.25rem;
+            font-family: 'JetBrains Mono', monospace !important;
         }
         .info-text p {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--text);
+            font-family: 'JetBrains Mono', monospace !important;
         }
         .back-btn {
             display: inline-flex;
