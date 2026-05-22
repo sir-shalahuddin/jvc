@@ -53,6 +53,8 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	InvalidateSummaryCache(req.SessionID)
+
 	QueueSentimentAnalysis(ansID, req.SessionID, sanitizedText)
 
 	w.WriteHeader(http.StatusAccepted)

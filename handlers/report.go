@@ -7,10 +7,50 @@ import (
 	"retro-gcp/services"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-pdf/fpdf"
 )
+
+type summaryCacheEntry struct {
+	summary   string
+	updatedAt time.Time
+}
+
+var (
+	summaryCache   = make(map[string]*summaryCacheEntry)
+	summaryCacheMu sync.RWMutex
+)
+
+func getCachedSummary(sessionID string) (string, bool) {
+	summaryCacheMu.RLock()
+	defer summaryCacheMu.RUnlock()
+	entry, ok := summaryCache[sessionID]
+	if !ok {
+		return "", false
+	}
+	if time.Since(entry.updatedAt) > 10*time.Minute {
+		return "", false
+	}
+	return entry.summary, true
+}
+
+func setCachedSummary(sessionID string, summary string) {
+	summaryCacheMu.Lock()
+	defer summaryCacheMu.Unlock()
+	summaryCache[sessionID] = &summaryCacheEntry{
+		summary:   summary,
+		updatedAt: time.Now(),
+	}
+}
+
+func InvalidateSummaryCache(sessionID string) {
+	summaryCacheMu.Lock()
+	defer summaryCacheMu.Unlock()
+	delete(summaryCache, sessionID)
+}
+
 
 func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
@@ -43,9 +83,18 @@ func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	aiSummary := "No feedback available for summary."
-	if len(allFeedback) > 0 {
-		aiSummary, _ = services.SummarizeRetrospective(allFeedback)
+	var aiSummary string
+	if cached, ok := getCachedSummary(sessionID); ok {
+		aiSummary = cached
+	} else {
+		aiSummary = "No feedback available for summary."
+		if len(allFeedback) > 0 {
+			var err error
+			aiSummary, err = services.SummarizeRetrospective(allFeedback)
+			if err == nil {
+				setCachedSummary(sessionID, aiSummary)
+			}
+		}
 	}
 
 	pdf := fpdf.New("P", "mm", "A4", "")

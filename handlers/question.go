@@ -109,5 +109,7 @@ func DeleteQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	InvalidateSummaryCache(req.SessionID)
+
 	w.WriteHeader(http.StatusOK)
 }
