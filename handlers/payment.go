@@ -42,7 +42,7 @@ func CreatePaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := PaymentServ.CreateDuitkuPayment(r.Context(), email, product, req.PaymentMethod)
+	resp, err := PaymentServ.CreateDuitkuPayment(r.Context(), email, product, req.PaymentMethod, getBaseURL(r))
 	if err != nil {
 		log.Printf("Payment Create Error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

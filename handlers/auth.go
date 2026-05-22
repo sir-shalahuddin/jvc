@@ -47,9 +47,26 @@ func generateStateOauthCookie(w http.ResponseWriter) string {
 	return state
 }
 
+func getBaseURL(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+		scheme = "https"
+	}
+	host := r.Host
+	if fwdHost := r.Header.Get("X-Forwarded-Host"); fwdHost != "" {
+		host = fwdHost
+	}
+	return scheme + "://" + host
+}
+
 func GoogleLoginHandler(w http.ResponseWriter, r *http.Request) {
 	state := generateStateOauthCookie(w)
-	url := googleOauthConfig.AuthCodeURL(state)
+	
+	// Create a request-specific copy of OAuth config to dynamically set RedirectURL
+	localConfig := *googleOauthConfig
+	localConfig.RedirectURL = getBaseURL(r) + "/auth/google/callback"
+	
+	url := localConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
@@ -61,7 +78,12 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	token, err := googleOauthConfig.Exchange(ctx, r.FormValue("code"))
+	
+	// Create a request-specific copy of OAuth config to dynamically set RedirectURL
+	localConfig := *googleOauthConfig
+	localConfig.RedirectURL = getBaseURL(r) + "/auth/google/callback"
+
+	token, err := localConfig.Exchange(ctx, r.FormValue("code"))
 	if err != nil {
 		http.Error(w, "Code exchange failed", http.StatusBadRequest)
 		return

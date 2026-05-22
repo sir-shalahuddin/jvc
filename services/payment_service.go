@@ -31,7 +31,7 @@ type PaymentService struct {
 	UserRepo        IUserRepository
 }
 
-func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product, paymentMethod string) (*dto.DuitkuCreateResponse, error) {
+func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, product models.Product, paymentMethod string, baseURL string) (*dto.DuitkuCreateResponse, error) {
 	merchantOrderId := fmt.Sprintf("R%d", time.Now().UnixNano()/1e6)
 
 	// Duitku V2 Inquiry Signature formula: MD5(merchantCode + merchantOrderId + paymentAmount + apiKey)
@@ -53,8 +53,8 @@ func (s *PaymentService) CreateDuitkuPayment(ctx context.Context, email string, 
 		ItemDetails: []dto.DuitkuItem{
 			{Name: product.Name, Price: product.Price, Quantity: 1},
 		},
-		CallbackUrl:   "https://jvc.hanya.click/api/payment/callback",
-		ReturnUrl:     "https://jvc.hanya.click/checkout?status=success",
+		CallbackUrl:   baseURL + "/api/payment/callback",
+		ReturnUrl:     baseURL + "/checkout?status=success",
 		ExpiryPeriod:  1440,
 		PaymentMethod: paymentMethod,
 		Signature:     signature,
