@@ -7,6 +7,7 @@ import (
 	"log"
 	"retro-gcp/config"
 	"strings"
+	"time"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -17,6 +18,8 @@ var availableModels = []string{
 	"gemini-2.5-flash-lite",
 	"gemini-3-flash",
 	"gemini-2.5-flash",
+	"gemma-4-31b-it",
+	"gemma-4-26b-a4b-it",
 }
 
 var currentModelIdx = 0
@@ -39,30 +42,52 @@ func performGenAI(prompt string, maxTokens int32, tempe float32, systemPrompt st
 	for attempt := 0; attempt < len(availableModels); attempt++ {
 		primaryModel := availableModels[currentModelIdx]
 		
-		client, err := genai.NewClient(ctx, option.WithAPIKey(config.AppConfig.GeminiAPIKey))
-		if err != nil {
-			return "", err
-		}
+		backoff := 1 * time.Second
+		const maxRetries = 3
 		
-		model := client.GenerativeModel(primaryModel)
-		model.SetTemperature(tempe)
-		model.MaxOutputTokens = &maxTokens
-		if systemPrompt != "" {
-			model.SystemInstruction = &genai.Content{
-				Parts: []genai.Part{genai.Text(systemPrompt)},
+		for retry := 0; retry <= maxRetries; retry++ {
+			client, err := genai.NewClient(ctx, option.WithAPIKey(config.AppConfig.GeminiAPIKey))
+			if err != nil {
+				return "", err
 			}
+			
+			model := client.GenerativeModel(primaryModel)
+			model.SetTemperature(tempe)
+			model.MaxOutputTokens = &maxTokens
+			if systemPrompt != "" {
+				model.SystemInstruction = &genai.Content{
+					Parts: []genai.Part{genai.Text(systemPrompt)},
+				}
+			}
+
+			resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+			client.Close()
+			
+			if err == nil && resp != nil && len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+				if txt, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
+					return string(txt), nil
+				}
+			}
+			
+			isRateLimit := false
+			if err != nil {
+				errMsg := err.Error()
+				if strings.Contains(errMsg, "429") || strings.Contains(errMsg, "RESOURCE_EXHAUSTED") || strings.Contains(errMsg, "quota") {
+					isRateLimit = true
+				}
+			}
+			
+			if isRateLimit && retry < maxRetries {
+				log.Printf("[WARN] Model %s hit rate limit (429). Retrying in %v (Retry %d/%d)...", primaryModel, backoff, retry+1, maxRetries)
+				time.Sleep(backoff)
+				backoff *= 2
+				continue
+			}
+			
+			log.Printf("[ERROR] GenAI Model %s failed: %v", primaryModel, err)
+			break
 		}
 
-		resp, err := model.GenerateContent(ctx, genai.Text(prompt))
-		client.Close()
-		
-		if err == nil && resp != nil && len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-			if txt, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
-				return string(txt), nil
-			}
-		}
-
-		log.Printf("[ERROR] GenAI Model %s failed: %v", primaryModel, err)
 		SwitchToNextModel()
 	}
 	return "", fmt.Errorf("all LLM models failed")

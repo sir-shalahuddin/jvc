@@ -15,74 +15,84 @@ type SentimentTask struct {
 }
 
 var sentimentQueue = make(chan SentimentTask, 5000)
+var batchQueue = make(chan []SentimentTask, 500)
 
 func InitSentimentProcessor(workerCount int) {
-	go sentimentBatchWorker()
+	if workerCount <= 0 {
+		workerCount = 1
+	}
+	go sentimentDispatcher()
+	for i := 0; i < workerCount; i++ {
+		go sentimentWorker(i)
+	}
 }
 
-func sentimentBatchWorker() {
+func sentimentDispatcher() {
+	const maxBatchSize = 10
 	var batch []SentimentTask
-	const batchDuration = 15 * time.Second
-	ticker := time.NewTicker(batchDuration)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
 	for {
 		select {
-		case task := <-sentimentQueue:
+		case task, ok := <-sentimentQueue:
+			if !ok {
+				if len(batch) > 0 {
+					batchQueue <- batch
+				}
+				close(batchQueue)
+				return
+			}
 			batch = append(batch, task)
+			if len(batch) >= maxBatchSize {
+				batchQueue <- batch
+				batch = nil
+			}
 		case <-ticker.C:
 			if len(batch) > 0 {
-				processBatchWithRetry(batch)
+				batchQueue <- batch
 				batch = nil
 			}
 		}
 	}
 }
 
-func processBatchWithRetry(batch []SentimentTask) {
-	const chunkSize = 10
+func sentimentWorker(workerID int) {
+	for batch := range batchQueue {
+		processBatch(workerID, batch)
+	}
+}
+
+func processBatch(workerID int, batch []SentimentTask) {
 	ctx := context.Background()
+	var texts []string
+	for _, t := range batch {
+		texts = append(texts, t.Text)
+	}
 
-	for i := 0; i < len(batch); i += chunkSize {
-		end := i + chunkSize
-		if end > len(batch) {
-			end = len(batch)
+	results, err := services.AnalyzeSentimentBatch(texts)
+	if err != nil {
+		log.Printf("[WORKER-%d] AI Error for batch: %v", workerID, err)
+		// Set fallback sentiment for this batch so it doesn't spin forever
+		for _, task := range batch {
+			AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, "Unavailable", "#9CA3AF", "⚠️")
 		}
-		chunk := batch[i:end]
+		return
+	}
 
-		var texts []string
-		for _, t := range chunk {
-			texts = append(texts, t.Text)
+	for j, res := range results {
+		if j >= len(batch) {
+			break
 		}
+		task := batch[j]
+		AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, res.Emotion, res.Color, res.Emoji)
+	}
 
-		results, err := services.AnalyzeSentimentBatch(texts)
-		if err != nil {
-			log.Printf("[WORKER] AI Error for chunk: %v", err)
-			// Set fallback sentiment for this chunk so it doesn't spin forever
-			for _, task := range chunk {
-				AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, "Unavailable", "#9CA3AF", "⚠️")
-			}
-			continue
-		}
-
-		for j, res := range results {
-			if j >= len(chunk) {
-				break
-			}
-			task := chunk[j]
-			AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, res.Emotion, res.Color, res.Emoji)
-		}
-
-		// Fallback for length mismatches
-		if len(results) < len(chunk) {
-			for j := len(results); j < len(chunk); j++ {
-				task := chunk[j]
-				AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, "Unavailable", "#9CA3AF", "⚠️")
-			}
-		}
-
-		// Small delay to respect rate limits if multiple chunks exist
-		if end < len(batch) {
-			time.Sleep(500 * time.Millisecond)
+	// Fallback for length mismatches
+	if len(results) < len(batch) {
+		for j := len(results); j < len(batch); j++ {
+			task := batch[j]
+			AnswerRepo.UpdateSentiment(ctx, task.SessionID, task.AnswerID, "Unavailable", "#9CA3AF", "⚠️")
 		}
 	}
 }
@@ -100,3 +110,4 @@ func QueueSentimentAnalysis(id string, sessionID string, text string) {
 		}()
 	}
 }
+
