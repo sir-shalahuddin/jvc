@@ -170,6 +170,31 @@
             0%, 49% { opacity: 1; }
             50%, 100% { opacity: 0.6; }
         }
+
+        /* Neo-Brutalist Emoji/Emoticon & Subtitle Styles */
+        .emoji-main {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            font-family: 'JetBrains Mono', monospace !important;
+            color: var(--text);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.08);
+        }
+
+        .emoji-sub {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text);
+            border: 3px solid var(--border-color);
+            padding: 5px 12px;
+            background: var(--bg-base);
+            box-shadow: 3px 3px 0px var(--border-color);
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -287,6 +312,34 @@
         function nextQuestion() { const idx = currentQuestions.findIndex(q => q.id === activeQuestionId); if (idx < currentQuestions.length - 1) showQuestion(currentQuestions[idx + 1].id); }
         function prevQuestion() { const idx = currentQuestions.findIndex(q => q.id === activeQuestionId); if (idx > 0) showQuestion(currentQuestions[idx - 1].id); }
 
+        function getRetroEmoticon(emoji, emotion) {
+            const emotionLower = (emotion || "").toLowerCase();
+            if (emotionLower.includes("joy") || emotionLower.includes("happy") || emotionLower.includes("success") || emotionLower.includes("love") || emotionLower.includes("positive")) {
+                return "(ᵔ◡ᵔ)";
+            }
+            if (emotionLower.includes("anger") || emotionLower.includes("angry") || emotionLower.includes("frustrated") || emotionLower.includes("bad") || emotionLower.includes("critical") || emotionLower.includes("negative")) {
+                return "(ಠ_ಠ)";
+            }
+            if (emotionLower.includes("confused") || emotionLower.includes("confusion") || emotionLower.includes("unclear") || emotionLower.includes("question") || emotionLower.includes("doubt")) {
+                return "(⊙_⊙)";
+            }
+            if (emotionLower.includes("sad") || emotionLower.includes("disappointed") || emotionLower.includes("worry") || emotionLower.includes("fail") || emotionLower.includes("regret")) {
+                return "(︶︹︶)";
+            }
+            if (emotionLower.includes("neutral") || emotionLower.includes("ok") || emotionLower.includes("normal") || emotionLower.includes("indifferent")) {
+                return "( -_- )";
+            }
+
+            if (!emoji) return "(._.)";
+            if (["😃","😊","🎉","👍","😀","😁","😆","😸","❤️","✨"].some(e => emoji.includes(e))) return "(ᵔ◡ᵔ)";
+            if (["😡","😠","👿","👎","🤬","😤","💢"].some(e => emoji.includes(e))) return "(ಠ_ಠ)";
+            if (["😕","🤔","❓","❔","🧐","🤷","🛸"].some(e => emoji.includes(e))) return "(⊙_⊙)";
+            if (["😢","😭","😞","😞","🥺","💔"].some(e => emoji.includes(e))) return "(︶︹︶)";
+            if (["⚠️","🚨","⚡","🔥"].some(e => emoji.includes(e))) return "(°ロ°!)";
+
+            return emoji;
+        }
+
         async function loadAnswers() {
             const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const answers = await res.json();
             currentQuestions.forEach(q => {
@@ -296,8 +349,9 @@
                     const existingCard = document.querySelector(`.answer-card[data-id="${a.id}"]`);
                     const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
-                    const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${a.sentiment_emoji}</div>`;
-                    const cardHtml = `<div class="card-face card-front" style="--mood-color: ${color}">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">${a.sentiment_emoji || ''}</span><div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
+                    const displayEmot = getRetroEmoticon(a.sentiment_emoji, a.sentiment_emotion);
+                    const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${displayEmot}</div><div class="emoji-sub">${a.sentiment_emotion}</div>`;
+                    const cardHtml = `<div class="card-face card-front" style="--mood-color: ${color}">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.85rem; border: 2px solid var(--border-color); padding: 2px 6px; background: var(--bg-base); box-shadow: 2px 2px 0px var(--border-color);">${displayEmot}</span><div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
                     if (!existingCard) {
                         const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => { if (!card.classList.contains('processing')) card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
                     } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing)) {
