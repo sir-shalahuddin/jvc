@@ -459,6 +459,52 @@ footer {
     color: var(--primary);
 }
 
+.back-to-home {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    background: var(--bg-card);
+    border: 3px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    box-shadow: 4px 4px 0px var(--border-color);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
+}
+
+.back-to-home:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--border-color);
+    background: var(--bg-base);
+    color: var(--primary);
+}
+
+.back-to-home:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--border-color);
+}
+
+.back-to-home.danger {
+    color: var(--accent-danger);
+    border-color: var(--accent-danger);
+    box-shadow: 4px 4px 0px var(--accent-danger);
+}
+
+.back-to-home.danger:hover {
+    color: var(--accent-danger);
+    border-color: var(--accent-danger);
+    box-shadow: 6px 6px 0px var(--accent-danger);
+    background: rgba(244, 63, 94, 0.05);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 2rem 1rem;
@@ -471,6 +517,13 @@ footer {
         right: 1rem;
         width: 40px;
         height: 40px;
+    }
+    .back-to-home {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
     }
     .modal-content {
         padding: 1.5rem;
