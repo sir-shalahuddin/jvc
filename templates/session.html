@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
     <link rel="stylesheet" href="/static/style.css?v=221">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -100,7 +100,8 @@
         .nav-btn.next { right: 2rem; }
 
         .modal-content { background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; padding: 3rem; position: relative; box-shadow: 8px 8px 0px var(--border-color); max-height: 90vh; overflow-y: auto; color: var(--text); }
-        #pdf-export-container { display: none; padding: 40px; background: white; color: #1e293b; font-family: 'JetBrains Mono', monospace !important; }
+        
+
 
         @media (max-width: 768px) {
             .session-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; padding: 2rem 0 1rem; margin-bottom: 1.5rem; }
@@ -214,7 +215,7 @@
             <div class="header-actions">
                 <div id="sm-controls" class="hidden">
                     <button onclick="openQuestionModal()" class="btn btn-success">+ Add Question</button>
-                    <button onclick="exportToPDF()" class="btn btn-ghost" style="border-color: var(--accent-primary); color: var(--accent-primary);">Export PDF</button>
+                    <button onclick="downloadReport()" class="btn btn-ghost" style="border-color: var(--accent-primary); color: var(--accent-primary);">Export PDF</button>
                 </div>
                 <button onclick="copyInvite()" class="btn btn-ghost">Invite Team</button>
             </div>
@@ -223,11 +224,7 @@
         <div id="questions-container"></div>
         <div id="nav-questions"></div>
 
-        <div id="pdf-export-container">
-            <h1 id="pdf-session-name"></h1>
-            <div class="meta">Retro Session ID: <span id="pdf-session-id"></span> | Generated on: <span id="pdf-date"></span></div>
-            <div id="pdf-content"></div>
-        </div>
+
 
         <div class="nav-btn prev" onclick="prevQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 18l-6-6 6-6"/></svg></div>
         <div class="nav-btn next" onclick="nextQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -424,7 +421,7 @@
         function openSubmitModal(id, text) { activeQuestionId = id; document.getElementById('modalQuestionTitle').innerText = text; document.getElementById('submitModal').classList.remove('hidden'); quill.setContents([]); document.getElementById('selectedGifUrl').value = ''; }
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
         document.getElementById('sendAnswerBtn').onclick = async () => { const t = quill.root.innerHTML; const a = document.getElementById('authorName').value; const g = document.getElementById('selectedGifUrl').value; if (quill.getText().trim().length < 2) return showToast("Empty", "error"); try { const res = await fetch('/api/answer/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) }); if (res.ok) { closeSubmitModal(); loadAnswers(); showToast("Sent!", "success"); } } finally {} };
-        async function exportToPDF() { const pdfContainer = document.getElementById('pdf-export-container'); const pdfContent = document.getElementById('pdf-content'); const sessionName = document.getElementById('sessionNameTitle').innerText; showToast("PDF...", "info"); document.getElementById('pdf-session-name').innerText = sessionName; document.getElementById('pdf-session-id').innerText = sessionId; document.getElementById('pdf-date').innerText = new Date().toLocaleString(); const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const allAnswers = await res.json(); pdfContent.innerHTML = `<div class="summary-box">Summary...</div>${currentQuestions.map((q, i) => { const qAns = allAnswers.filter(a => a.question_id === q.id); return `<div class="q-section"><div class="q-header">${i+1}. ${q.text}</div>${qAns.map(a => `<div class="ans-row" style="--mood-color: ${a.sentiment_color}"><div class="ans-author">${a.author_name}</div><div class="ans-content">${a.text.replace(/<[^>]*>/g, '')}</div></div>`).join('')}</div>`; }).join('')}`; const opt = { margin: 10, filename: `Retro.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; pdfContainer.style.display = 'block'; try { await html2pdf().set(opt).from(pdfContainer).save(); showToast("Ready", "success"); } finally { pdfContainer.style.display = 'none'; } }
+        function downloadReport() { window.open(`/api/session/report?session_id=${sessionId}`, '_blank'); }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
         function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
         init();

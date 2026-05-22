@@ -51,70 +51,152 @@ func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(15, 20, 15)
 	pdf.SetAutoPageBreak(true, 20)
+
+	// Paint soft cream background on every page
+	pdf.SetHeaderFunc(func() {
+		pdf.SetFillColor(253, 250, 246) // #fdfaf6
+		pdf.Rect(0, 0, 210, 297, "F")
+	})
+
 	pdf.AddPage()
 
-	// 1. Header
+	// Title
 	pdf.SetFont("Arial", "B", 24)
-	pdf.SetTextColor(30, 41, 59)
-	pdf.Cell(0, 20, title)
+	pdf.SetTextColor(26, 26, 26) // dark charcoal
+	pdf.Cell(0, 15, title)
 	pdf.Ln(12)
 
-	// ... (Rest of PDF logic stays same, just using the fetched slices)
-	// (Shortened for brevity in this tool call, but I should keep the full logic)
-	
-	// PDF logic continues...
-	// (I'll re-implement the full logic to ensure it works)
-	
-	pdf.SetFont("Arial", "I", 9)
-	pdf.SetTextColor(100, 116, 139)
-	pdf.Cell(0, 10, fmt.Sprintf("Report ID: %s | Generated on: %s", sessionID[:8], time.Now().Format("Jan 02, 2006 at 15:04")))
-	pdf.Ln(12)
+	// Meta info
+	pdf.SetFont("Arial", "B", 9)
+	pdf.SetTextColor(125, 117, 109) // #7d756d
+	pdf.Cell(0, 8, fmt.Sprintf("RETRO SESSION ID: %s | GENERATED: %s", strings.ToUpper(sessionID), strings.ToUpper(time.Now().Format("Jan 02, 2006, 15:04 MST"))))
+	pdf.Ln(10)
 
-	pdf.SetDrawColor(226, 232, 240)
+	// Draw a thick horizontal line under header
+	pdf.SetDrawColor(26, 26, 26)
+	pdf.SetLineWidth(1.5)
 	pdf.Line(15, pdf.GetY(), 195, pdf.GetY())
 	pdf.Ln(10)
 
-	// AI Summary
-	pdf.SetFillColor(248, 250, 252)
-	pdf.SetDrawColor(203, 213, 225)
-	pdf.SetFont("Arial", "B", 13)
-	pdf.SetTextColor(15, 23, 42)
-	pdf.CellFormat(0, 10, "Executive AI Summary", "LT R", 1, "L", true, 0, "")
-	pdf.SetFont("Arial", "", 11)
-	pdf.SetTextColor(51, 65, 85)
-	pdf.MultiCell(0, 7, aiSummary, "LBR", "L", true)
-	pdf.Ln(15)
+	// AI Summary Card
+	wBox := 180.0
+	y := pdf.GetY()
+	lines := pdf.SplitLines([]byte(aiSummary), wBox-10)
+	boxH := float64(len(lines))*6.0 + 15.0 // Title + lines spacing + padding
+
+	if y+boxH > 270 {
+		pdf.AddPage()
+		y = pdf.GetY()
+	}
+
+	// 1. Shadow (solid orange #ff5f1f, offset by 2.0mm)
+	pdf.SetFillColor(255, 95, 31)
+	pdf.Rect(15+2.0, y+2.0, wBox, boxH, "F")
+
+	// 2. White box with thick black border
+	pdf.SetFillColor(255, 255, 255)
+	pdf.SetDrawColor(26, 26, 26)
+	pdf.SetLineWidth(1.0)
+	pdf.Rect(15, y, wBox, boxH, "FD")
+
+	// 3. Title inside box
+	pdf.SetFont("Arial", "B", 10)
+	pdf.SetTextColor(255, 95, 31) // orange
+	pdf.SetXY(20, y+5)
+	pdf.Cell(0, 5, "EXECUTIVE AI SUMMARY")
+
+	// 4. Content inside box
+	pdf.SetFont("Arial", "", 10)
+	pdf.SetTextColor(26, 26, 26)
+	pdf.SetXY(20, y+11)
+	pdf.MultiCell(wBox-10, 6, aiSummary, "", "L", false)
+
+	// Move cursor below summary
+	pdf.SetY(y + boxH + 12)
 
 	for i, q := range questions {
-		pdf.SetFillColor(241, 245, 249)
-		pdf.SetTextColor(30, 41, 59)
+		y := pdf.GetY()
+		qText := fmt.Sprintf("%d. %s", i+1, q.Text)
+
+		// Split question text to find exact box height
+		qLines := pdf.SplitLines([]byte(qText), wBox-10)
+		qBoxH := float64(len(qLines))*6.0 + 8.0
+
+		if y+qBoxH > 265 {
+			pdf.AddPage()
+			y = pdf.GetY()
+		}
+
+		// 1. Shadow (black, 1.5mm offset)
+		pdf.SetFillColor(26, 26, 26)
+		pdf.Rect(15+1.5, y+1.5, wBox, qBoxH, "F")
+
+		// 2. Box (white background, black border)
+		pdf.SetFillColor(255, 255, 255)
+		pdf.SetDrawColor(26, 26, 26)
+		pdf.Rect(15, y, wBox, qBoxH, "FD")
+
+		// 3. Text
 		pdf.SetFont("Arial", "B", 12)
-		pdf.MultiCell(0, 10, fmt.Sprintf("%d. %s", i+1, q.Text), "B", "L", true)
-		pdf.Ln(2)
+		pdf.SetTextColor(26, 26, 26)
+		pdf.SetXY(20, y+4)
+		pdf.MultiCell(wBox-10, 6, qText, "", "L", false)
+
+		pdf.SetY(y + qBoxH + 6)
 
 		ansList := answersByQ[q.ID]
 		if len(ansList) == 0 {
 			pdf.SetFont("Arial", "I", 10)
-			pdf.SetTextColor(148, 163, 184)
-			pdf.Cell(0, 10, "      (No reflections submitted yet)")
-			pdf.Ln(8)
+			pdf.SetTextColor(125, 117, 109)
+			pdf.SetX(20)
+			pdf.Cell(0, 10, "(No reflections submitted yet)")
+			pdf.Ln(10)
 		} else {
 			for _, ans := range ansList {
-				if pdf.GetY() > 270 { pdf.AddPage() }
-				pdf.Ln(2)
+				ansTextClean := stripHTML(ans.Text)
+				displayName := ans.AuthorName
+				if displayName == "" {
+					displayName = "Anonymous"
+				}
+				emotionText := strings.ToUpper(ans.SentimentEmotion)
+
+				// Calculate text lines and required height
+				aLines := pdf.SplitLines([]byte(ansTextClean), wBox-20)
+				ansBoxH := float64(len(aLines))*5.5 + 16.0 // Padding + metadata header height
+
+				currY := pdf.GetY()
+				if currY+ansBoxH > 275 {
+					pdf.AddPage()
+					currY = pdf.GetY()
+				}
+
+				// 1. Shadow (black, offset by 1.5mm)
+				pdf.SetFillColor(26, 26, 26)
+				pdf.Rect(15+1.5, currY+1.5, wBox, ansBoxH, "F")
+
+				// 2. Main Box (white fill, black border)
+				pdf.SetFillColor(255, 255, 255)
+				pdf.SetDrawColor(26, 26, 26)
+				pdf.Rect(15, currY, wBox, ansBoxH, "FD")
+
+				// 3. Thick Left Border in Sentiment Color
 				r, g, b := hexToRGB(ans.SentimentColor)
 				pdf.SetFillColor(r, g, b)
-				pdf.Rect(pdf.GetX() + 2, pdf.GetY() + 1.2, 2.5, 7, "F")
-				pdf.SetX(pdf.GetX() + 8)
-				pdf.SetFont("Arial", "B", 10)
-				displayName := ans.AuthorName
-				if displayName == "" { displayName = "Anonymous" }
-				pdf.Cell(0, 6, fmt.Sprintf("%s [%s]:", displayName, ans.SentimentEmotion))
-				pdf.Ln(6)
-				pdf.SetX(pdf.GetX() + 8)
+				pdf.Rect(15, currY, 4.0, ansBoxH, "F")
+
+				// 4. Meta Information
+				pdf.SetFont("Arial", "B", 9)
+				pdf.SetTextColor(26, 26, 26)
+				pdf.SetXY(22, currY+4)
+				pdf.Cell(0, 5, fmt.Sprintf("%s  |  %s", strings.ToUpper(displayName), emotionText))
+
+				// 5. Answer Content
 				pdf.SetFont("Arial", "", 10)
-				pdf.MultiCell(0, 6, stripHTML(ans.Text), "", "L", false)
-				pdf.Ln(4)
+				pdf.SetTextColor(51, 51, 51)
+				pdf.SetXY(22, currY+10)
+				pdf.MultiCell(wBox-12, 5.5, ansTextClean, "", "L", false)
+
+				pdf.SetY(currY + ansBoxH + 6)
 			}
 		}
 		pdf.Ln(6)
