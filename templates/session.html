@@ -126,7 +126,7 @@
             .card-front { font-size: 1.25rem; }
         }
 
-        /* AI Thinking Animation Styles */
+        /* AI Thinking Animation Styles (Neo-Brutalist) */
         .ai-thinking {
             display: flex;
             flex-direction: column;
@@ -134,59 +134,41 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            position: relative;
-            gap: 1rem;
+            gap: 1.25rem;
             background: var(--bg-card);
             padding: 2rem;
         }
 
-        .ai-icon {
-            font-size: 4rem;
-            animation: brainPulse 1.6s infinite ease-in-out;
+        .ai-loader-icon {
+            font-size: 3.5rem;
+            font-weight: 900;
             display: inline-block;
-        }
-
-        .ai-scan-bar {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 0 10px var(--primary-glow);
-            animation: scanMove 2s infinite ease-in-out;
+            color: var(--primary);
+            animation: steppedSpin 1.2s steps(8) infinite;
         }
 
         .ai-status {
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            letter-spacing: 0.2em;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            animation: textPulse 1.2s infinite ease-in-out;
-            border: 2px solid var(--border-color);
-            padding: 4px 12px;
+            border: 3px solid var(--border-color);
+            padding: 6px 14px;
             background: var(--bg-base);
+            box-shadow: 3px 3px 0px var(--border-color);
+            animation: hardBlink 1.2s steps(2) infinite;
         }
 
-        @keyframes brainPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+        @keyframes steppedSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @keyframes scanMove {
-            0% { top: 10%; }
-            50% { top: 90%; }
-            100% { top: 10%; }
-        }
-
-        @keyframes textPulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+        @keyframes hardBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.6; }
         }
     </style>
 </head>
@@ -314,7 +296,7 @@
                     const existingCard = document.querySelector(`.answer-card[data-id="${a.id}"]`);
                     const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
-                    const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-icon">🧠</div><div class="ai-scan-bar"></div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${a.sentiment_emoji}</div>`;
+                    const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${a.sentiment_emoji}</div>`;
                     const cardHtml = `<div class="card-face card-front" style="--mood-color: ${color}">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 1.2rem;">${a.sentiment_emoji || ''}</span><div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
                     if (!existingCard) {
                         const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.onclick = () => { if (!card.classList.contains('processing')) card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
