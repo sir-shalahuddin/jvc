@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"retro-gcp/dto"
 	"retro-gcp/models"
+	"sort"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -68,6 +70,51 @@ func GetAnswersHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// 1. Sort by CreatedAt ascending for consistent ordering
+	sort.Slice(answers, func(i, j int) bool {
+		return answers[i].CreatedAt.Before(answers[j].CreatedAt)
+	})
+
+	// 2. Filter by question_id if specified
+	qID := r.URL.Query().Get("question_id")
+	if qID != "" {
+		var filtered []models.Answer
+		for _, ans := range answers {
+			if ans.QuestionID == qID {
+				filtered = append(filtered, ans)
+			}
+		}
+		answers = filtered
+	}
+
+	// 3. Handle Pagination (Limit / Offset)
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
+
+	var limit, offset int
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	if offset > 0 {
+		if offset >= len(answers) {
+			answers = []models.Answer{}
+		} else {
+			answers = answers[offset:]
+		}
+	}
+
+	if limit > 0 && limit < len(answers) {
+		answers = answers[:limit]
 	}
 
 	w.Header().Set("Content-Type", "application/json")

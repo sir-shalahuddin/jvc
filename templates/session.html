@@ -240,6 +240,7 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         let quill; let currentQuestions = []; let activeQuestionId = ''; let searchTimeout; let isModerator = false;
+        let questionPagination = {}; let isLoadingMore = false;
         const sessionId = new URLSearchParams(window.location.search).get('id');
 
         function updateThemeIcon() {
@@ -266,6 +267,11 @@
 
         async function loadQuestions() {
             const res = await fetch(`/api/session/questions?session_id=${sessionId}`); currentQuestions = await res.json();
+            currentQuestions.forEach(q => {
+                if (!questionPagination[q.id]) {
+                    questionPagination[q.id] = { limit: 12, hasMore: true };
+                }
+            });
             const container = document.getElementById('questions-container'); const nav = document.getElementById('nav-questions');
             container.innerHTML = currentQuestions.map(q => `
                 <div id="q-${q.id}" class="topic-container">
@@ -282,6 +288,7 @@
                         </div>
                     </div>
                     <div id="answers-${q.id}" class="answers-grid"></div>
+                    <div id="load-more-status-${q.id}" class="load-more-status" style="text-align: center; margin: 2rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 800; color: var(--text-sub);"></div>
                 </div>`).join('');
             nav.innerHTML = currentQuestions.map((q, i) => `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}"></div>`).join('');
             if (currentQuestions.length > 0) showQuestion(currentQuestions[0].id);
@@ -341,11 +348,26 @@
         }
 
         async function loadAnswers() {
-            const res = await fetch(`/api/session/answers?session_id=${sessionId}`); const answers = await res.json();
-            currentQuestions.forEach(q => {
-                const qAns = answers.filter(a => a.question_id === q.id); const aContainer = document.getElementById(`answers-${q.id}`);
+            if (!activeQuestionId) return;
+            const activePage = questionPagination[activeQuestionId] || { limit: 12, hasMore: true };
+            
+            try {
+                const res = await fetch(`/api/session/answers?session_id=${sessionId}&question_id=${activeQuestionId}&limit=${activePage.limit}`);
+                const answers = await res.json();
+                
+                if (answers.length < activePage.limit) {
+                    activePage.hasMore = false;
+                } else {
+                    activePage.hasMore = true;
+                }
+                
+                const q = currentQuestions.find(currQ => currQ.id === activeQuestionId);
+                if (!q) return;
+                
+                const aContainer = document.getElementById(`answers-${q.id}`);
                 if (!aContainer) return;
-                qAns.forEach(a => {
+                
+                answers.forEach(a => {
                     const existingCard = document.querySelector(`.answer-card[data-id="${a.id}"]`);
                     const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
@@ -359,8 +381,36 @@
                         existingCard.onclick = () => { if (!existingCard.classList.contains('processing')) existingCard.classList.toggle('flipped'); };
                     }
                 });
-            });
+                
+                const statusEl = document.getElementById(`load-more-status-${q.id}`);
+                if (statusEl) {
+                    if (!activePage.hasMore) {
+                        statusEl.innerText = "✨ ALL REFLECTIONS LOADED FOR THIS TOPIC";
+                    } else {
+                        statusEl.innerText = "▼ SCROLL DOWN TO LOAD MORE";
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading answers", e);
+            }
         }
+
+        async function loadMoreAnswers() {
+            if (isLoadingMore) return;
+            const page = questionPagination[activeQuestionId];
+            if (!page || !page.hasMore) return;
+            
+            isLoadingMore = true;
+            page.limit += 12;
+            await loadAnswers();
+            isLoadingMore = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150) {
+                loadMoreAnswers();
+            }
+        });
 
         // Common Logic (Gifs, Upload, PDF, CRUD)
         function debouncedSearch(resultId, inputId) { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => searchGifs(resultId, inputId), 600); }
