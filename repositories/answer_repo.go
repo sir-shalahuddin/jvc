@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"golang.org/x/sync/singleflight"
 	"google.golang.org/api/iterator"
 )
 
@@ -19,6 +20,7 @@ type cacheEntry struct {
 type AnswerRepository struct {
 	mu    sync.RWMutex
 	cache map[string]*cacheEntry
+	sf    singleflight.Group
 }
 
 func (r *AnswerRepository) getCacheEntry(sessionID string) ([]models.Answer, bool) {
@@ -101,23 +103,38 @@ func (r *AnswerRepository) GetBySession(ctx context.Context, sessionID string) (
 		return answers, nil
 	}
 
-	iter := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Documents(ctx)
-	var answers []models.Answer
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
+	val, err, _ := r.sf.Do(sessionID, func() (interface{}, error) {
+		if answers, ok := r.getCacheEntry(sessionID); ok {
+			return answers, nil
 		}
-		if err != nil {
-			return nil, err
+
+		iter := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Documents(ctx)
+		var answers []models.Answer
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return nil, err
+			}
+			var a models.Answer
+			doc.DataTo(&a)
+			answers = append(answers, a)
 		}
-		var a models.Answer
-		doc.DataTo(&a)
-		answers = append(answers, a)
+
+		r.setCacheEntry(sessionID, answers)
+		return answers, nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	r.setCacheEntry(sessionID, answers)
-	return answers, nil
+	answers := val.([]models.Answer)
+	answersCopy := make([]models.Answer, len(answers))
+	copy(answersCopy, answers)
+	return answersCopy, nil
 }
 
 func (r *AnswerRepository) UpdateSentiment(ctx context.Context, sessionID string, answerID string, emotion, color, emoji string) error {
