@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"log"
 	"net/http"
 	"retro-gcp/config"
@@ -8,6 +9,7 @@ import (
 	"retro-gcp/handlers"
 	"retro-gcp/repositories"
 	"retro-gcp/services"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -57,7 +59,11 @@ func main() {
 
 	// Static files
 	fs := http.FileServer(http.Dir("static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	staticHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=604800")
+		fs.ServeHTTP(w, r)
+	})
+	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
 	// API Routes
 	mux.HandleFunc("/api/session/create", handlers.CreateSessionHandler)
@@ -108,7 +114,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      loggingMux,
+		Handler:      gzipHandler(loggingMux),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
@@ -116,4 +122,64 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	gz *gzip.Writer
+}
+
+func (w *gzipResponseWriter) Write(b []byte) (int, error) {
+	if w.gz == nil {
+		// Check Content-Type (set by handler) or sniff it
+		ct := w.Header().Get("Content-Type")
+		if ct == "" {
+			ct = http.DetectContentType(b)
+			w.Header().Set("Content-Type", ct)
+		}
+
+		// Skip compression for already compressed assets
+		if strings.Contains(ct, "image/png") ||
+			strings.Contains(ct, "image/jpeg") ||
+			strings.Contains(ct, "image/webp") ||
+			strings.Contains(ct, "audio/") ||
+			strings.Contains(ct, "application/pdf") ||
+			strings.Contains(ct, "application/zip") {
+			return w.ResponseWriter.Write(b)
+		}
+
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Del("Content-Length")
+		w.gz = gzip.NewWriter(w.ResponseWriter)
+	}
+	return w.gz.Write(b)
+}
+
+func (w *gzipResponseWriter) Close() {
+	if w.gz != nil {
+		w.gz.Close()
+	}
+}
+
+func (w *gzipResponseWriter) Flush() {
+	if w.gz != nil {
+		w.gz.Flush()
+	}
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func gzipHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		gzw := &gzipResponseWriter{ResponseWriter: w}
+		defer gzw.Close()
+
+		next.ServeHTTP(gzw, r)
+	})
 }

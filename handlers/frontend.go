@@ -5,15 +5,34 @@ import (
 	"net/http"
 	"path/filepath"
 	"retro-gcp/config"
+	"sync"
+)
+
+var (
+	templatesMap = make(map[string]*template.Template)
+	templatesMu  sync.RWMutex
 )
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	tmplPath := filepath.Join("templates", tmpl+".html")
-	t, err := template.ParseFiles(tmplPath)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	templatesMu.RLock()
+	t, cached := templatesMap[tmpl]
+	templatesMu.RUnlock()
+
+	if !cached {
+		tmplPath := filepath.Join("templates", tmpl+".html")
+		var err error
+		t, err = template.ParseFiles(tmplPath)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		templatesMu.Lock()
+		templatesMap[tmpl] = t
+		templatesMu.Unlock()
 	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	t.Execute(w, data)
 }
 

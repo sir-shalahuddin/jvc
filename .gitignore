@@ -29,3 +29,7 @@ go.work
 # OS files
 .DS_Store
 Thumbs.db
+
+# Presentation files and generated audio
+presentation.html
+static/audio/
