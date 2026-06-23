@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Session - Discussion</title>
+    <meta name="description" content="Collaborate on agile feedback, submit anonymous cards, and see real-time AI sentiment analysis of your team's thoughts.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.quilljs.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
     <link rel="stylesheet" href="/static/style.css?v=221">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -237,7 +239,7 @@
     <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="border: 3px solid var(--border-color); border-radius: 0px; overflow: hidden; margin-bottom: 2rem;"><div id="editor-container" style="height: 150px; font-size: 1.1rem; color: var(--text-main);"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
 
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js" defer></script>
     <script>
         let quill; let currentQuestions = []; let activeQuestionId = ''; let searchTimeout; let isModerator = false;
         let questionPagination = {}; let isLoadingMore = false;
@@ -427,7 +429,7 @@
         function downloadReport() { window.open(`/api/session/report?session_id=${sessionId}`, '_blank'); }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
         function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
-        init();
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
