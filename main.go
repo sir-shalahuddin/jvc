@@ -126,33 +126,53 @@ func main() {
 
 type gzipResponseWriter struct {
 	http.ResponseWriter
-	gz *gzip.Writer
+	gz          *gzip.Writer
+	wroteHeader bool
+}
+
+func shouldCompress(ct string) bool {
+	if ct == "" {
+		return true
+	}
+	return !(strings.Contains(ct, "image/png") ||
+		strings.Contains(ct, "image/jpeg") ||
+		strings.Contains(ct, "image/webp") ||
+		strings.Contains(ct, "audio/") ||
+		strings.Contains(ct, "application/pdf") ||
+		strings.Contains(ct, "application/zip"))
+}
+
+func (w *gzipResponseWriter) WriteHeader(statusCode int) {
+	if w.wroteHeader {
+		return
+	}
+	w.wroteHeader = true
+
+	ct := w.Header().Get("Content-Type")
+	if statusCode != http.StatusNotModified && statusCode != http.StatusNoContent && (statusCode < 100 || statusCode >= 200) && shouldCompress(ct) {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Del("Content-Length")
+		w.ResponseWriter.WriteHeader(statusCode)
+		w.gz = gzip.NewWriter(w.ResponseWriter)
+	} else {
+		w.ResponseWriter.WriteHeader(statusCode)
+	}
 }
 
 func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-	if w.gz == nil {
-		// Check Content-Type (set by handler) or sniff it
+	if !w.wroteHeader {
 		ct := w.Header().Get("Content-Type")
 		if ct == "" {
 			ct = http.DetectContentType(b)
 			w.Header().Set("Content-Type", ct)
 		}
-
-		// Skip compression for already compressed assets
-		if strings.Contains(ct, "image/png") ||
-			strings.Contains(ct, "image/jpeg") ||
-			strings.Contains(ct, "image/webp") ||
-			strings.Contains(ct, "audio/") ||
-			strings.Contains(ct, "application/pdf") ||
-			strings.Contains(ct, "application/zip") {
-			return w.ResponseWriter.Write(b)
-		}
-
-		w.Header().Set("Content-Encoding", "gzip")
-		w.Header().Del("Content-Length")
-		w.gz = gzip.NewWriter(w.ResponseWriter)
+		w.WriteHeader(http.StatusOK)
 	}
-	return w.gz.Write(b)
+
+	if w.gz != nil {
+		return w.gz.Write(b)
+	}
+	return w.ResponseWriter.Write(b)
 }
 
 func (w *gzipResponseWriter) Close() {
@@ -172,7 +192,7 @@ func (w *gzipResponseWriter) Flush() {
 
 func gzipHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		if r.Method == "HEAD" || !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(w, r)
 			return
 		}
