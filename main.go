@@ -83,11 +83,7 @@ func main() {
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)
 	mux.HandleFunc("/api/admin/sessions", handlers.AdminAPIHandler)
 	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
-	mux.HandleFunc("/api/payment/create", handlers.CreatePaymentHandler)
-	mux.HandleFunc("/api/payment/methods", handlers.GetPaymentMethodsHandler)
-	mux.HandleFunc("/api/payment/status", handlers.CheckPaymentStatusHandler)
-	mux.HandleFunc("/api/payment/callback", handlers.PaymentCallbackHandler)
-	mux.HandleFunc("/duitku/callback", handlers.PaymentCallbackHandler)
+	// Payment endpoints disabled - Quota requests are handled via WhatsApp
 
 	// Auth Routes
 	mux.HandleFunc("/auth/google/login", handlers.GoogleLoginHandler)

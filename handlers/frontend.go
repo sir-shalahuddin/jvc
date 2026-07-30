@@ -61,5 +61,5 @@ func ContactHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "checkout", config.AppConfig)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
