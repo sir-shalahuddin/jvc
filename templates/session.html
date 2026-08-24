@@ -11,7 +11,7 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=275">
+    <link rel="stylesheet" href="/static/style.css?v=280">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <script>
@@ -948,52 +948,74 @@
             try {
                 if (window._retro_dev_fp) return window._retro_dev_fp;
                 
-                const canvas = document.createElement('canvas');
-                canvas.width = 240;
-                canvas.height = 60;
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px "Arial", sans-serif';
-                ctx.fillStyle = '#f60';
-                ctx.fillRect(125, 1, 62, 20);
-                ctx.fillStyle = '#069';
-                ctx.fillText('RetroGCP,2026!#$', 2, 15);
-                ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-                ctx.fillText('RetroGCP,2026!#$', 4, 17);
-                const canvasData = canvas.toDataURL();
-                
-                let glRenderer = '';
+                // 1. WebGL Core GPU Hardware Identification (Normalized across browsers)
+                let gpuInfo = '';
                 try {
-                    const gl = document.createElement('canvas').getContext('webgl');
+                    const canvasGL = document.createElement('canvas');
+                    const gl = canvasGL.getContext('webgl') || canvasGL.getContext('experimental-webgl');
                     if (gl) {
                         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
                         if (debugInfo) {
-                            glRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
+                            const unmasked = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
+                            // Normalize GPU across browsers (extract core physical GPU name)
+                            gpuInfo = unmasked.replace(/ANGLE \(/i, '').replace(/\,.*Direct3D.*|\,.*OpenGL.*/i, '').trim();
                         }
                     }
                 } catch(e) {}
-                
-                const str = [
-                    canvasData,
-                    glRenderer,
-                    navigator.userAgent,
-                    navigator.language,
-                    navigator.hardwareConcurrency || 4,
-                    screen.colorDepth,
+
+                // 2. Raw Pixel Buffer Geometry Analysis (OS Font Rasterizer)
+                let pixelSum = 0;
+                try {
+                    const c = document.createElement('canvas');
+                    c.width = 120;
+                    c.height = 30;
+                    const ctx = c.getContext('2d', { willReadFrequently: true });
+                    ctx.textBaseline = 'top';
+                    ctx.font = '16px monospace';
+                    ctx.fillStyle = '#ff6600';
+                    ctx.fillText('Retro2026', 4, 4);
+                    const imgData = ctx.getImageData(0, 0, 120, 30).data;
+                    for (let i = 0; i < imgData.length; i += 4) {
+                        pixelSum += imgData[i] + imgData[i+1] + imgData[i+2];
+                    }
+                } catch(e) {}
+
+                // 3. Audio DSP Silicon / Sample Rate
+                let audioSig = '';
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        const actx = new AudioContextClass();
+                        audioSig = actx.sampleRate + '_' + (actx.destination ? actx.destination.maxChannelCount : 2);
+                        if (actx.close) actx.close();
+                    }
+                } catch(e) {}
+
+                // 4. Hardware System Topology (Screen, CPU Cores, Timezone, Device Pixel Ratio)
+                const timezone = (Intl && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+                const hardwareTraits = [
+                    gpuInfo,
+                    pixelSum,
+                    audioSig,
                     screen.width + 'x' + screen.height,
-                    new Date().getTimezoneOffset()
+                    screen.colorDepth || 24,
+                    window.devicePixelRatio || 1,
+                    navigator.hardwareConcurrency || 4,
+                    timezone,
+                    new Date().getTimezoneOffset(),
+                    navigator.maxTouchPoints || 0
                 ].join('###');
                 
                 let hash = 0;
-                for (let i = 0; i < str.length; i++) {
-                    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                for (let i = 0; i < hardwareTraits.length; i++) {
+                    hash = ((hash << 5) - hash) + hardwareTraits.charCodeAt(i);
                     hash |= 0;
                 }
-                const fp = 'fp_' + Math.abs(hash).toString(16);
+                const fp = 'hw_' + Math.abs(hash).toString(16);
                 window._retro_dev_fp = fp;
                 return fp;
             } catch(e) {
-                return 'fp_fallback_' + (screen.width || 1024);
+                return 'hw_fallback_' + (screen.width || 1024);
             }
         }
 
