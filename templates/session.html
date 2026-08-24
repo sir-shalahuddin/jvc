@@ -662,8 +662,19 @@
             const secEl = document.getElementById('timerSec');
             if (minEl) minEl.blur();
             if (secEl) secEl.blur();
-            let sec = timerSeconds;
+
+            let m = parseInt(minEl ? minEl.value : '5') || 0;
+            let s = parseInt(secEl ? secEl.value : '0') || 0;
+            let sec = (m * 60) + s;
             if (sec <= 0) sec = 300;
+            
+            // Immediate optimistic start
+            timerSeconds = sec;
+            timerRunning = true;
+            timerEndTimeMs = Date.now() + (sec * 1000);
+            alarmTriggered = false;
+            updateTimerDisplay();
+
             try {
                 await fetch('/api/session/timer/action', {
                     method: 'POST',
@@ -675,6 +686,12 @@
         }
 
         async function resetTimer() {
+            // Immediate optimistic reset
+            timerRunning = false;
+            timerEndTimeMs = 0;
+            alarmTriggered = false;
+            updateTimerDisplay();
+
             try {
                 await fetch('/api/session/timer/action', {
                     method: 'POST',
