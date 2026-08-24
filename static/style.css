@@ -497,6 +497,35 @@ code {
     color: #ffffff;
 }
 
+.card-vote-btn.disabled-quota {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+}
+
+.vote-budget-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    box-shadow: 2px 2px 0px var(--border-color);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+    user-select: none;
+    transition: all var(--transition);
+}
+
+.vote-budget-badge.exhausted {
+    opacity: 0.6;
+    background: var(--bg-base);
+    border-style: dashed;
+}
+
 .top-voted-badge {
     position: absolute;
     top: 1rem;

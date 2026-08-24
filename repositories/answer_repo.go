@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"retro-gcp/db"
 	"retro-gcp/models"
 	"sync"
@@ -10,6 +11,13 @@ import (
 	"cloud.google.com/go/firestore"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+var (
+	ErrAlreadyVoted       = errors.New("already voted on this card")
+	ErrVoteQuotaExceeded  = errors.New("vote quota exceeded for this session")
 )
 
 type cacheEntry struct {
@@ -175,4 +183,102 @@ func (r *AnswerRepository) IncrementVotes(ctx context.Context, sessionID string,
 	})
 	newVotes := r.updateVotesInCache(sessionID, answerID)
 	return newVotes, err
+}
+
+func (r *AnswerRepository) GetVoterRecord(ctx context.Context, sessionID string, voterID string) (*models.VoterRecord, error) {
+	doc, err := db.Client.Collection("sessions").Doc(sessionID).Collection("voters").Doc(voterID).Get(ctx)
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return &models.VoterRecord{
+				VoterID:      voterID,
+				TotalVotes:   0,
+				VotedAnswers: []string{},
+				UpdatedAt:    time.Now(),
+			}, nil
+		}
+		return nil, err
+	}
+
+	var rec models.VoterRecord
+	if err := doc.DataTo(&rec); err != nil {
+		return nil, err
+	}
+	return &rec, nil
+}
+
+func (r *AnswerRepository) CastVote(ctx context.Context, sessionID string, answerID string, voterID string, maxVotes int) (int, int, error) {
+	voterRef := db.Client.Collection("sessions").Doc(sessionID).Collection("voters").Doc(voterID)
+	answerRef := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Doc(answerID)
+
+	var finalAnswerVotes int
+	var remainingVotes int
+
+	err := db.Client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// 1. Check voter document
+		voterDoc, err := tx.Get(voterRef)
+		var voterRec models.VoterRecord
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				voterRec = models.VoterRecord{
+					VoterID:      voterID,
+					TotalVotes:   0,
+					VotedAnswers: []string{},
+				}
+			} else {
+				return err
+			}
+		} else {
+			if err := voterDoc.DataTo(&voterRec); err != nil {
+				return err
+			}
+		}
+
+		// 2. Validate: already voted on this answer?
+		for _, ansID := range voterRec.VotedAnswers {
+			if ansID == answerID {
+				return ErrAlreadyVoted
+			}
+		}
+
+		// 3. Validate: quota exceeded?
+		if maxVotes > 0 && voterRec.TotalVotes >= maxVotes {
+			return ErrVoteQuotaExceeded
+		}
+
+		// 4. Read answer document to get current votes
+		ansDoc, err := tx.Get(answerRef)
+		if err != nil {
+			return err
+		}
+		var ans models.Answer
+		if err := ansDoc.DataTo(&ans); err != nil {
+			return err
+		}
+
+		finalAnswerVotes = ans.Votes + 1
+		voterRec.TotalVotes++
+		voterRec.VotedAnswers = append(voterRec.VotedAnswers, answerID)
+		voterRec.UpdatedAt = time.Now()
+		remainingVotes = maxVotes - voterRec.TotalVotes
+		if remainingVotes < 0 {
+			remainingVotes = 0
+		}
+
+		// 5. Update answer votes
+		if err := tx.Update(answerRef, []firestore.Update{
+			{Path: "votes", Value: firestore.Increment(1)},
+		}); err != nil {
+			return err
+		}
+
+		// 6. Save voter record
+		return tx.Set(voterRef, voterRec)
+	})
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	r.updateVotesInCache(sessionID, answerID)
+	return finalAnswerVotes, remainingVotes, nil
 }

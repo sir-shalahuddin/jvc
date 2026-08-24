@@ -60,3 +60,10 @@ type Product struct {
 	Quantity    int    `json:"quantity" firestore:"quantity"` // Session units granted
 }
 
+type VoterRecord struct {
+	VoterID      string    `json:"voter_id" firestore:"voter_id"`
+	TotalVotes   int       `json:"total_votes" firestore:"total_votes"`
+	VotedAnswers []string  `json:"voted_answers" firestore:"voted_answers"`
+	UpdatedAt    time.Time `json:"updated_at" firestore:"updated_at"`
+}
+

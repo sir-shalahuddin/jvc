@@ -28,6 +28,12 @@ func (m *mockAnswerRepo) Create(ctx context.Context, sid string, a models.Answer
 func (m *mockAnswerRepo) GetBySession(ctx context.Context, sid string) ([]models.Answer, error) { return nil, nil }
 func (m *mockAnswerRepo) UpdateSentiment(ctx context.Context, sid string, aid string, e, c, em string) error { return nil }
 func (m *mockAnswerRepo) IncrementVotes(ctx context.Context, sid string, aid string) (int, error) { return 1, nil }
+func (m *mockAnswerRepo) GetVoterRecord(ctx context.Context, sid string, vid string) (*models.VoterRecord, error) {
+	return &models.VoterRecord{VoterID: vid, TotalVotes: 0, VotedAnswers: []string{}}, nil
+}
+func (m *mockAnswerRepo) CastVote(ctx context.Context, sid string, aid string, vid string, maxV int) (int, int, error) {
+	return 1, maxV - 1, nil
+}
 
 type mockTransactionRepo struct{}
 func (m *mockTransactionRepo) Create(ctx context.Context, t models.Transaction) error { return nil }

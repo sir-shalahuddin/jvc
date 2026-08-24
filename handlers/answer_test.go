@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"retro-gcp/models"
+	"retro-gcp/repositories"
 	"testing"
 	"time"
 )
@@ -166,5 +167,68 @@ func TestVoteAnswerHandler_MissingID(t *testing.T) {
 
 	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("expected status 400, got %d", status)
+	}
+}
+
+type erroringMockAnswerRepo struct {
+	mockAnswerRepo
+	castErr error
+}
+
+func (m *erroringMockAnswerRepo) CastVote(ctx context.Context, sid string, aid string, vid string, maxV int) (int, int, error) {
+	return 0, 0, m.castErr
+}
+
+func TestVoteAnswerHandler_AlreadyVoted(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+	AnswerRepo = &erroringMockAnswerRepo{castErr: repositories.ErrAlreadyVoted}
+
+	payload := []byte(`{"session_id":"session-1","answer_id":"ans-1"}`)
+	req, _ := http.NewRequest("POST", "/api/answer/vote", bytes.NewBuffer(payload))
+	rr := httptest.NewRecorder()
+
+	VoteAnswerHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusConflict {
+		t.Errorf("expected status 409 Conflict, got %d", status)
+	}
+}
+
+func TestVoteAnswerHandler_QuotaExceeded(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+	AnswerRepo = &erroringMockAnswerRepo{castErr: repositories.ErrVoteQuotaExceeded}
+
+	payload := []byte(`{"session_id":"session-1","answer_id":"ans-1"}`)
+	req, _ := http.NewRequest("POST", "/api/answer/vote", bytes.NewBuffer(payload))
+	rr := httptest.NewRecorder()
+
+	VoteAnswerHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusTooManyRequests {
+		t.Errorf("expected status 429 TooManyRequests, got %d", status)
+	}
+}
+
+func TestVoterStatusHandler_Success(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+	AnswerRepo = &mockAnswerRepo{}
+
+	req, _ := http.NewRequest("GET", "/api/session/voter-status?session_id=session-1", nil)
+	rr := httptest.NewRecorder()
+
+	VoterStatusHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", status)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(rr.Body.Bytes(), &resp)
+
+	if resp["remaining_votes"] != float64(5) {
+		t.Errorf("expected remaining_votes 5, got %v", resp["remaining_votes"])
 	}
 }
