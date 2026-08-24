@@ -76,6 +76,7 @@ func main() {
 	mux.HandleFunc("/api/question/delete", handlers.DeleteQuestionHandler)
 	mux.HandleFunc("/api/upload", handlers.UploadHandler)
 	mux.HandleFunc("/api/answer/submit", handlers.SubmitAnswerHandler)
+	mux.HandleFunc("/api/answer/vote", handlers.VoteAnswerHandler)
 	mux.HandleFunc("/api/session/answers", handlers.GetAnswersHandler)
 	mux.HandleFunc("/api/session/report", handlers.GenerateReportHandler)
 

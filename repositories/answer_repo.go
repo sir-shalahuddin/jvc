@@ -90,6 +90,26 @@ func (r *AnswerRepository) updateSentimentInCache(sessionID string, answerID str
 	}
 }
 
+func (r *AnswerRepository) updateVotesInCache(sessionID string, answerID string) int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.cache == nil {
+		return 0
+	}
+	entry, ok := r.cache[sessionID]
+	if !ok || time.Since(entry.updatedAt) > 5*time.Minute {
+		return 0
+	}
+	for i, ans := range entry.answers {
+		if ans.ID == answerID {
+			entry.answers[i].Votes++
+			entry.updatedAt = time.Now()
+			return entry.answers[i].Votes
+		}
+	}
+	return 0
+}
+
 func (r *AnswerRepository) Create(ctx context.Context, sessionID string, a models.Answer) error {
 	_, err := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Doc(a.ID).Set(ctx, a)
 	if err == nil {
@@ -147,4 +167,12 @@ func (r *AnswerRepository) UpdateSentiment(ctx context.Context, sessionID string
 		r.updateSentimentInCache(sessionID, answerID, emotion, color, emoji)
 	}
 	return err
+}
+
+func (r *AnswerRepository) IncrementVotes(ctx context.Context, sessionID string, answerID string) (int, error) {
+	_, err := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Doc(answerID).Update(ctx, []firestore.Update{
+		{Path: "votes", Value: firestore.Increment(1)},
+	})
+	newVotes := r.updateVotesInCache(sessionID, answerID)
+	return newVotes, err
 }

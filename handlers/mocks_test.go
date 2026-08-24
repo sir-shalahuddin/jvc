@@ -27,6 +27,7 @@ type mockAnswerRepo struct{}
 func (m *mockAnswerRepo) Create(ctx context.Context, sid string, a models.Answer) error { return nil }
 func (m *mockAnswerRepo) GetBySession(ctx context.Context, sid string) ([]models.Answer, error) { return nil, nil }
 func (m *mockAnswerRepo) UpdateSentiment(ctx context.Context, sid string, aid string, e, c, em string) error { return nil }
+func (m *mockAnswerRepo) IncrementVotes(ctx context.Context, sid string, aid string) (int, error) { return 1, nil }
 
 type mockTransactionRepo struct{}
 func (m *mockTransactionRepo) Create(ctx context.Context, t models.Transaction) error { return nil }

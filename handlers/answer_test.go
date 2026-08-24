@@ -133,3 +133,38 @@ func TestGetAnswersHandler_SuccessAndPagination(t *testing.T) {
 		}
 	}
 }
+
+func TestVoteAnswerHandler_Success(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+	AnswerRepo = &mockAnswerRepo{}
+
+	payload := []byte(`{"session_id":"session-1","answer_id":"ans-1"}`)
+	req, _ := http.NewRequest("POST", "/api/answer/vote", bytes.NewBuffer(payload))
+	rr := httptest.NewRecorder()
+
+	VoteAnswerHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", status)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(rr.Body.Bytes(), &resp)
+
+	if resp["status"] != "success" || resp["votes"] != float64(1) {
+		t.Errorf("unexpected response: %v", resp)
+	}
+}
+
+func TestVoteAnswerHandler_MissingID(t *testing.T) {
+	payload := []byte(`{"session_id":"session-1"}`)
+	req, _ := http.NewRequest("POST", "/api/answer/vote", bytes.NewBuffer(payload))
+	rr := httptest.NewRecorder()
+
+	VoteAnswerHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", status)
+	}
+}

@@ -37,6 +37,7 @@ type Answer struct {
 	SentimentColor   string    `json:"sentiment_color" firestore:"sentiment_color"`
 	SentimentEmoji   string    `json:"sentiment_emoji" firestore:"sentiment_emoji"`
 	AuthorName       string    `json:"author_name" firestore:"author_name"`
+	Votes            int       `json:"votes" firestore:"votes"`
 	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
 }
 

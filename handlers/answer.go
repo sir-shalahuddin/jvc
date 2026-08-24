@@ -19,6 +19,7 @@ type IAnswerRepository interface {
 	Create(ctx context.Context, sessionID string, a models.Answer) error
 	GetBySession(ctx context.Context, sessionID string) ([]models.Answer, error)
 	UpdateSentiment(ctx context.Context, sessionID string, answerID string, emotion, color, emoji string) error
+	IncrementVotes(ctx context.Context, sessionID string, answerID string) (int, error)
 }
 
 var AnswerRepo IAnswerRepository
@@ -121,4 +122,39 @@ func GetAnswersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(answers)
+}
+
+func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		SessionID string `json:"session_id"`
+		AnswerID  string `json:"answer_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if req.AnswerID == "" {
+		http.Error(w, "answer_id required", http.StatusBadRequest)
+		return
+	}
+
+	newVotes, err := AnswerRepo.IncrementVotes(r.Context(), req.SessionID, req.AnswerID)
+	if err != nil {
+		log.Printf("Error incrementing votes for answer %s: %v", req.AnswerID, err)
+		http.Error(w, "Error recording vote", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "success",
+		"votes":  newVotes,
+	})
 }
