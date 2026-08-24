@@ -135,7 +135,17 @@ func resolveUniqueGuestNameForSession(ctx context.Context, sessionID string, gue
 	return candidate
 }
 
-func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string, string) {
+func extractDeviceFingerprint(r *http.Request, bodyFP string) string {
+	if bodyFP != "" {
+		return bodyFP
+	}
+	if h := r.Header.Get("X-Device-Fingerprint"); h != "" {
+		return h
+	}
+	return r.URL.Query().Get("device_fingerprint")
+}
+
+func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request, deviceFingerprint string) (string, string) {
 	cookie, err := r.Cookie(GuestCookieName)
 	if err == nil && cookie.Value != "" {
 		parts := strings.Split(cookie.Value, ".")
@@ -160,7 +170,11 @@ func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string
 
 	// Generate a fresh cryptographically signed guest UUID and deterministic random alias
 	newUUID := uuid.New().String()
-	guestName := generateRandomGuestName(newUUID, 0)
+	seed := deviceFingerprint
+	if seed == "" {
+		seed = newUUID
+	}
+	guestName := generateRandomGuestName(seed, 0)
 	encodedName := base64.RawURLEncoding.EncodeToString([]byte(guestName))
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
 	data := fmt.Sprintf("%s.%s.%s", newUUID, encodedName, ts)
@@ -180,9 +194,12 @@ func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string
 }
 
 func computeEffectiveVoterID(guestUUID string, deviceFingerprint string) string {
-	h := sha256.New()
-	h.Write([]byte(guestUUID + ":" + deviceFingerprint))
-	return hex.EncodeToString(h.Sum(nil))
+	if deviceFingerprint != "" {
+		h := sha256.Sum256([]byte("hw_voter:" + deviceFingerprint))
+		return hex.EncodeToString(h[:])
+	}
+	h := sha256.Sum256([]byte("cookie_voter:" + guestUUID))
+	return hex.EncodeToString(h[:])
 }
 
 func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
@@ -195,8 +212,8 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	p := bluemonday.UGCPolicy()
 	sanitizedText := p.Sanitize(req.Text)
 
-	// Obtain verified cryptographically signed random guest name with collision resolution
-	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r)
+	fp := extractDeviceFingerprint(r, "")
+	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r, fp)
 	guestName := resolveUniqueGuestNameForSession(r.Context(), req.SessionID, guestUUID, rawGuestName)
 	if guestName == "" {
 		guestName = "Anonymous Guest"
@@ -314,17 +331,15 @@ func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Layer 1: Server-Signed HMAC Cookie
-	guestUUID, _ := getOrCreateSignedGuestToken(w, r)
-
-	// 2. Layer 2: Browser Hardware Fingerprint
+	// 1. Layer 1: Hardware Fingerprint & HMAC Cookie
 	fp := req.DeviceFingerprint
 	if fp == "" {
 		fp = r.Header.Get("X-Device-Fingerprint")
 	}
+	guestUUID, _ := getOrCreateSignedGuestToken(w, r, fp)
 	voterID := computeEffectiveVoterID(guestUUID, fp)
 
-	// 3. Layer 3: Dot Voting Quota Enforcement via Firestore Transaction
+	// 2. Layer 2: Dot Voting Quota Enforcement via Firestore Transaction
 	newVotes, remVotes, err := AnswerRepo.CastVote(r.Context(), req.SessionID, req.AnswerID, voterID, MaxVotesPerParticipant)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -369,12 +384,12 @@ func VoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r)
-	guestName := resolveUniqueGuestNameForSession(r.Context(), sessionID, guestUUID, rawGuestName)
 	fp := r.URL.Query().Get("device_fingerprint")
 	if fp == "" {
 		fp = r.Header.Get("X-Device-Fingerprint")
 	}
+	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r, fp)
+	guestName := resolveUniqueGuestNameForSession(r.Context(), sessionID, guestUUID, rawGuestName)
 	voterID := computeEffectiveVoterID(guestUUID, fp)
 
 	rec, err := AnswerRepo.GetVoterRecord(r.Context(), sessionID, voterID)

@@ -946,24 +946,39 @@
 
         function getDeviceFingerprint() {
             try {
-                let cached = sessionStorage.getItem('retro_dev_fp');
-                if (cached) return cached;
+                if (window._retro_dev_fp) return window._retro_dev_fp;
                 
                 const canvas = document.createElement('canvas');
+                canvas.width = 240;
+                canvas.height = 60;
                 const ctx = canvas.getContext('2d');
                 ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
+                ctx.font = '14px "Arial", sans-serif';
                 ctx.fillStyle = '#f60';
                 ctx.fillRect(125, 1, 62, 20);
                 ctx.fillStyle = '#069';
-                ctx.fillText('RetroGCP,2026', 2, 15);
+                ctx.fillText('RetroGCP,2026!#$', 2, 15);
                 ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-                ctx.fillText('RetroGCP,2026', 4, 17);
+                ctx.fillText('RetroGCP,2026!#$', 4, 17);
+                const canvasData = canvas.toDataURL();
+                
+                let glRenderer = '';
+                try {
+                    const gl = document.createElement('canvas').getContext('webgl');
+                    if (gl) {
+                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                        if (debugInfo) {
+                            glRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
+                        }
+                    }
+                } catch(e) {}
                 
                 const str = [
-                    canvas.toDataURL(),
+                    canvasData,
+                    glRenderer,
                     navigator.userAgent,
                     navigator.language,
+                    navigator.hardwareConcurrency || 4,
                     screen.colorDepth,
                     screen.width + 'x' + screen.height,
                     new Date().getTimezoneOffset()
@@ -975,17 +990,19 @@
                     hash |= 0;
                 }
                 const fp = 'fp_' + Math.abs(hash).toString(16);
-                sessionStorage.setItem('retro_dev_fp', fp);
+                window._retro_dev_fp = fp;
                 return fp;
             } catch(e) {
-                return 'fp_fallback_' + Math.random().toString(36).substring(2, 9);
+                return 'fp_fallback_' + (screen.width || 1024);
             }
         }
 
         async function syncVoterStatus() {
             try {
                 const fp = getDeviceFingerprint();
-                const res = await fetch(`/api/session/voter-status?session_id=${sessionId}&device_fingerprint=${fp}`);
+                const res = await fetch(`/api/session/voter-status?session_id=${sessionId}&device_fingerprint=${fp}`, {
+                    headers: { 'X-Device-Fingerprint': fp }
+                });
                 if (res.ok) {
                     const data = await res.json();
                     voterRemainingVotes = typeof data.remaining_votes === 'number' ? data.remaining_votes : 5;
@@ -1140,12 +1157,22 @@
         document.getElementById('sendAnswerBtn').onclick = async () => { 
             const t = quill.root.innerHTML; 
             const g = document.getElementById('selectedGifUrl').value; 
+            const fp = getDeviceFingerprint();
             if (quill.getText().trim().length < 2) return showToast("Empty", "error"); 
             try { 
                 const res = await fetch('/api/answer/submit', { 
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, gif_url: g }) 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Device-Fingerprint': fp
+                    }, 
+                    body: JSON.stringify({ 
+                        session_id: sessionId, 
+                        question_id: activeQuestionId, 
+                        text: t, 
+                        gif_url: g,
+                        device_fingerprint: fp
+                    }) 
                 }); 
                 if (res.ok) { 
                     const data = await res.json();
