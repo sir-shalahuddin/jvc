@@ -586,3 +586,211 @@ footer {
     box-shadow: 0 0 0 2px var(--bg-card);
     transform: scale(0.96);
 }
+
+/* ==========================================================================
+   WYSIWYG Editor (Quill) - Neo-Brutalist & Night/Dark Mode Synchronization
+   ========================================================================== */
+
+#editor-wrapper {
+    background: var(--bg-card);
+    border: 3px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 4px 4px 0px var(--border-color);
+    transition: all var(--transition);
+    overflow: hidden;
+}
+
+#editor-wrapper:focus-within {
+    border-color: var(--primary) !important;
+    box-shadow: 6px 6px 0px var(--border-color);
+}
+
+/* Toolbar styling */
+.ql-toolbar.ql-snow {
+    background: var(--bg-card) !important;
+    border: none !important;
+    border-bottom: 3px solid var(--border-color) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    padding: 0.75rem 1rem !important;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Icon & element strokes and fills */
+.ql-snow .ql-stroke {
+    stroke: var(--text) !important;
+    transition: stroke var(--transition);
+}
+
+.ql-snow .ql-stroke-miter {
+    stroke: var(--text) !important;
+}
+
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
+    fill: var(--text) !important;
+    transition: fill var(--transition);
+}
+
+.ql-snow .ql-thin {
+    stroke: var(--text) !important;
+}
+
+/* Button & Picker Hover and Active states */
+.ql-snow.ql-toolbar button:hover,
+.ql-snow.ql-toolbar button:focus,
+.ql-snow.ql-toolbar button.ql-active {
+    color: var(--primary) !important;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button:focus .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke {
+    stroke: var(--primary) !important;
+}
+
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button:focus .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill {
+    fill: var(--primary) !important;
+}
+
+/* Dropdown Pickers */
+.ql-snow .ql-picker {
+    color: var(--text) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+}
+
+.ql-snow .ql-picker-label {
+    color: var(--text) !important;
+    border: 2px solid transparent !important;
+    border-radius: var(--radius) !important;
+    padding: 0.2rem 0.5rem !important;
+    transition: all var(--transition);
+}
+
+.ql-snow .ql-picker-label:hover,
+.ql-snow .ql-picker-label.ql-active {
+    color: var(--primary) !important;
+    border-color: var(--border-color) !important;
+    background: var(--primary-glow) !important;
+}
+
+.ql-snow .ql-picker-label:hover .ql-stroke,
+.ql-snow .ql-picker-label.ql-active .ql-stroke {
+    stroke: var(--primary) !important;
+}
+
+.ql-snow .ql-picker-options {
+    background-color: var(--bg-card) !important;
+    border: 3px solid var(--border-color) !important;
+    box-shadow: 4px 4px 0px var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    padding: 0.5rem !important;
+}
+
+.ql-snow .ql-picker-item {
+    color: var(--text) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: var(--radius);
+    transition: all var(--transition);
+}
+
+.ql-snow .ql-picker-item:hover,
+.ql-snow .ql-picker-item.ql-selected {
+    color: var(--primary) !important;
+    background: var(--primary-glow) !important;
+}
+
+/* Editor Container & Content */
+.ql-container.ql-snow {
+    border: none !important;
+    background: var(--bg-card) !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    color: var(--text) !important;
+    font-size: 1rem !important;
+}
+
+.ql-editor {
+    background: var(--bg-card) !important;
+    color: var(--text) !important;
+    font-size: 1.05rem !important;
+    line-height: 1.6 !important;
+    min-height: 130px;
+    padding: 1rem 1.25rem !important;
+}
+
+/* Placeholder */
+.ql-editor.ql-blank::before {
+    color: var(--text-muted) !important;
+    font-style: normal !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    left: 1.25rem !important;
+}
+
+/* Tooltip / Links */
+.ql-snow .ql-tooltip {
+    background-color: var(--bg-card) !important;
+    border: 3px solid var(--border-color) !important;
+    box-shadow: 4px 4px 0px var(--border-color) !important;
+    color: var(--text) !important;
+    border-radius: var(--radius) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    padding: 0.75rem 1rem !important;
+}
+
+.ql-snow .ql-tooltip input[type=text] {
+    background: var(--bg-base) !important;
+    color: var(--text) !important;
+    border: 2px solid var(--border-color) !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.85rem !important;
+}
+
+.ql-snow .ql-tooltip a.ql-action,
+.ql-snow .ql-tooltip a.ql-remove,
+.ql-snow .ql-tooltip a.ql-preview {
+    color: var(--primary) !important;
+    font-weight: 800 !important;
+    margin-left: 0.5rem;
+}
+
+/* Formatted content inside editor */
+.ql-editor blockquote {
+    border-left: 4px solid var(--primary) !important;
+    color: var(--text-secondary) !important;
+    background: var(--primary-glow);
+    padding: 0.5rem 1rem !important;
+    margin: 0.5rem 0 !important;
+}
+
+.ql-editor pre.ql-syntax {
+    background: var(--bg-base) !important;
+    color: var(--text) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    padding: 0.75rem 1rem !important;
+}
+
+.ql-editor code {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text);
+}
+
+[data-theme='dark'] .ql-editor code {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+}
+
+.ql-editor a {
+    color: var(--primary) !important;
+    text-decoration: underline !important;
+}
