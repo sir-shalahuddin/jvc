@@ -11,7 +11,7 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=223">
+    <link rel="stylesheet" href="/static/style.css?v=265">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <script>
@@ -42,7 +42,7 @@
 
         .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border-color); margin-bottom: 3rem; }
         .header-actions { display: flex; gap: 0.75rem; align-items: center; }
-        #sm-controls { display: flex; gap: 0.5rem; margin-right: 0.5rem; border-right: 3px solid var(--border-color); padding-right: 0.5rem; }
+        #sm-controls { display: flex; gap: 0.75rem; }
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; padding-top: 1rem; }
         .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; perspective: 1000px; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1); display: inline-block; }
         .answer-card.flipped { transform: rotateY(180deg); }
@@ -208,7 +208,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         Exit
     </a>
-    <button class="theme-toggle" onclick="toggleTheme()"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg></button>
+    <button class="sound-toggle" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg></button>
     <div id="toast-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 9999;"></div>
 
     <div class="container">
@@ -218,7 +219,18 @@
                 <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;"></p>
             </div>
             <div class="header-actions">
+                <div class="timer-widget">
+                    <span style="font-size: 0.9rem;">⏱</span>
+                    <div class="timer-digits-wrapper">
+                        <input id="timerMin" class="timer-digit-input" type="text" maxlength="2" value="05" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Minutes (00-59)" />
+                        <span class="timer-colon">:</span>
+                        <input id="timerSec" class="timer-digit-input" type="text" maxlength="2" value="00" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Seconds (00-59)" />
+                    </div>
+                    <button id="timerPlayBtn" class="timer-btn primary hidden" onclick="startTimer()" title="Start Countdown">▶</button>
+                    <button id="timerResetBtn" class="timer-btn hidden" onclick="resetTimer()" title="Reset Timer">↺</button>
+                </div>
                 <div id="sm-controls" class="hidden">
+                    <button onclick="revealAllCards()" class="btn btn-ghost" style="border-color: var(--primary); color: var(--primary);">🪄 Reveal All</button>
                     <button onclick="openQuestionModal()" class="btn btn-success">+ Add Question</button>
                     <button onclick="downloadReport()" class="btn btn-ghost" style="border-color: var(--accent-primary); color: var(--accent-primary);">Export PDF</button>
                 </div>
@@ -229,18 +241,450 @@
         <div id="questions-container"></div>
         <div id="nav-questions"></div>
 
-
-
         <div class="nav-btn prev" onclick="prevQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 18l-6-6 6-6"/></svg></div>
         <div class="nav-btn next" onclick="nextQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg></div>
     </div>
 
-    <!-- Modals are omitted for space, assuming they are unchanged -->
-    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="border: 3px solid var(--border-color); border-radius: 0px; overflow: hidden; margin-bottom: 2rem;"><div id="editor-container" style="height: 150px; font-size: 1.1rem; color: var(--text-main);"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
+    <!-- Modals -->
+    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js" defer></script>
     <script>
+        // ==========================================
+        // Modern Tactile UI Sound FX Engine (Web Audio API)
+        // ==========================================
+        const SoundFX = {
+            audioCtx: null,
+            muted: localStorage.getItem('retro_sound_muted') === 'true',
+            init() {
+                if (!this.audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            toggle() {
+                this.muted = !this.muted;
+                localStorage.setItem('retro_sound_muted', this.muted);
+                updateSoundIcon();
+                if (!this.muted) this.playVote();
+            },
+            // High-quality tactile card flip / pop
+            playFlip() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    
+                    // Main frequency pitch-drop pop
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1800, now);
+                    filter.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+
+                    // Wooden tactile sub-click
+                    const clickOsc = ctx.createOscillator();
+                    const clickGain = ctx.createGain();
+                    clickOsc.type = 'triangle';
+                    clickOsc.frequency.setValueAtTime(240, now);
+                    clickOsc.frequency.exponentialRampToValueAtTime(60, now + 0.04);
+                    clickGain.gain.setValueAtTime(0.12, now);
+                    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    clickOsc.connect(clickGain);
+                    clickGain.connect(ctx.destination);
+                    clickOsc.start(now);
+                    clickOsc.stop(now + 0.04);
+                } catch(e) {}
+            },
+            // Satisfying crystal joycon / waterdrop chime
+            playVote() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    
+                    // Fundamental chime
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(880, now); // A5
+                    gain1.gain.setValueAtTime(0.15, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+                    osc1.connect(gain1);
+                    gain1.connect(ctx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.18);
+
+                    // Overtone shimmer
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1760, now); // A6
+                    gain2.gain.setValueAtTime(0.07, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.start(now);
+                    osc2.stop(now + 0.12);
+                } catch(e) {}
+            },
+            // Modern warm level-up chord (Slack / Discord message pop)
+            playPost() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major
+                    notes.forEach((freq, idx) => {
+                        const noteTime = now + (idx * 0.045);
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, noteTime);
+                        gain.gain.setValueAtTime(0.12, noteTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.22);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(noteTime);
+                        osc.stop(noteTime + 0.22);
+                    });
+                } catch(e) {}
+            },
+            // Ambient meeting bell / Tibetan gong for timer finish
+            playAlarm() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const chord = [392.00, 587.33, 783.99, 1174.66]; // G Major pentatonic
+                    chord.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + (idx * 0.08));
+                        gain.gain.setValueAtTime(0.14, now + (idx * 0.08));
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + (idx * 0.08));
+                        osc.stop(now + 1.2);
+                    });
+                } catch(e) {}
+            },
+            // Tension tick / heartbeat for countdown panic mode (<= 10s)
+            playTick(isUrgent = false) {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const freq = isUrgent ? 880 : 520;
+                    
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = isUrgent ? 'sawtooth' : 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    osc.frequency.exponentialRampToValueAtTime(160, now + 0.05);
+                    gain.gain.setValueAtTime(isUrgent ? 0.16 : 0.09, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+
+                    if (isUrgent) {
+                        // Heartbeat sub-thump
+                        const subOsc = ctx.createOscillator();
+                        const subGain = ctx.createGain();
+                        subOsc.type = 'sine';
+                        subOsc.frequency.setValueAtTime(140, now);
+                        subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+                        subGain.gain.setValueAtTime(0.2, now);
+                        subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+                        subOsc.connect(subGain);
+                        subGain.connect(ctx.destination);
+                        subOsc.start(now);
+                        subOsc.stop(now + 0.08);
+                    }
+                } catch(e) {}
+            },
+            // Cascading fairy sparkle for Reveal All
+            playRevealCascade(count = 6) {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const scale = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73];
+                    for (let i = 0; i < count; i++) {
+                        const noteTime = now + (i * 0.07);
+                        const freq = scale[i % scale.length];
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, noteTime);
+                        gain.gain.setValueAtTime(0.09, noteTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.18);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(noteTime);
+                        osc.stop(noteTime + 0.18);
+                    }
+                } catch(e) {}
+            }
+        };
+
+        function updateSoundIcon() {
+            const btn = document.getElementById('soundToggleBtn');
+            if (btn) {
+                btn.innerText = SoundFX.muted ? '🔇' : '🔊';
+                btn.classList.toggle('muted', SoundFX.muted);
+                btn.title = SoundFX.muted ? 'Unmute Sound FX' : 'Mute Sound FX';
+            }
+        }
+
+        // ==========================================
+        // Real-Time Session Timer Synchronization (NN : NN)
+        // ==========================================
+        let timerSeconds = 300;
+        let timerRunning = false;
+        let timerEndTimeMs = 0;
+        let alarmTriggered = false;
+        let lastTickedSecond = -1;
+        let isEditingTimer = false;
+
+        function onTimerDigitFocus(input) {
+            if (!isModerator) return;
+            isEditingTimer = true;
+            input.select();
+        }
+
+        async function onTimerDigitBlur() {
+            if (!isModerator) return;
+            isEditingTimer = false;
+            const minEl = document.getElementById('timerMin');
+            const secEl = document.getElementById('timerSec');
+            if (!minEl || !secEl) return;
+            
+            let m = parseInt(minEl.value) || 0;
+            let s = parseInt(secEl.value) || 0;
+            
+            if (m < 0) m = 0;
+            if (m > 59) m = 59;
+            if (s < 0) s = 0;
+            if (s > 59) s = 59;
+            
+            minEl.value = String(m).padStart(2, '0');
+            secEl.value = String(s).padStart(2, '0');
+            
+            timerSeconds = (m * 60) + s;
+            if (timerSeconds <= 0) timerSeconds = 60;
+            
+            try {
+                await fetch('/api/session/timer/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, action: 'reset', seconds: timerSeconds })
+                });
+            } catch(e) {}
+        }
+
+        function onTimerDigitKeyDown(e, input) {
+            if (!isModerator) return;
+            // Navigation & control keys allowed
+            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                return;
+            }
+            if (e.key === 'Enter') {
+                input.blur();
+                startTimer();
+                return;
+            }
+            // Only allow numbers 0-9
+            if (!/^\d$/.test(e.key)) {
+                e.preventDefault();
+                return;
+            }
+            // Auto advance from minutes to seconds if 2 digits entered
+            if (input.id === 'timerMin') {
+                setTimeout(() => {
+                    const secEl = document.getElementById('timerSec');
+                    if (secEl && input.value.length >= 2) secEl.focus();
+                }, 10);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minEl = document.getElementById('timerMin');
+            const secEl = document.getElementById('timerSec');
+            const colonEl = document.querySelector('.timer-colon');
+            const widget = document.querySelector('.timer-widget');
+            const resetBtn = document.getElementById('timerResetBtn');
+            const playSubBtn = document.getElementById('timerPlaySubBtn');
+            
+            if (!minEl || !secEl) return;
+            
+            const m = Math.floor(Math.max(0, timerSeconds) / 60);
+            const s = Math.max(0, timerSeconds) % 60;
+            
+            if (!isEditingTimer) {
+                minEl.value = String(m).padStart(2, '0');
+                secEl.value = String(s).padStart(2, '0');
+            }
+
+            // Play button: visible ONLY to SM when timer is NOT running
+            const playBtn = document.getElementById('timerPlayBtn');
+            if (playBtn) {
+                if (isModerator && !timerRunning) {
+                    playBtn.classList.remove('hidden');
+                } else {
+                    playBtn.classList.add('hidden');
+                }
+            }
+
+            // Reset button: visible ONLY to SM when timer is running
+            if (resetBtn) {
+                if (isModerator && timerRunning) {
+                    resetBtn.classList.remove('hidden');
+                } else {
+                    resetBtn.classList.add('hidden');
+                }
+            }
+            
+            // Panic Mode Thresholds
+            const isPanic = timerSeconds <= 10 && timerSeconds > 0 && timerRunning;
+            const isUrgent = timerSeconds <= 30 && timerSeconds > 0 && timerRunning;
+            
+            if (isPanic) {
+                minEl.classList.add('panic-mode');
+                secEl.classList.add('panic-mode');
+                if (colonEl) colonEl.classList.add('panic-mode');
+                if (widget) widget.classList.add('panic-mode');
+                minEl.classList.remove('pulse-urgent');
+                secEl.classList.remove('pulse-urgent');
+            } else if (isUrgent) {
+                minEl.classList.add('pulse-urgent');
+                secEl.classList.add('pulse-urgent');
+                if (colonEl) colonEl.classList.add('pulse-urgent');
+                minEl.classList.remove('panic-mode');
+                secEl.classList.remove('panic-mode');
+                if (colonEl) colonEl.classList.remove('panic-mode');
+                if (widget) widget.classList.remove('panic-mode');
+            } else {
+                minEl.classList.remove('pulse-urgent', 'panic-mode');
+                secEl.classList.remove('pulse-urgent', 'panic-mode');
+                if (colonEl) colonEl.classList.remove('pulse-urgent', 'panic-mode');
+                if (widget) widget.classList.remove('panic-mode');
+            }
+        }
+
+        // Local smooth 500ms tick for instant countdown
+        setInterval(() => {
+            if (timerRunning && timerEndTimeMs > 0) {
+                const rem = Math.round((timerEndTimeMs - Date.now()) / 1000);
+                timerSeconds = Math.max(0, rem);
+                
+                // Trigger Panic Ticks for last 10 seconds
+                if (timerSeconds <= 10 && timerSeconds > 0 && timerSeconds !== lastTickedSecond) {
+                    lastTickedSecond = timerSeconds;
+                    SoundFX.playTick(timerSeconds <= 5);
+                }
+                
+                updateTimerDisplay();
+                if (timerSeconds === 0 && !alarmTriggered) {
+                    alarmTriggered = true;
+                    timerRunning = false;
+                    SoundFX.playAlarm();
+                    showToast("🚨 TIME'S UP! Wrap up your reflection cards!", "error");
+                }
+            }
+        }, 500);
+
+        // Backend Sync every 1.5s so all tabs stay 100% in sync
+        async function syncTimer() {
+            try {
+                const res = await fetch(`/api/session/timer?session_id=${sessionId}`);
+                const data = await res.json();
+                
+                timerRunning = data.running;
+                timerEndTimeMs = data.end_time_unix_ms || 0;
+                
+                if (timerRunning && timerEndTimeMs > 0) {
+                    timerSeconds = Math.max(0, Math.round((timerEndTimeMs - Date.now()) / 1000));
+                    alarmTriggered = false;
+                } else {
+                    timerSeconds = data.remaining_seconds;
+                    if (timerSeconds > 0) alarmTriggered = false;
+                }
+                
+                updateTimerDisplay();
+            } catch (e) {}
+        }
+
+        async function startTimer() {
+            SoundFX.init();
+            const minEl = document.getElementById('timerMin');
+            const secEl = document.getElementById('timerSec');
+            if (minEl) minEl.blur();
+            if (secEl) secEl.blur();
+            let sec = timerSeconds;
+            if (sec <= 0) sec = 300;
+            try {
+                await fetch('/api/session/timer/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, action: 'start', seconds: sec })
+                });
+                syncTimer();
+            } catch (e) {}
+        }
+
+        async function resetTimer() {
+            try {
+                await fetch('/api/session/timer/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, action: 'reset' })
+                });
+                syncTimer();
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // App State & Main Logic
+        // ==========================================
         let quill; let currentQuestions = []; let activeQuestionId = ''; let searchTimeout; let isModerator = false;
         let questionPagination = {}; let isLoadingMore = false;
         const sessionId = new URLSearchParams(window.location.search).get('id');
@@ -253,13 +697,25 @@
 
         async function init() {
             if (!sessionId) return window.location.href = '/';
-            document.getElementById('sessionIdDisplay').innerText = `SESSION: ${sessionId.slice(0,8)}...`; updateThemeIcon();
+            document.getElementById('sessionIdDisplay').innerText = `SESSION: ${sessionId.slice(0,8)}...`;
+            updateThemeIcon();
+            updateSoundIcon();
             quill = new Quill('#editor-container', { theme: 'snow', placeholder: 'Share feedback...' });
-            const res = await fetch(`/api/session/get?id=${sessionId}`); const session = await res.json();
+            const role = new URLSearchParams(window.location.search).get('role') || 'guest';
+            const res = await fetch(`/api/session/get?id=${sessionId}&role=${role}`); const session = await res.json();
             document.getElementById('sessionNameTitle').innerText = session.name;
             isModerator = session.is_owner;
-            if (isModerator) document.getElementById('sm-controls').classList.remove('hidden');
-            loadQuestions(); setInterval(loadAnswers, 4000);
+            if (isModerator) {
+                document.getElementById('sm-controls').classList.remove('hidden');
+                const minEl = document.getElementById('timerMin');
+                const secEl = document.getElementById('timerSec');
+                if (minEl) minEl.removeAttribute('readonly');
+                if (secEl) secEl.removeAttribute('readonly');
+            }
+            loadQuestions(); 
+            syncTimer();
+            setInterval(syncTimer, 1500);
+            setInterval(loadAnswers, 4000);
         }
 
         function toggleTheme() {
@@ -275,23 +731,37 @@
                 }
             });
             const container = document.getElementById('questions-container'); const nav = document.getElementById('nav-questions');
-            container.innerHTML = currentQuestions.map(q => `
+            container.innerHTML = currentQuestions.map(q => {
+                let mediaHtml = '';
+                if (q.gif_url) {
+                    mediaHtml = `
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="topic-media-container">
+                            <img src="${q.gif_url}" style="width: 100%; height: 100%; object-fit: contain;">
+                            ${isModerator ? `
+                                <div class="topic-media-overlay" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url}')">
+                                    <span class="btn btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">✏️ Change GIF / Media</span>
+                                </div>` : ''}
+                        </div>
+                    </div>`;
+                }
+
+                return `
                 <div id="q-${q.id}" class="topic-container">
-                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2rem; margin-bottom: 2rem;">
-                        ${q.gif_url ? `<div style="width: 100%; max-width: 450px; height: 260px; background: rgba(0,0,0,0.03); border-radius: 0px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 3px solid var(--border-color); box-shadow: var(--glass-shadow);"><img src="${q.gif_url}" style="width: 100%; height: 100%; object-fit: contain;"></div>` : ''}
-                    </div>
+                    ${mediaHtml}
                     <div class="sticky-wrapper">
                         <div class="question-header">
                             <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1; color: var(--text-main); font-weight: 900;">${q.text}</h2>
-                            <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem;">
-                                ${isModerator ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="padding: 0.6rem;">✏️</button>` : ''}
+                            <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap;">
+                                ${isModerator ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="font-size: 0.85rem;" title="Edit question text and settings">✏️ Edit Topic</button>` : ''}
                                 <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary">Add Your Feedback</button>
                             </div>
                         </div>
                     </div>
                     <div id="answers-${q.id}" class="answers-grid"></div>
                     <div id="load-more-status-${q.id}" class="load-more-status" style="text-align: center; margin: 2rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 800; color: var(--text-sub);"></div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             nav.innerHTML = currentQuestions.map((q, i) => `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}"></div>`).join('');
             if (currentQuestions.length > 0) showQuestion(currentQuestions[0].id);
         }
@@ -369,18 +839,82 @@
                 const aContainer = document.getElementById(`answers-${q.id}`);
                 if (!aContainer) return;
                 
+                const votedKeys = JSON.parse(localStorage.getItem('voted_cards') || '[]');
+                const maxVotes = Math.max(0, ...answers.map(a => a.votes || 0));
+
                 answers.forEach(a => {
                     const existingCard = document.querySelector(`.answer-card[data-id="${a.id}"]`);
                     const isProcessing = !a.sentiment_emoji || a.sentiment_emoji === '' || a.sentiment_emotion === 'Analyzing...';
                     const color = a.sentiment_color || '#94a3b8';
                     const displayEmot = getRetroEmoticon(a.sentiment_emoji, a.sentiment_emotion);
-                    const frontContent = isProcessing ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` : `<div class="emoji-main">${displayEmot}</div><div class="emoji-sub">${a.sentiment_emotion}</div>`;
-                    const cardHtml = `<div class="card-face card-front">${frontContent}${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}</div><div class="card-face card-back"><div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;"><span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span><div style="display: flex; align-items: center; gap: 8px;"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.85rem; border: 2px solid var(--border-color); padding: 2px 6px; background: var(--bg-base); box-shadow: 2px 2px 0px var(--border-color);">${displayEmot}</span><div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div></div></div><div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}</div>`;
+                    const votes = a.votes || 0;
+                    const hasVoted = votedKeys.includes(a.id);
+                    const isTopVoted = maxVotes > 0 && votes === maxVotes;
+                    
+                    const frontContent = isProcessing 
+                        ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` 
+                        : `<div class="emoji-main">${displayEmot}</div><div class="emoji-sub">${a.sentiment_emotion}</div>`;
+                    
+                    const cardHtml = `
+                        <div class="card-face card-front">
+                            ${isTopVoted ? `<div class="top-voted-badge">🔥 TOP VOTED</div>` : ''}
+                            ${frontContent}
+                            ${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}
+                            <div style="position: absolute; bottom: 1rem; right: 1rem;">
+                                <button class="card-vote-btn ${hasVoted ? 'has-voted' : ''}" onclick="event.stopPropagation(); voteCard('${a.id}')" title="Upvote feedback">
+                                    ▲ <span>${votes}</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span>
+                                    ${isTopVoted ? `<span class="top-voted-pill">🔥 Top</span>` : ''}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button class="card-vote-btn ${hasVoted ? 'has-voted' : ''}" onclick="event.stopPropagation(); voteCard('${a.id}')" title="Upvote feedback">
+                                        ▲ <span>${votes}</span>
+                                    </button>
+                                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.85rem; border: 2px solid var(--border-color); padding: 2px 6px; background: var(--bg-base); box-shadow: 2px 2px 0px var(--border-color);">${displayEmot}</span>
+                                    <div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.1rem; line-height: 1.5; flex-grow: 1; color: var(--text-main);">${a.text}</div>
+                            ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
+                        </div>`;
+                    
                     if (!existingCard) {
-                        const card = document.createElement('div'); card.className = `answer-card ${isProcessing ? 'processing' : ''}`; card.dataset.id = a.id; card.dataset.sentiment = color; card.dataset.processing = isProcessing; card.style.setProperty('--mood-color', color); card.onclick = () => { if (!card.classList.contains('processing')) card.classList.toggle('flipped'); }; card.innerHTML = cardHtml; aContainer.appendChild(card);
-                    } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing)) {
-                        existingCard.dataset.sentiment = color; existingCard.dataset.processing = String(isProcessing); existingCard.className = `answer-card ${isProcessing ? 'processing' : ''}`; existingCard.style.setProperty('--mood-color', color); existingCard.innerHTML = cardHtml;
-                        existingCard.onclick = () => { if (!existingCard.classList.contains('processing')) existingCard.classList.toggle('flipped'); };
+                        const card = document.createElement('div');
+                        card.className = `answer-card ${isProcessing ? 'processing' : ''}`;
+                        card.dataset.id = a.id;
+                        card.dataset.sentiment = color;
+                        card.dataset.processing = isProcessing;
+                        card.dataset.votes = String(votes);
+                        card.dataset.topVoted = String(isTopVoted);
+                        card.style.setProperty('--mood-color', color);
+                        card.onclick = () => { 
+                            if (!card.classList.contains('processing')) {
+                                SoundFX.playFlip();
+                                card.classList.toggle('flipped'); 
+                            }
+                        };
+                        card.innerHTML = cardHtml;
+                        aContainer.appendChild(card);
+                    } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted)) {
+                        existingCard.dataset.sentiment = color;
+                        existingCard.dataset.processing = String(isProcessing);
+                        existingCard.dataset.votes = String(votes);
+                        existingCard.dataset.topVoted = String(isTopVoted);
+                        existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') ? 'flipped' : ''}`;
+                        existingCard.style.setProperty('--mood-color', color);
+                        existingCard.innerHTML = cardHtml;
+                        existingCard.onclick = () => { 
+                            if (!existingCard.classList.contains('processing')) {
+                                SoundFX.playFlip();
+                                existingCard.classList.toggle('flipped'); 
+                            }
+                        };
                     }
                 });
                 
@@ -395,6 +929,45 @@
             } catch (e) {
                 console.error("Error loading answers", e);
             }
+        }
+
+        async function voteCard(id) {
+            SoundFX.playVote();
+            const votedKeys = JSON.parse(localStorage.getItem('voted_cards') || '[]');
+            if (votedKeys.includes(id)) {
+                showToast("You've already upvoted this card!", "info");
+                return;
+            }
+            votedKeys.push(id);
+            localStorage.setItem('voted_cards', JSON.stringify(votedKeys));
+            
+            // Optimistic update on UI
+            document.querySelectorAll(`.answer-card[data-id="${id}"] .card-vote-btn`).forEach(btn => {
+                btn.classList.add('has-voted');
+                const span = btn.querySelector('span');
+                if (span) span.innerText = parseInt(span.innerText || '0') + 1;
+            });
+            
+            try {
+                await fetch('/api/answer/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answer_id: id })
+                });
+                loadAnswers();
+            } catch(e) {}
+        }
+
+        function revealAllCards() {
+            const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card`);
+            if (cards.length === 0) return showToast("No cards to reveal yet!", "info");
+            SoundFX.playRevealCascade(Math.min(cards.length, 8));
+            cards.forEach((card, idx) => {
+                setTimeout(() => {
+                    card.classList.add('flipped');
+                }, idx * 90);
+            });
+            showToast("🪄 All cards revealed!", "success");
         }
 
         async function loadMoreAnswers() {
@@ -418,14 +991,32 @@
         function debouncedSearch(resultId, inputId) { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => searchGifs(resultId, inputId), 600); }
         async function searchGifs(resultId, inputId) { const query = (resultId === 'q-gif-results' ? document.getElementById('qGifSearch') : document.getElementById('gifSearchQuery')).value.trim(); if (query.length < 2) return; const res = await fetch(`/api/gifs/search?q=${encodeURIComponent(query)}`); const data = await res.json(); if (data.data) document.getElementById(resultId).innerHTML = data.data.map(g => `<img src="${g.images.fixed_height_small.url}" class="gif-item" onclick="selectGif('${g.images.fixed_height.url}', this, '${resultId}', '${inputId}')">`).join(''); }
         function selectGif(url, el, resultId, inputId) { document.getElementById(inputId).value = url; document.querySelectorAll(`#${resultId} .gif-item`).forEach(i => i.classList.remove('selected')); el.classList.add('selected'); if (resultId === 'q-gif-results') document.getElementById('q-preview').innerHTML = `<img src="${url}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">`; }
-        async function handleFileUpload(input, targetInputId) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('image', file); try { const res = await fetch('/api/upload', { method: 'POST', body: fd }); const data = await res.json(); if (data.url) { document.getElementById(targetInputId).value = data.url; if (targetInputId === 'qModalGif') document.getElementById('q-preview').innerHTML = `<img src="${data.url}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">`; showToast("Uploaded!", "success"); } } catch (e) { showToast("Failed", "error"); } }
+        async function handleFileUpload(input, targetInputId) { const file = input.files[0]; if (!file) return; const fd = new FormData(); fd.append('image', file); try { const res = await fetch('/api/upload', { method: 'POST', body: fd }); const data = await res.json(); if (data.url) { document.getElementById(targetInputId).value = data.url; if (targetInputId === 'qModalGif') document.getElementById('q-preview').innerHTML = `<img src="${data.url}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">` ; showToast("Uploaded!", "success"); } } catch (e) { showToast("Failed", "error"); } }
         function openQuestionModal(id = '', text = '', gif = '') { document.getElementById('editQId').value = id; document.getElementById('qModalText').value = text; document.getElementById('qModalGif').value = gif; document.getElementById('qModalTitle').innerText = id ? 'Edit' : 'Add'; document.getElementById('q-preview').innerHTML = gif ? `<img src="${gif}" style="max-height: 100px; border-radius: 0px; border: 3px solid var(--border-color); margin-top: 1rem;">` : ''; document.getElementById('deleteQBtn').style.display = id ? 'block' : 'none'; document.getElementById('questionModal').classList.remove('hidden'); }
         function closeQuestionModal() { document.getElementById('questionModal').classList.add('hidden'); }
         async function saveQuestion() { const id = document.getElementById('editQId').value; const t = document.getElementById('qModalText').value; const g = document.getElementById('qModalGif').value; const res = await fetch(id ? '/api/question/update' : '/api/question/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id || undefined, text: t, gif_url: g }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Saved", "success"); } }
         async function deleteQuestion() { const id = document.getElementById('editQId').value; if (!confirm("Delete?")) return; const res = await fetch('/api/question/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Deleted", "error"); } }
         function openSubmitModal(id, text) { activeQuestionId = id; document.getElementById('modalQuestionTitle').innerText = text; document.getElementById('submitModal').classList.remove('hidden'); quill.setContents([]); document.getElementById('selectedGifUrl').value = ''; }
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
-        document.getElementById('sendAnswerBtn').onclick = async () => { const t = quill.root.innerHTML; const a = document.getElementById('authorName').value; const g = document.getElementById('selectedGifUrl').value; if (quill.getText().trim().length < 2) return showToast("Empty", "error"); try { const res = await fetch('/api/answer/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) }); if (res.ok) { closeSubmitModal(); loadAnswers(); showToast("Sent!", "success"); } } finally {} };
+        document.getElementById('sendAnswerBtn').onclick = async () => { 
+            const t = quill.root.innerHTML; 
+            const a = document.getElementById('authorName').value; 
+            const g = document.getElementById('selectedGifUrl').value; 
+            if (quill.getText().trim().length < 2) return showToast("Empty", "error"); 
+            try { 
+                const res = await fetch('/api/answer/submit', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) 
+                }); 
+                if (res.ok) { 
+                    SoundFX.playPost();
+                    closeSubmitModal(); 
+                    loadAnswers(); 
+                    showToast("Sent!", "success"); 
+                } 
+            } finally {} 
+        };
         function downloadReport() { window.open(`/api/session/report?session_id=${sessionId}`, '_blank'); }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
         function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }

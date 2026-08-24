@@ -33,3 +33,8 @@ Thumbs.db
 # Presentation files and generated audio
 presentation.html
 static/audio/
+retro-gcp
+generate_audio.go
+generate_test_audio.go
+db_stress_test.js
+local_server.go
