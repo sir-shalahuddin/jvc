@@ -231,4 +231,44 @@ func TestVoterStatusHandler_Success(t *testing.T) {
 	if resp["remaining_votes"] != float64(5) {
 		t.Errorf("expected remaining_votes 5, got %v", resp["remaining_votes"])
 	}
+	if resp["guest_name"] == nil || resp["guest_name"] == "" {
+		t.Errorf("expected assigned guest_name, got %v", resp["guest_name"])
+	}
+}
+
+type capturingMockAnswerRepo struct {
+	mockAnswerRepo
+	lastCreated models.Answer
+}
+
+func (m *capturingMockAnswerRepo) Create(ctx context.Context, sid string, a models.Answer) error {
+	m.lastCreated = a
+	return nil
+}
+
+func TestSubmitAnswerHandler_AssignedGuestName(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+	capRepo := &capturingMockAnswerRepo{}
+	AnswerRepo = capRepo
+
+	payload := []byte(`{"session_id":"session-1","question_id":"q-1","text":"Great sprint!"}`)
+	req, _ := http.NewRequest("POST", "/api/answer/submit", bytes.NewBuffer(payload))
+	rr := httptest.NewRecorder()
+
+	SubmitAnswerHandler(rr, req)
+
+	if status := rr.Code; status != http.StatusAccepted {
+		t.Fatalf("expected status 202, got %d", status)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(rr.Body.Bytes(), &resp)
+
+	if resp["author_name"] == nil || resp["author_name"] == "" {
+		t.Errorf("expected assigned author_name, got %v", resp["author_name"])
+	}
+	if capRepo.lastCreated.AuthorName == "" {
+		t.Errorf("expected saved author_name to be assigned, got empty")
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -26,6 +27,23 @@ import (
 const (
 	MaxVotesPerParticipant = 5
 	GuestCookieName        = "retro_guest_token"
+)
+
+var (
+	guestAdjectives = []string{
+		"Brave", "Clever", "Swift", "Cosmic", "Curious",
+		"Silent", "Radiant", "Epic", "Gentle", "Nimble",
+		"Bright", "Wise", "Mystic", "Golden", "Astro",
+		"Cyber", "Neon", "Happy", "Lucky", "Zen",
+		"Dynamic", "Stellar", "Hyper", "Solar", "Lunar",
+	}
+	guestAnimals = []string{
+		"Panda", "Fox", "Otter", "Falcon", "Dolphin",
+		"Owl", "Tiger", "Koala", "Lynx", "Penguin",
+		"Badger", "Eagle", "Gecko", "Wolf", "Bear",
+		"Hawk", "Rabbit", "Shark", "Deer", "Lion",
+		"Cheetah", "Beaver", "Hedgehog", "Jaguar", "Phoenix",
+	}
 )
 
 type IAnswerRepository interface {
@@ -52,31 +70,44 @@ func signGuestData(data string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) string {
+func generateRandomGuestName(seedUUID string) string {
+	h := sha256.Sum256([]byte(seedUUID))
+	adjIdx := int(h[0]) % len(guestAdjectives)
+	animIdx := int(h[1]) % len(guestAnimals)
+	return fmt.Sprintf("%s %s", guestAdjectives[adjIdx], guestAnimals[animIdx])
+}
+
+func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string, string) {
 	cookie, err := r.Cookie(GuestCookieName)
 	if err == nil && cookie.Value != "" {
 		parts := strings.Split(cookie.Value, ".")
-		if len(parts) == 3 {
+		if len(parts) == 4 {
 			guestUUID := parts[0]
-			tsStr := parts[1]
-			providedSig := parts[2]
+			guestNameBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+			tsStr := parts[2]
+			providedSig := parts[3]
 
-			data := fmt.Sprintf("%s.%s", guestUUID, tsStr)
-			expectedSig := signGuestData(data)
+			if err == nil {
+				guestName := string(guestNameBytes)
+				data := fmt.Sprintf("%s.%s.%s", guestUUID, parts[1], tsStr)
+				expectedSig := signGuestData(data)
 
-			if hmac.Equal([]byte(providedSig), []byte(expectedSig)) {
-				// Signature valid! Return verified guest UUID
-				return guestUUID
+				if hmac.Equal([]byte(providedSig), []byte(expectedSig)) {
+					// Signature valid! Return verified guest UUID and name
+					return guestUUID, guestName
+				}
 			}
 		}
 	}
 
-	// Generate a fresh cryptographically signed guest UUID
+	// Generate a fresh cryptographically signed guest UUID and deterministic random alias
 	newUUID := uuid.New().String()
+	guestName := generateRandomGuestName(newUUID)
+	encodedName := base64.RawURLEncoding.EncodeToString([]byte(guestName))
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
-	data := fmt.Sprintf("%s.%s", newUUID, ts)
+	data := fmt.Sprintf("%s.%s.%s", newUUID, encodedName, ts)
 	sig := signGuestData(data)
-	signedToken := fmt.Sprintf("%s.%s.%s", newUUID, ts, sig)
+	signedToken := fmt.Sprintf("%s.%s.%s.%s", newUUID, encodedName, ts, sig)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     GuestCookieName,
@@ -87,7 +118,7 @@ func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) string 
 		MaxAge:   86400 * 30, // 30 days
 	})
 
-	return newUUID
+	return newUUID, guestName
 }
 
 func computeEffectiveVoterID(guestUUID string, deviceFingerprint string) string {
@@ -106,6 +137,12 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	p := bluemonday.UGCPolicy()
 	sanitizedText := p.Sanitize(req.Text)
 
+	// Obtain verified cryptographically signed random guest name
+	_, guestName := getOrCreateSignedGuestToken(w, r)
+	if guestName == "" {
+		guestName = "Anonymous Guest"
+	}
+
 	ansID := uuid.New().String()
 	ans := models.Answer{
 		ID:               ansID,
@@ -113,7 +150,7 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		SessionID:        req.SessionID,
 		Text:             sanitizedText,
 		GifURL:           req.GifURL,
-		AuthorName:       req.AuthorName,
+		AuthorName:       guestName,
 		SentimentEmotion: "Analyzing...",
 		SentimentColor:   "#9CA3AF",
 		SentimentEmoji:   "⏳",
@@ -131,7 +168,7 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	QueueSentimentAnalysis(ansID, req.SessionID, sanitizedText)
 
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]interface{}{"id": ansID, "status": "success"})
+	json.NewEncoder(w).Encode(map[string]interface{}{"id": ansID, "status": "success", "author_name": guestName})
 }
 
 func GetAnswersHandler(w http.ResponseWriter, r *http.Request) {
@@ -219,7 +256,7 @@ func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Layer 1: Server-Signed HMAC Cookie
-	guestUUID := getOrCreateSignedGuestToken(w, r)
+	guestUUID, _ := getOrCreateSignedGuestToken(w, r)
 
 	// 2. Layer 2: Browser Hardware Fingerprint
 	fp := req.DeviceFingerprint
@@ -273,7 +310,7 @@ func VoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guestUUID := getOrCreateSignedGuestToken(w, r)
+	guestUUID, guestName := getOrCreateSignedGuestToken(w, r)
 	fp := r.URL.Query().Get("device_fingerprint")
 	if fp == "" {
 		fp = r.Header.Get("X-Device-Fingerprint")
@@ -293,6 +330,8 @@ func VoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
+		"guest_name":      guestName,
+		"guest_id":        guestUUID,
 		"total_votes":     rec.TotalVotes,
 		"remaining_votes": rem,
 		"max_votes":       MaxVotesPerParticipant,

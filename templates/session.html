@@ -11,7 +11,7 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=270">
+    <link rel="stylesheet" href="/static/style.css?v=275">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <script>
@@ -249,7 +249,7 @@
     </div>
 
     <!-- Modals -->
-    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Alias</label><input type="text" id="authorName" placeholder="e.g. Captain Nemo" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
+    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Anonymous Alias (Assigned)</label><div class="assigned-alias-badge" id="assignedAliasBadge">🎭 <span id="assignedAliasDisplay">Random Guest</span></div></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js" defer></script>
@@ -942,6 +942,7 @@
         // ==========================================
         let voterRemainingVotes = 5;
         let voterVotedCards = [];
+        let assignedGuestName = "Anonymous Guest";
 
         function getDeviceFingerprint() {
             try {
@@ -989,6 +990,11 @@
                     const data = await res.json();
                     voterRemainingVotes = typeof data.remaining_votes === 'number' ? data.remaining_votes : 5;
                     voterVotedCards = data.voted_answers || [];
+                    if (data.guest_name) {
+                        assignedGuestName = data.guest_name;
+                        const aliasEl = document.getElementById('assignedAliasDisplay');
+                        if (aliasEl) aliasEl.innerText = assignedGuestName;
+                    }
                     localStorage.setItem('voted_cards', JSON.stringify(voterVotedCards));
                     updateVoteBudgetUI();
                 }
@@ -1121,24 +1127,35 @@
         function closeQuestionModal() { document.getElementById('questionModal').classList.add('hidden'); }
         async function saveQuestion() { const id = document.getElementById('editQId').value; const t = document.getElementById('qModalText').value; const g = document.getElementById('qModalGif').value; const res = await fetch(id ? '/api/question/update' : '/api/question/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id || undefined, text: t, gif_url: g }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Saved", "success"); } }
         async function deleteQuestion() { const id = document.getElementById('editQId').value; if (!confirm("Delete?")) return; const res = await fetch('/api/question/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, id: id }) }); if (res.ok) { closeQuestionModal(); loadQuestions(); showToast("Deleted", "error"); } }
-        function openSubmitModal(id, text) { activeQuestionId = id; document.getElementById('modalQuestionTitle').innerText = text; document.getElementById('submitModal').classList.remove('hidden'); quill.setContents([]); document.getElementById('selectedGifUrl').value = ''; }
+        function openSubmitModal(id, text) { 
+            activeQuestionId = id; 
+            document.getElementById('modalQuestionTitle').innerText = text; 
+            const aliasEl = document.getElementById('assignedAliasDisplay');
+            if (aliasEl) aliasEl.innerText = assignedGuestName;
+            document.getElementById('submitModal').classList.remove('hidden'); 
+            quill.setContents([]); 
+            document.getElementById('selectedGifUrl').value = ''; 
+        }
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
         document.getElementById('sendAnswerBtn').onclick = async () => { 
             const t = quill.root.innerHTML; 
-            const a = document.getElementById('authorName').value; 
             const g = document.getElementById('selectedGifUrl').value; 
             if (quill.getText().trim().length < 2) return showToast("Empty", "error"); 
             try { 
                 const res = await fetch('/api/answer/submit', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, author_name: a, gif_url: g }) 
+                    body: JSON.stringify({ session_id: sessionId, question_id: activeQuestionId, text: t, gif_url: g }) 
                 }); 
                 if (res.ok) { 
+                    const data = await res.json();
+                    if (data.author_name) {
+                        assignedGuestName = data.author_name;
+                    }
                     SoundFX.playPost();
                     closeSubmitModal(); 
                     loadAnswers(); 
-                    showToast("Sent!", "success"); 
+                    showToast(`Posted as 🎭 ${assignedGuestName}!`, "success"); 
                 } 
             } finally {} 
         };

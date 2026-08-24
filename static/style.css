@@ -526,6 +526,22 @@ code {
     border-style: dashed;
 }
 
+.assigned-alias-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-base);
+    border: 2px solid var(--border-color);
+    box-shadow: 2px 2px 0px var(--border-color);
+    padding: 0.75rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    user-select: none;
+    border-radius: var(--radius);
+}
+
 .top-voted-badge {
     position: absolute;
     top: 1rem;
