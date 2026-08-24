@@ -70,11 +70,69 @@ func signGuestData(data string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func generateRandomGuestName(seedUUID string) string {
+func generateRandomGuestName(seedUUID string, collisionLevel int) string {
 	h := sha256.Sum256([]byte(seedUUID))
-	adjIdx := int(h[0]) % len(guestAdjectives)
 	animIdx := int(h[1]) % len(guestAnimals)
-	return fmt.Sprintf("%s %s", guestAdjectives[adjIdx], guestAnimals[animIdx])
+	animal := guestAnimals[animIdx]
+
+	if collisionLevel <= 0 {
+		adj1 := guestAdjectives[int(h[0])%len(guestAdjectives)]
+		return fmt.Sprintf("%s %s", adj1, animal)
+	}
+
+	// Collision Level 1: Add 2nd adjective (e.g. "Cosmic Swift Otter")
+	adj1 := guestAdjectives[int(h[0])%len(guestAdjectives)]
+	adj2Idx := (int(h[2]) + collisionLevel) % len(guestAdjectives)
+	if adj2Idx == int(h[0])%len(guestAdjectives) {
+		adj2Idx = (adj2Idx + 1) % len(guestAdjectives)
+	}
+	adj2 := guestAdjectives[adj2Idx]
+
+	if collisionLevel == 1 {
+		return fmt.Sprintf("%s %s %s", adj1, adj2, animal)
+	}
+
+	// Collision Level 2+: Add 3rd adjective (e.g. "Cosmic Swift Radiant Otter")
+	adj3Idx := (int(h[3]) + collisionLevel) % len(guestAdjectives)
+	if adj3Idx == adj2Idx || adj3Idx == int(h[0])%len(guestAdjectives) {
+		adj3Idx = (adj3Idx + 2) % len(guestAdjectives)
+	}
+	adj3 := guestAdjectives[adj3Idx]
+	return fmt.Sprintf("%s %s %s %s", adj1, adj2, adj3, animal)
+}
+
+func resolveUniqueGuestNameForSession(ctx context.Context, sessionID string, guestUUID string, defaultName string) string {
+	if AnswerRepo == nil || sessionID == "" {
+		return defaultName
+	}
+	answers, err := AnswerRepo.GetBySession(ctx, sessionID)
+	if err != nil || len(answers) == 0 {
+		return defaultName
+	}
+
+	// Track existing names already used in this session
+	existingNames := make(map[string]bool)
+	for _, ans := range answers {
+		if ans.AuthorName != "" {
+			existingNames[ans.AuthorName] = true
+		}
+	}
+
+	// If defaultName (Level 0) has no collision in this session, use it
+	candidate := defaultName
+	if !existingNames[candidate] {
+		return candidate
+	}
+
+	// Collision detected! Add 1 more adjective (Level 1..5)
+	for level := 1; level <= 5; level++ {
+		candidate = generateRandomGuestName(guestUUID, level)
+		if !existingNames[candidate] {
+			return candidate
+		}
+	}
+
+	return candidate
 }
 
 func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string, string) {
@@ -102,7 +160,7 @@ func getOrCreateSignedGuestToken(w http.ResponseWriter, r *http.Request) (string
 
 	// Generate a fresh cryptographically signed guest UUID and deterministic random alias
 	newUUID := uuid.New().String()
-	guestName := generateRandomGuestName(newUUID)
+	guestName := generateRandomGuestName(newUUID, 0)
 	encodedName := base64.RawURLEncoding.EncodeToString([]byte(guestName))
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
 	data := fmt.Sprintf("%s.%s.%s", newUUID, encodedName, ts)
@@ -137,8 +195,9 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	p := bluemonday.UGCPolicy()
 	sanitizedText := p.Sanitize(req.Text)
 
-	// Obtain verified cryptographically signed random guest name
-	_, guestName := getOrCreateSignedGuestToken(w, r)
+	// Obtain verified cryptographically signed random guest name with collision resolution
+	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r)
+	guestName := resolveUniqueGuestNameForSession(r.Context(), req.SessionID, guestUUID, rawGuestName)
 	if guestName == "" {
 		guestName = "Anonymous Guest"
 	}
@@ -310,7 +369,8 @@ func VoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guestUUID, guestName := getOrCreateSignedGuestToken(w, r)
+	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r)
+	guestName := resolveUniqueGuestNameForSession(r.Context(), sessionID, guestUUID, rawGuestName)
 	fp := r.URL.Query().Get("device_fingerprint")
 	if fp == "" {
 		fp = r.Header.Get("X-Device-Fingerprint")

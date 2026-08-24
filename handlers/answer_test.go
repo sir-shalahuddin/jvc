@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"retro-gcp/models"
 	"retro-gcp/repositories"
+	"strings"
 	"testing"
 	"time"
 )
@@ -270,5 +271,40 @@ func TestSubmitAnswerHandler_AssignedGuestName(t *testing.T) {
 	}
 	if capRepo.lastCreated.AuthorName == "" {
 		t.Errorf("expected saved author_name to be assigned, got empty")
+	}
+}
+
+type configurableCollisionMockRepo struct {
+	*capturingMockAnswerRepo
+	existingAnswers []models.Answer
+}
+
+func (m *configurableCollisionMockRepo) GetBySession(ctx context.Context, sid string) ([]models.Answer, error) {
+	return m.existingAnswers, nil
+}
+
+func TestSubmitAnswerHandler_CollisionExpandsAdjective(t *testing.T) {
+	oldRepo := AnswerRepo
+	defer func() { AnswerRepo = oldRepo }()
+
+	testUUID := "test-uuid-collision-123"
+	baseName := generateRandomGuestName(testUUID, 0)
+
+	collidingRepo := &configurableCollisionMockRepo{
+		capturingMockAnswerRepo: &capturingMockAnswerRepo{},
+		existingAnswers: []models.Answer{
+			{ID: "ans-1", AuthorName: baseName},
+		},
+	}
+	AnswerRepo = collidingRepo
+
+	resolved := resolveUniqueGuestNameForSession(context.Background(), "session-1", testUUID, baseName)
+	if resolved == baseName {
+		t.Errorf("expected collision resolution to expand name, got %s", resolved)
+	}
+
+	parts := strings.Split(resolved, " ")
+	if len(parts) < 3 {
+		t.Errorf("expected at least 3 words on collision (Adj1 Adj2 Animal), got %d words: %s", len(parts), resolved)
 	}
 }
