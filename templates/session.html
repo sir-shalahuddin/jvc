@@ -40,9 +40,30 @@
             --btn-text: #ffffff;
         }
 
-        .session-header { padding: 3rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border-color); margin-bottom: 3rem; }
-        .header-actions { display: flex; gap: 0.75rem; align-items: center; }
-        #sm-controls { display: flex; gap: 0.75rem; }
+        .session-header-wrapper { margin-bottom: 2.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .session-topbar { padding: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border-color); gap: 1.5rem; }
+        .topbar-left { display: flex; align-items: center; gap: 1.25rem; }
+        .topbar-exit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; height: 42px; font-size: 0.85rem; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; text-transform: uppercase; text-decoration: none; color: var(--accent-danger); border: 3px solid var(--accent-danger) !important; background: var(--bg-card); box-shadow: 3px 3px 0px var(--accent-danger) !important; transition: all var(--transition); white-space: nowrap; }
+        .topbar-exit-btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--accent-danger) !important; background: rgba(244, 63, 94, 0.08); color: var(--accent-danger); }
+        .topbar-exit-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--accent-danger) !important; }
+        .session-info { display: flex; flex-direction: column; gap: 2px; }
+        .session-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .session-role-badge { font-family: 'JetBrains Mono', monospace !important; font-size: 0.68rem; font-weight: 900; padding: 2px 7px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 2px 2px 0px var(--border-color); }
+        .session-role-badge.badge-moderator { background: var(--primary); color: #ffffff; }
+        .topbar-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
+        .topbar-utility-group { display: flex; gap: 0.5rem; align-items: center; }
+        .topbar-icon-btn { width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-card); border: 3px solid var(--border-color) !important; color: var(--text); cursor: pointer; box-shadow: 3px 3px 0px var(--border-color) !important; font-size: 1.15rem; transition: all var(--transition); border-radius: 0px !important; }
+        .topbar-icon-btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; color: var(--primary); }
+        .topbar-icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
+        .topbar-icon-btn.muted { opacity: 0.55; filter: grayscale(1); }
+        .topbar-invite-btn { height: 42px; padding: 0 1.25rem !important; font-size: 0.85rem !important; white-space: nowrap; }
+
+        /* SM Dedicated Toolbar */
+        .sm-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.25rem; background: var(--bg-card); border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); transition: all var(--transition); }
+        .sm-toolbar-label { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace !important; font-size: 0.75rem; font-weight: 900; color: var(--text-sub); letter-spacing: 0.08em; text-transform: uppercase; }
+        .sm-toolbar-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .sm-btn { height: 38px; padding: 0 1.25rem !important; font-size: 0.85rem !important; white-space: nowrap; }
+
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; padding-top: 1rem; }
         .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; perspective: 1000px; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1); display: inline-block; }
         .answer-card.flipped { transform: rotateY(180deg); }
@@ -105,15 +126,17 @@
         .nav-btn.next { right: 2rem; }
 
         .modal-content { background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; padding: 3rem; position: relative; box-shadow: 8px 8px 0px var(--border-color); max-height: 90vh; overflow-y: auto; color: var(--text); }
-        
-
 
         @media (max-width: 768px) {
-            .session-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; padding: 2rem 0 1rem; margin-bottom: 1.5rem; }
-            .session-header h1 { font-size: 1.5rem !important; }
-            .header-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-            #sm-controls { display: contents; }
-            .header-actions .btn { width: 100%; padding: 0.8rem 0.5rem; font-size: 0.85rem; }
+            .session-header-wrapper { margin-bottom: 1.5rem; }
+            .session-topbar { flex-direction: column; align-items: stretch; gap: 1rem; padding: 1rem 0; }
+            .topbar-left { flex-direction: row; align-items: center; gap: 0.75rem; }
+            .session-title-row h1 { font-size: 1.4rem !important; }
+            .topbar-right { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-start; }
+            .topbar-invite-btn { flex: 1; min-width: 130px; }
+            .sm-toolbar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+            .sm-toolbar-actions { display: grid; grid-template-columns: 1fr; gap: 0.5rem; width: 100%; }
+            .sm-btn { width: 100%; }
             
             .sticky-wrapper { top: 0.5rem; }
             .question-header { padding: 1rem 1.5rem; border-radius: 0px !important; }
@@ -204,40 +227,66 @@
     </style>
 </head>
 <body>
-    <a href="/" class="back-to-home danger">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Exit
-    </a>
-    <button class="sound-toggle" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg></button>
-    <div id="toast-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 9999;"></div>
+    <div id="toast-container" style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999;"></div>
 
     <div class="container">
-        <header class="session-header">
-            <div>
-                <h1 id="sessionNameTitle" style="font-size: 2rem; margin:0; color: var(--text-main);">Loading...</h1>
-                <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 6px;"></p>
-            </div>
-            <div class="header-actions">
-                <div class="timer-widget">
-                    <span style="font-size: 0.9rem;">⏱</span>
-                    <div class="timer-digits-wrapper">
-                        <input id="timerMin" class="timer-digit-input" type="text" maxlength="2" value="05" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Minutes (00-59)" />
-                        <span class="timer-colon">:</span>
-                        <input id="timerSec" class="timer-digit-input" type="text" maxlength="2" value="00" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Seconds (00-59)" />
+        <header class="session-header-wrapper">
+            <!-- Unified Top Navigation Bar -->
+            <div class="session-topbar">
+                <!-- Left: Exit Button & Session Identity -->
+                <div class="topbar-left">
+                    <a href="/" class="topbar-exit-btn" title="Exit Session">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        <span>Exit</span>
+                    </a>
+                    <div class="session-info">
+                        <div class="session-title-row">
+                            <h1 id="sessionNameTitle" style="font-size: 1.75rem; margin:0; color: var(--text-main);">Loading...</h1>
+                            <span id="roleBadge" class="session-role-badge">PARTICIPANT</span>
+                        </div>
+                        <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;"></p>
                     </div>
-                    <button id="timerPlayBtn" class="timer-btn primary hidden" onclick="startTimer()" title="Start Countdown">▶</button>
-                    <button id="timerResetBtn" class="timer-btn hidden" onclick="resetTimer()" title="Reset Timer">↺</button>
                 </div>
-                <div class="vote-budget-badge" id="voteBudgetBadge" title="Your remaining dot votes for this retrospective">
-                    🎯 <span id="voteBudgetCount">5</span>/5 Votes Left
+
+                <!-- Right: Session Metrics & Utilities -->
+                <div class="topbar-right">
+                    <div class="timer-widget">
+                        <span style="font-size: 0.9rem;">⏱</span>
+                        <div class="timer-digits-wrapper">
+                            <input id="timerMin" class="timer-digit-input" type="text" maxlength="2" value="05" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Minutes (00-59)" />
+                            <span class="timer-colon">:</span>
+                            <input id="timerSec" class="timer-digit-input" type="text" maxlength="2" value="00" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Seconds (00-59)" />
+                        </div>
+                        <button id="timerPlayBtn" class="timer-btn primary hidden" onclick="startTimer()" title="Start Countdown">▶</button>
+                        <button id="timerResetBtn" class="timer-btn hidden" onclick="resetTimer()" title="Reset Timer">↺</button>
+                    </div>
+
+                    <div class="vote-budget-badge" id="voteBudgetBadge" title="Your remaining dot votes for this retrospective">
+                        🎯 <span id="voteBudgetCount">5</span>/5 Votes Left
+                    </div>
+
+                    <div class="topbar-utility-group">
+                        <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
+                        <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></button>
+                    </div>
+
+                    <button onclick="copyInvite()" class="btn btn-ghost topbar-invite-btn" title="Copy Invite Link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        Invite Team
+                    </button>
                 </div>
-                <div id="sm-controls" class="hidden">
-                    <button onclick="revealAllCards()" class="btn btn-ghost" style="border-color: var(--primary); color: var(--primary);">🪄 Reveal All</button>
-                    <button onclick="openQuestionModal()" class="btn btn-success">+ Add Question</button>
-                    <button onclick="downloadReport()" class="btn btn-ghost" style="border-color: var(--accent-primary); color: var(--accent-primary);">Export PDF</button>
+            </div>
+
+            <!-- SM / Moderator Actions Sub-Toolbar (Shown only when isModerator) -->
+            <div id="sm-controls" class="sm-toolbar hidden">
+                <div class="sm-toolbar-label">
+                    <span>⚡ MODERATOR CONTROLS</span>
                 </div>
-                <button onclick="copyInvite()" class="btn btn-ghost">Invite Team</button>
+                <div class="sm-toolbar-actions">
+                    <button onclick="openQuestionModal()" class="btn btn-success sm-btn">+ Add Question</button>
+                    <button onclick="revealAllCards()" class="btn btn-ghost sm-btn" style="border-color: var(--primary); color: var(--primary);">🪄 Reveal All Cards</button>
+                    <button onclick="downloadReport()" class="btn btn-ghost sm-btn" style="border-color: var(--border-color); color: var(--text);">📄 Export PDF</button>
+                </div>
             </div>
         </header>
 
@@ -725,6 +774,16 @@
             const res = await fetch(`/api/session/get?id=${sessionId}&role=${role}`); const session = await res.json();
             document.getElementById('sessionNameTitle').innerText = session.name;
             isModerator = session.is_owner;
+            const roleBadge = document.getElementById('roleBadge');
+            if (roleBadge) {
+                if (isModerator) {
+                    roleBadge.innerText = 'MODERATOR';
+                    roleBadge.classList.add('badge-moderator');
+                } else {
+                    roleBadge.innerText = 'PARTICIPANT';
+                    roleBadge.classList.remove('badge-moderator');
+                }
+            }
             if (isModerator) {
                 document.getElementById('sm-controls').classList.remove('hidden');
                 const minEl = document.getElementById('timerMin');

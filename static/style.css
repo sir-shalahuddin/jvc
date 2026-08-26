@@ -305,7 +305,7 @@ code {
     border-radius: var(--radius);
     font-family: 'JetBrains Mono', monospace !important;
     font-weight: 800;
-    height: 44px;
+    height: 42px;
     box-sizing: border-box;
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -508,16 +508,19 @@ code {
     align-items: center;
     gap: 6px;
     background: var(--bg-card);
-    border: 2px solid var(--border-color);
-    box-shadow: 2px 2px 0px var(--border-color);
-    padding: 0.35rem 0.75rem;
+    border: 3px solid var(--border-color);
+    box-shadow: 3px 3px 0px var(--border-color);
+    padding: 0 12px;
+    height: 42px;
+    box-sizing: border-box;
     border-radius: var(--radius);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.85rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--text);
     user-select: none;
     transition: all var(--transition);
+    white-space: nowrap;
 }
 
 .vote-budget-badge.exhausted {
