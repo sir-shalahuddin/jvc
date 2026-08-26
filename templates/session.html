@@ -11,7 +11,7 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=282">
+    <link rel="stylesheet" href="/static/style.css?v=283">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <script>
@@ -41,49 +41,57 @@
         }
 
         .container {
-            padding: 0 2rem 4rem !important;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 76px 2rem 5rem !important;
         }
 
-        .session-header-wrapper { 
-            position: sticky; 
-            top: 0; 
-            z-index: 800; 
-            background: var(--bg-base); 
-            padding: 1rem 0 0.75rem; 
-            border-bottom: 3px solid var(--border-color); 
-            margin-bottom: 2rem; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 0.75rem; 
-            transition: all var(--transition);
+        /* Sleek Full-Width Fixed App Topbar (Single-Row, ~56px) */
+        .app-topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 56px;
+            z-index: 1500;
+            background: var(--bg-card);
+            border-bottom: 3px solid var(--border-color);
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.06);
         }
-        .session-topbar { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            gap: 1.5rem; 
+        .app-topbar-inner {
+            width: 100%;
+            height: 100%;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
         }
-        .topbar-left { display: flex; align-items: center; gap: 1.25rem; }
-        .topbar-exit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; height: 42px; font-size: 0.85rem; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; text-transform: uppercase; text-decoration: none; color: var(--accent-danger); border: 3px solid var(--accent-danger) !important; background: var(--bg-card); box-shadow: 3px 3px 0px var(--accent-danger) !important; transition: all var(--transition); white-space: nowrap; }
-        .topbar-exit-btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--accent-danger) !important; background: rgba(244, 63, 94, 0.08); color: var(--accent-danger); }
-        .topbar-exit-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--accent-danger) !important; }
-        .session-info { display: flex; flex-direction: column; gap: 2px; }
-        .session-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .session-role-badge { font-family: 'JetBrains Mono', monospace !important; font-size: 0.68rem; font-weight: 900; padding: 2px 7px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 2px 2px 0px var(--border-color); }
+        .topbar-left { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+        .topbar-exit-btn { display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; height: 34px; font-size: 0.75rem; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; text-transform: uppercase; text-decoration: none; color: var(--accent-danger); border: 2px solid var(--accent-danger) !important; background: var(--bg-card); box-shadow: 2px 2px 0px var(--accent-danger) !important; transition: all var(--transition); white-space: nowrap; }
+        .topbar-exit-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px var(--accent-danger) !important; background: rgba(244, 63, 94, 0.08); color: var(--accent-danger); }
+        .topbar-exit-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--accent-danger) !important; }
+        .topbar-brand { display: flex; align-items: center; gap: 6px; }
+        .topbar-title { font-size: 1.2rem !important; margin: 0 !important; color: var(--text-main); font-family: 'Playfair Display', Georgia, serif !important; font-weight: 900; white-space: nowrap; }
+        .session-role-badge { font-family: 'JetBrains Mono', monospace !important; font-size: 0.65rem; font-weight: 900; padding: 2px 6px; border: 2px solid var(--border-color); background: var(--bg-base); color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 2px 2px 0px var(--border-color); }
         .session-role-badge.badge-moderator { background: var(--primary); color: #ffffff; }
-        .topbar-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
-        .topbar-utility-group { display: flex; gap: 0.5rem; align-items: center; }
-        .topbar-icon-btn { width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-card); border: 3px solid var(--border-color) !important; color: var(--text); cursor: pointer; box-shadow: 3px 3px 0px var(--border-color) !important; font-size: 1.15rem; transition: all var(--transition); border-radius: 0px !important; }
-        .topbar-icon-btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; color: var(--primary); }
-        .topbar-icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
-        .topbar-icon-btn.muted { opacity: 0.55; filter: grayscale(1); }
-        .topbar-invite-btn { height: 42px; padding: 0 1.25rem !important; font-size: 0.85rem !important; white-space: nowrap; }
 
-        /* SM Dedicated Toolbar */
-        .sm-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1.25rem; background: var(--bg-card); border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); transition: all var(--transition); }
-        .sm-toolbar-label { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace !important; font-size: 0.75rem; font-weight: 900; color: var(--text-sub); letter-spacing: 0.08em; text-transform: uppercase; }
-        .sm-toolbar-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .sm-btn { height: 38px; padding: 0 1.25rem !important; font-size: 0.85rem !important; white-space: nowrap; }
+        /* Center SM Inline Actions */
+        .topbar-sm-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+        .topbar-sm-actions.hidden { display: none !important; }
+        .sm-btn { height: 34px; padding: 0 0.85rem !important; font-size: 0.75rem !important; white-space: nowrap; border-width: 2px !important; box-shadow: 2px 2px 0px var(--border-color) !important; }
+
+        /* Right Utilities */
+        .topbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+        .timer-widget { height: 34px; padding: 0 8px; border: 2px solid var(--border-color); box-shadow: 2px 2px 0px var(--border-color); font-size: 0.8rem; }
+        .vote-budget-badge { height: 34px; padding: 0 8px; border: 2px solid var(--border-color); box-shadow: 2px 2px 0px var(--border-color); font-size: 0.75rem; }
+        .topbar-utility-group { display: flex; gap: 0.35rem; align-items: center; }
+        .topbar-icon-btn { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-card); border: 2px solid var(--border-color) !important; color: var(--text); cursor: pointer; box-shadow: 2px 2px 0px var(--border-color) !important; font-size: 0.95rem; transition: all var(--transition); border-radius: 0px !important; }
+        .topbar-icon-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px var(--border-color) !important; color: var(--primary); }
+        .topbar-icon-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--border-color) !important; }
+        .topbar-icon-btn.muted { opacity: 0.55; filter: grayscale(1); }
+        .topbar-invite-btn { height: 34px; padding: 0 0.85rem !important; font-size: 0.75rem !important; white-space: nowrap; border: 2px solid var(--border-color) !important; box-shadow: 2px 2px 0px var(--border-color) !important; }
 
         .answers-grid { column-width: 320px; column-gap: 1.5rem; width: 100%; padding-top: 1rem; }
         .answer-card { break-inside: avoid; margin-bottom: 1.5rem; min-height: 280px; width: 100%; cursor: pointer; position: relative; transform-style: preserve-3d; perspective: 1000px; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1); display: inline-block; }
@@ -101,23 +109,21 @@
         .topic-container.active { display: block; animation: fadeSlideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
         .topic-container.leaving { animation: fadeOut 0.3s forwards; }
 
-        /* Sticky Header */
+        /* Sleek Compact Question Topic Header */
         .sticky-wrapper { 
             position: sticky; 
-            top: var(--topbar-height, 5.5rem); 
-            z-index: 700; 
-            margin-bottom: 2rem; 
+            top: 68px; 
+            z-index: 500; 
+            margin-bottom: 1.5rem; 
             pointer-events: none; 
-            transition: top 0.15s ease;
         }
         .question-header { 
             background: var(--bg-card); 
             backdrop-filter: none !important; 
-            -webkit-backdrop-filter: none !important;
             border: 3px solid var(--border-color); 
             border-radius: 0px !important; 
-            padding: 2rem 2.5rem; 
-            box-shadow: 6px 6px 0px var(--border-color); 
+            padding: 1.25rem 2rem; 
+            box-shadow: 5px 5px 0px var(--border-color); 
             display: inline-flex; 
             flex-direction: column; 
             align-items: center; 
@@ -126,14 +132,26 @@
             width: 100%; 
             transition: all var(--transition);
         }
+        .question-header h2 {
+            font-size: 1.85rem !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+            font-weight: 900;
+        }
+        .question-header .btn {
+            height: 38px;
+            padding: 0 1.25rem;
+            font-size: 0.85rem;
+        }
+
         :root[data-theme='dark'] .question-header { 
             background: var(--bg-card); 
             border-color: var(--border-color); 
-            box-shadow: 6px 6px 0px var(--border-color);
+            box-shadow: 5px 5px 0px var(--border-color);
         }
 
         /* Buttons & Rest */
-        .btn { padding: 0.8rem 1.75rem; border-radius: 0px !important; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; transition: all var(--transition); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 3px solid var(--border-color) !important; font-size: 0.95rem; }
+        .btn { padding: 0.8rem 1.75rem; border-radius: 0px !important; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; transition: all var(--transition); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 3px solid var(--border-color) !important; font-size: 0.95rem; }
         .btn-primary { background: var(--primary); color: white; box-shadow: 3px 3px 0px var(--border-color) !important; border: none; }
         .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; }
         .btn-primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
@@ -155,33 +173,13 @@
 
         .modal-content { background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; padding: 3rem; position: relative; box-shadow: 8px 8px 0px var(--border-color); max-height: 90vh; overflow-y: auto; color: var(--text); }
 
-        @media (max-width: 768px) {
-            .container { padding: 0 1rem 3rem !important; }
-            .session-header-wrapper { margin-bottom: 1.5rem; padding: 0.75rem 0; }
-            .session-topbar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 0.5rem 0; }
-            .topbar-left { flex-direction: row; align-items: center; gap: 0.75rem; }
-            .session-title-row h1 { font-size: 1.4rem !important; }
-            .topbar-right { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-start; }
-            .topbar-invite-btn { flex: 1; min-width: 130px; }
-            .sm-toolbar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 0.75rem; }
-            .sm-toolbar-actions { display: grid; grid-template-columns: 1fr; gap: 0.5rem; width: 100%; }
-            .sm-btn { width: 100%; }
-            
-            .sticky-wrapper { top: var(--topbar-height, 6.5rem); margin-bottom: 1.5rem; }
-            .question-header { padding: 1rem 1.5rem; border-radius: 0px !important; }
-            .question-header h2 { font-size: 1.5rem !important; }
-            
-            .nav-btn { width: 44px; height: 44px; top: auto; bottom: 2rem; transform: none; }
-            .nav-btn:hover { transform: translate(-2px, -2px); }
-            .nav-btn:active { transform: translate(2px, 2px); }
-            .nav-btn.prev { left: 1rem; }
-            .nav-btn.next { right: 1rem; }
-            #nav-questions { bottom: 1.5rem; padding: 0.75rem 1.5rem; }
-            
-            .answers-grid { column-width: 100%; padding-top: 0.5rem; }
-            .answer-card { min-height: 200px; margin-bottom: 1rem; }
-            .card-face { min-height: 200px; padding: 1.25rem; border-radius: 0px !important; }
-            .card-front { font-size: 1.25rem; }
+        @media (max-width: 900px) {
+            .app-topbar { height: auto; min-height: 52px; padding: 0.4rem 0; }
+            .app-topbar-inner { flex-wrap: wrap; padding: 0 1rem; gap: 0.5rem; }
+            .container { padding: 115px 1rem 3rem !important; }
+            .sticky-wrapper { top: 105px; }
+            .question-header { padding: 1rem 1.25rem; }
+            .question-header h2 { font-size: 1.4rem !important; }
         }
 
         /* AI Thinking Animation Styles (Neo-Brutalist) */
@@ -258,67 +256,60 @@
 <body>
     <div id="toast-container" style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999;"></div>
 
+    <!-- Sleek Full-Width Single-Row App Topbar -->
+    <nav class="app-topbar">
+        <div class="app-topbar-inner">
+            <!-- Left: Exit + Title + Role -->
+            <div class="topbar-left">
+                <a href="/" class="topbar-exit-btn" title="Exit Session">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Exit</span>
+                </a>
+                <div class="topbar-brand">
+                    <h1 id="sessionNameTitle" class="topbar-title">Loading...</h1>
+                    <span id="roleBadge" class="session-role-badge">PARTICIPANT</span>
+                    <span id="sessionIdDisplay" style="display: none;"></span>
+                </div>
+            </div>
+
+            <!-- Center: Inline SM Actions -->
+            <div id="sm-controls" class="topbar-sm-actions hidden">
+                <button onclick="openQuestionModal()" class="btn btn-success sm-btn">+ Question</button>
+                <button onclick="revealAllCards()" class="btn btn-ghost sm-btn" style="color: var(--primary); border-color: var(--primary);">🪄 Reveal</button>
+                <button onclick="downloadReport()" class="btn btn-ghost sm-btn">📄 PDF</button>
+            </div>
+
+            <!-- Right: Timer, Votes, Utility Icons, Invite -->
+            <div class="topbar-right">
+                <div class="timer-widget">
+                    <span style="font-size: 0.85rem;">⏱</span>
+                    <div class="timer-digits-wrapper">
+                        <input id="timerMin" class="timer-digit-input" type="text" maxlength="2" value="05" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Minutes (00-59)" />
+                        <span class="timer-colon">:</span>
+                        <input id="timerSec" class="timer-digit-input" type="text" maxlength="2" value="00" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Seconds (00-59)" />
+                    </div>
+                    <button id="timerPlayBtn" class="timer-btn primary hidden" onclick="startTimer()" title="Start Countdown">▶</button>
+                    <button id="timerResetBtn" class="timer-btn hidden" onclick="resetTimer()" title="Reset Timer">↺</button>
+                </div>
+
+                <div class="vote-budget-badge" id="voteBudgetBadge" title="Your remaining dot votes">
+                    🎯 <span id="voteBudgetCount">5</span>/5 Votes
+                </div>
+
+                <div class="topbar-utility-group">
+                    <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
+                    <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></button>
+                </div>
+
+                <button onclick="copyInvite()" class="btn btn-ghost topbar-invite-btn" title="Copy Invite Link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    Invite
+                </button>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
-        <header class="session-header-wrapper">
-            <!-- Unified Top Navigation Bar -->
-            <div class="session-topbar">
-                <!-- Left: Exit Button & Session Identity -->
-                <div class="topbar-left">
-                    <a href="/" class="topbar-exit-btn" title="Exit Session">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                        <span>Exit</span>
-                    </a>
-                    <div class="session-info">
-                        <div class="session-title-row">
-                            <h1 id="sessionNameTitle" style="font-size: 1.75rem; margin:0; color: var(--text-main);">Loading...</h1>
-                            <span id="roleBadge" class="session-role-badge">PARTICIPANT</span>
-                        </div>
-                        <p id="sessionIdDisplay" style="color: var(--text-sub); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;"></p>
-                    </div>
-                </div>
-
-                <!-- Right: Session Metrics & Utilities -->
-                <div class="topbar-right">
-                    <div class="timer-widget">
-                        <span style="font-size: 0.9rem;">⏱</span>
-                        <div class="timer-digits-wrapper">
-                            <input id="timerMin" class="timer-digit-input" type="text" maxlength="2" value="05" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Minutes (00-59)" />
-                            <span class="timer-colon">:</span>
-                            <input id="timerSec" class="timer-digit-input" type="text" maxlength="2" value="00" readonly inputmode="numeric" onfocus="onTimerDigitFocus(this)" onblur="onTimerDigitBlur()" onkeydown="onTimerDigitKeyDown(event, this)" title="Seconds (00-59)" />
-                        </div>
-                        <button id="timerPlayBtn" class="timer-btn primary hidden" onclick="startTimer()" title="Start Countdown">▶</button>
-                        <button id="timerResetBtn" class="timer-btn hidden" onclick="resetTimer()" title="Reset Timer">↺</button>
-                    </div>
-
-                    <div class="vote-budget-badge" id="voteBudgetBadge" title="Your remaining dot votes for this retrospective">
-                        🎯 <span id="voteBudgetCount">5</span>/5 Votes Left
-                    </div>
-
-                    <div class="topbar-utility-group">
-                        <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
-                        <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></button>
-                    </div>
-
-                    <button onclick="copyInvite()" class="btn btn-ghost topbar-invite-btn" title="Copy Invite Link">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                        Invite Team
-                    </button>
-                </div>
-            </div>
-
-            <!-- SM / Moderator Actions Sub-Toolbar (Shown only when isModerator) -->
-            <div id="sm-controls" class="sm-toolbar hidden">
-                <div class="sm-toolbar-label">
-                    <span>⚡ MODERATOR CONTROLS</span>
-                </div>
-                <div class="sm-toolbar-actions">
-                    <button onclick="openQuestionModal()" class="btn btn-success sm-btn">+ Add Question</button>
-                    <button onclick="revealAllCards()" class="btn btn-ghost sm-btn" style="border-color: var(--primary); color: var(--primary);">🪄 Reveal All Cards</button>
-                    <button onclick="downloadReport()" class="btn btn-ghost sm-btn" style="border-color: var(--border-color); color: var(--text);">📄 Export PDF</button>
-                </div>
-            </div>
-        </header>
-
         <div id="questions-container"></div>
         <div id="nav-questions"></div>
 
@@ -794,7 +785,7 @@
         }
 
         function updateStickyOffset() {
-            const topbar = document.querySelector('.session-header-wrapper');
+            const topbar = document.querySelector('.app-topbar');
             if (topbar) {
                 const height = topbar.getBoundingClientRect().height;
                 document.documentElement.style.setProperty('--topbar-height', `${Math.round(height + 12)}px`);
