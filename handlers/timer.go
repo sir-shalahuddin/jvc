@@ -90,6 +90,16 @@ func TimerActionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify Ownership / Moderator Access
+	email := GetUserFromRequest(r)
+	if SessionServ != nil && SessionServ.SessionRepo != nil {
+		session, err := SessionServ.SessionRepo.GetByID(r.Context(), req.SessionID)
+		if err != nil || session == nil || session.OwnerEmail == "" || session.OwnerEmail != email {
+			http.Error(w, "Forbidden: Only moderator can control the timer", http.StatusForbidden)
+			return
+		}
+	}
+
 	st := getOrCreateTimer(req.SessionID)
 
 	timerMu.Lock()

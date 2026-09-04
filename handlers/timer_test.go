@@ -26,9 +26,18 @@ func TestTimerHandler_GetAndActions(t *testing.T) {
 		t.Errorf("expected timer not running initially")
 	}
 
-	// 2. Start timer for 180 seconds (3 minutes)
+	// 2. Unauthenticated timer action must be forbidden (403)
 	startPayload := []byte(`{"session_id":"` + sessionID + `","action":"start","seconds":180}`)
 	req, _ = http.NewRequest("POST", "/api/session/timer/action", bytes.NewBuffer(startPayload))
+	rr = httptest.NewRecorder()
+	TimerActionHandler(rr, req)
+	if status := rr.Code; status != http.StatusForbidden {
+		t.Fatalf("expected status 403 for unauthenticated timer action, got %d", status)
+	}
+
+	// 3. Authenticated moderator starts timer for 180 seconds (3 minutes)
+	req, _ = http.NewRequest("POST", "/api/session/timer/action", bytes.NewBuffer(startPayload))
+	req.AddCookie(createTestAuthCookie("moderator@example.com"))
 	rr = httptest.NewRecorder()
 	TimerActionHandler(rr, req)
 
@@ -41,9 +50,10 @@ func TestTimerHandler_GetAndActions(t *testing.T) {
 		t.Errorf("expected timer running with 180s, got running=%v, rem=%d", state.Running, state.RemainingSeconds)
 	}
 
-	// 3. Reset timer
+	// 4. Authenticated moderator resets timer
 	resetPayload := []byte(`{"session_id":"` + sessionID + `","action":"reset","seconds":300}`)
 	req, _ = http.NewRequest("POST", "/api/session/timer/action", bytes.NewBuffer(resetPayload))
+	req.AddCookie(createTestAuthCookie("moderator@example.com"))
 	rr = httptest.NewRecorder()
 	TimerActionHandler(rr, req)
 

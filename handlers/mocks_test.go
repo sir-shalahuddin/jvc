@@ -2,12 +2,30 @@ package handlers
 
 import (
 	"context"
+	"net/http"
 	"retro-gcp/models"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
+
+func createTestAuthCookie(email string) *http.Cookie {
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email": email,
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+	})
+	tokenString, _ := jwtToken.SignedString(jwtSecret)
+	return &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Path:     "/",
+		HttpOnly: true,
+	}
+}
 
 type mockSessionRepo struct{}
 func (m *mockSessionRepo) Create(ctx context.Context, s models.Session) error { return nil }
-func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*models.Session, error) { return &models.Session{ID: id}, nil }
+func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*models.Session, error) { return &models.Session{ID: id, OwnerEmail: "moderator@example.com"}, nil }
 func (m *mockSessionRepo) GetAll(ctx context.Context) ([]models.Session, error) { return nil, nil }
 func (m *mockSessionRepo) GetByOwner(ctx context.Context, e string) ([]models.Session, error) { return nil, nil }
 func (m *mockSessionRepo) UpdateName(ctx context.Context, id string, n string) error { return nil }

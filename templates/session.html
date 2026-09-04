@@ -285,6 +285,127 @@
             gap: 1.5rem;
         }
 
+        /* ==========================================
+           Phase 1: Board Toolbar & Filter Pills
+           ========================================== */
+        .board-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 2px dashed var(--border-color);
+            width: 100%;
+        }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .toolbar-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 0.2rem;
+        }
+        .toolbar-pill {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.3rem 0.65rem;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            user-select: none;
+            border-radius: 0px !important;
+        }
+        .toolbar-pill:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            border-color: var(--primary);
+        }
+        .toolbar-pill:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+        .toolbar-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+        }
+
+        /* Keyboard Focus Rings for Neo-Brutalist Accessibility */
+        .answer-card:focus-visible {
+            outline: 3px dashed var(--accent-primary, #ff5f1f) !important;
+            outline-offset: 4px;
+            transform: translateY(-4px);
+        }
+        .answer-card.flipped:focus-visible {
+            transform: rotateY(180deg) translateY(-4px);
+        }
+
+        /* Shortcuts Cheat Sheet Modal */
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem 1.25rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 600px) {
+            .shortcuts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .shortcut-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0,0,0,0.03);
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+        }
+        .shortcut-keys {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .kbd-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text-main);
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+            border-radius: 0px;
+        }
+        .shortcut-desc {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         /* Responsive Breakpoints (Tablet & Mobile) */
         @media (max-width: 900px) {
             .app-topbar { height: auto; min-height: 52px; padding: 0.4rem 0; }
@@ -790,6 +911,7 @@
                 </div>
 
                 <div class="topbar-utility-group">
+                    <button class="topbar-icon-btn" id="shortcutsBtn" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">⌨️</button>
                     <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
                     <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></button>
                 </div>
@@ -817,6 +939,57 @@
     <!-- Modals -->
     <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div class="modal-form-grid"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Anonymous Alias (Assigned)</label><div class="assigned-alias-badge" id="assignedAliasBadge">🎭 <span id="assignedAliasDisplay">Random Guest</span></div></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div class="modal-form-grid-2col"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
+
+    <!-- Shortcuts Cheat Sheet Modal -->
+    <div id="shortcutsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 620px;">
+            <button onclick="closeShortcutsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 900;">⌨️ KEYBOARD SHORTCUTS</h2>
+            <p style="font-size: 0.8rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; margin: 0;">Navigate and interact with the retro board at maximum speed.</p>
+            <div class="shortcuts-grid">
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Next Topic</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">→</span> <span style="font-size:0.75rem;">/</span> <span class="kbd-badge">K</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Prev Topic</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">←</span> <span style="font-size:0.75rem;">/</span> <span class="kbd-badge">J</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Add Feedback</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">C</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Flip Card / All</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">Space</span> <span style="font-size:0.75rem;">/</span> <span class="kbd-badge">↵</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Cycle Sort Mode</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">V</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Timer Control</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">T</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Reveal All Cards</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">R</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Shortcuts Help</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">?</span></div>
+                </div>
+                <div class="shortcut-row" style="grid-column: 1 / -1;">
+                    <span class="shortcut-desc">Close Modal / Unfocus</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">Esc</span></div>
+                </div>
+            </div>
+            <button onclick="closeShortcutsModal()" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">Got It (Esc)</button>
+        </div>
+    </div>
+
+    <!-- Retro Pixel Confetti Canvas -->
+    <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:99999;display:none;"></canvas>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js" defer></script>
     <script>
@@ -1196,6 +1369,7 @@
                     alarmTriggered = true;
                     timerRunning = false;
                     SoundFX.playAlarm();
+                    RetroConfetti.fire({ particleCount: 90, spread: 1.5 });
                     showToast("🚨 TIME'S UP! Wrap up your reflection cards!", "error");
                 }
             }
@@ -1409,6 +1583,7 @@
                 if (secEl) secEl.removeAttribute('readonly');
             }
             updateStickyOffset();
+            RetroConfetti.init();
             loadQuestions(); 
             syncTimer();
             syncVoterStatus();
@@ -1452,6 +1627,22 @@
                             <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap;">
                                 ${isModerator ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="font-size: 0.85rem;" title="Edit question text and settings">✏️ Edit Topic</button>` : ''}
                                 <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary">Add Your Feedback</button>
+                            </div>
+                            <div class="board-toolbar" id="board-toolbar-${q.id}">
+                                <div class="toolbar-group">
+                                    <span class="toolbar-label">Sort:</span>
+                                    <button class="toolbar-pill ${currentSortMode === 'votes' ? 'active' : ''}" data-sort="votes" onclick="setSortMode('votes', '${q.id}')">▲ Top Voted</button>
+                                    <button class="toolbar-pill ${currentSortMode === 'newest' ? 'active' : ''}" data-sort="newest" onclick="setSortMode('newest', '${q.id}')">⏱️ Newest</button>
+                                    <button class="toolbar-pill ${currentSortMode === 'oldest' ? 'active' : ''}" data-sort="oldest" onclick="setSortMode('oldest', '${q.id}')">⏳ Oldest</button>
+                                    <button class="toolbar-pill" onclick="toggleFlipAllCards()" title="Flip all reflections" style="margin-left: 0.25rem;">🎴 Flip View</button>
+                                </div>
+                                <div class="toolbar-group">
+                                    <span class="toolbar-label">Mood:</span>
+                                    <button class="toolbar-pill ${currentMoodFilter === 'all' ? 'active' : ''}" data-mood="all" onclick="setMoodFilter('all', '${q.id}')">All</button>
+                                    <button class="toolbar-pill ${currentMoodFilter === 'wins' ? 'active' : ''}" data-mood="wins" onclick="setMoodFilter('wins', '${q.id}')">🔥 Wins</button>
+                                    <button class="toolbar-pill ${currentMoodFilter === 'challenges' ? 'active' : ''}" data-mood="challenges" onclick="setMoodFilter('challenges', '${q.id}')">⚠️ Challenges</button>
+                                    <button class="toolbar-pill ${currentMoodFilter === 'ideas' ? 'active' : ''}" data-mood="ideas" onclick="setMoodFilter('ideas', '${q.id}')">💡 Ideas</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1614,6 +1805,198 @@
             return getRetroEmoticonData(emoji, emotion, seed).text;
         }
 
+        // ==========================================
+        // Phase 1: Card Sorting, Mood Filtering, & Confetti
+        // ==========================================
+        let currentSortMode = 'votes'; // 'votes' | 'newest' | 'oldest'
+        let currentMoodFilter = 'all';  // 'all' | 'wins' | 'challenges' | 'ideas'
+        let allCardsFlipped = false;
+
+        const RetroConfetti = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+            animId: null,
+            colors: ['#ff5f1f', '#10b981', '#1a1a1a', '#fdfaf6', '#3b82f6', '#fbbf24'],
+
+            init() {
+                this.canvas = document.getElementById('confettiCanvas');
+                if (!this.canvas) return;
+                this.ctx = this.canvas.getContext('2d');
+                window.addEventListener('resize', () => this.resize());
+                this.resize();
+            },
+
+            resize() {
+                if (!this.canvas) return;
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            fire(opts = {}) {
+                if (!this.canvas) this.init();
+                if (!this.canvas || !this.ctx) return;
+
+                this.canvas.style.display = 'block';
+                const count = opts.particleCount || 70;
+                const originX = opts.x !== undefined ? opts.x : window.innerWidth / 2;
+                const originY = opts.y !== undefined ? opts.y : window.innerHeight * 0.45;
+
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = (opts.spread || 1) * (3 + Math.random() * 8);
+                    this.particles.push({
+                        x: originX,
+                        y: originY,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed - 3.5,
+                        size: Math.floor(7 + Math.random() * 8),
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                        rotation: Math.random() * 360,
+                        rotSpeed: (Math.random() - 0.5) * 12,
+                        opacity: 1,
+                        decay: 0.009 + Math.random() * 0.014
+                    });
+                }
+
+                if (!this.animId) {
+                    this.loop();
+                }
+            },
+
+            loop() {
+                if (this.particles.length === 0) {
+                    if (this.ctx && this.canvas) {
+                        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                        this.canvas.style.display = 'none';
+                    }
+                    this.animId = null;
+                    return;
+                }
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.28;
+                    p.vx *= 0.98;
+                    p.rotation += p.rotSpeed;
+                    p.opacity -= p.decay;
+
+                    if (p.opacity <= 0 || p.y > this.canvas.height + 50) {
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+
+                    this.ctx.save();
+                    this.ctx.globalAlpha = Math.max(0, p.opacity);
+                    this.ctx.translate(p.x, p.y);
+                    this.ctx.rotate((p.rotation * Math.PI) / 180);
+
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.strokeStyle = '#1a1a1a';
+                    this.ctx.strokeRect(-p.size / 2, -p.size / 2, p.size, p.size);
+
+                    this.ctx.restore();
+                }
+
+                this.animId = requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        function setSortMode(mode, qId) {
+            currentSortMode = mode;
+            const targetQId = qId || activeQuestionId;
+            const toolbar = document.getElementById(`board-toolbar-${targetQId}`);
+            if (toolbar) {
+                toolbar.querySelectorAll('[data-sort]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.sort === mode);
+                });
+            }
+            reorderCards();
+        }
+
+        function setMoodFilter(mood, qId) {
+            currentMoodFilter = mood;
+            const targetQId = qId || activeQuestionId;
+            const toolbar = document.getElementById(`board-toolbar-${targetQId}`);
+            if (toolbar) {
+                toolbar.querySelectorAll('[data-mood]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mood === mood);
+                });
+            }
+            applyMoodFilter();
+        }
+
+        function reorderCards() {
+            const aContainer = document.getElementById(`answers-${activeQuestionId}`);
+            if (!aContainer) return;
+            const cards = Array.from(aContainer.querySelectorAll('.answer-card'));
+            if (cards.length <= 1) return;
+
+            cards.sort((a, b) => {
+                if (currentSortMode === 'votes') {
+                    const vA = parseInt(a.dataset.votes || '0', 10);
+                    const vB = parseInt(b.dataset.votes || '0', 10);
+                    if (vB !== vA) return vB - vA;
+                    const cA = parseInt(a.dataset.created || '0', 10);
+                    const cB = parseInt(b.dataset.created || '0', 10);
+                    return cB - cA;
+                } else if (currentSortMode === 'newest') {
+                    const cA = parseInt(a.dataset.created || '0', 10);
+                    const cB = parseInt(b.dataset.created || '0', 10);
+                    return cB - cA;
+                } else if (currentSortMode === 'oldest') {
+                    const cA = parseInt(a.dataset.created || '0', 10);
+                    const cB = parseInt(b.dataset.created || '0', 10);
+                    return cA - cB;
+                }
+                return 0;
+            });
+
+            cards.forEach(card => aContainer.appendChild(card));
+        }
+
+        function applyMoodFilter() {
+            const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card`);
+            cards.forEach(card => {
+                if (currentMoodFilter === 'all') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = (card.dataset.moodGroup === currentMoodFilter) ? '' : 'none';
+                }
+            });
+        }
+
+        function toggleFlipAllCards() {
+            const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card:not(.processing)`);
+            if (cards.length === 0) return showToast("No cards to flip!", "info");
+            allCardsFlipped = !allCardsFlipped;
+            SoundFX.playRevealCascade(Math.min(cards.length, 8));
+            cards.forEach((card, idx) => {
+                setTimeout(() => {
+                    card.classList.toggle('flipped', allCardsFlipped);
+                }, idx * 40);
+            });
+        }
+
+        function openShortcutsModal() {
+            const modal = document.getElementById('shortcutsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                SoundFX.playPop();
+            }
+        }
+
+        function closeShortcutsModal() {
+            const modal = document.getElementById('shortcutsModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         async function loadAnswers() {
             if (!activeQuestionId) return;
             const activePage = questionPagination[activeQuestionId] || { limit: 12, hasMore: true };
@@ -1647,6 +2030,16 @@
                     const votes = a.votes || 0;
                     const hasVoted = votedKeys.includes(a.id);
                     const isTopVoted = maxVotes > 0 && votes === maxVotes;
+
+                    let moodGroup = 'all';
+                    if (['party', 'love', 'joy', 'cool'].includes(emotType) || color === '#10b981') {
+                        moodGroup = 'wins';
+                    } else if (['fight', 'panic', 'exhausted', 'crying', 'nervous', 'angry', 'sad'].includes(emotType) || color === '#ef4444') {
+                        moodGroup = 'challenges';
+                    } else if (['mindblown', 'curious', 'skeptical'].includes(emotType) || color === '#8b5cf6' || color === '#f59e0b') {
+                        moodGroup = 'ideas';
+                    }
+                    const createdAtTime = a.created_at ? new Date(a.created_at).getTime() : 0;
                     
                     const frontContent = isProcessing 
                         ? `<div class="ai-thinking"><div class="ai-loader-icon">✦</div><div class="ai-status">Thinking...</div></div>` 
@@ -1684,11 +2077,14 @@
                     if (!existingCard) {
                         const card = document.createElement('div');
                         card.className = `answer-card ${isProcessing ? 'processing' : ''}`;
+                        card.tabIndex = 0;
                         card.dataset.id = a.id;
                         card.dataset.sentiment = color;
                         card.dataset.processing = isProcessing;
                         card.dataset.votes = String(votes);
                         card.dataset.topVoted = String(isTopVoted);
+                        card.dataset.moodGroup = moodGroup;
+                        card.dataset.created = String(createdAtTime);
                         card.style.setProperty('--mood-color', color);
                         card.onclick = () => { 
                             if (!card.classList.contains('processing')) {
@@ -1698,23 +2094,30 @@
                         };
                         card.innerHTML = cardHtml;
                         aContainer.appendChild(card);
-                    } else if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted)) {
-                        existingCard.dataset.sentiment = color;
-                        existingCard.dataset.processing = String(isProcessing);
+                    } else {
+                        existingCard.tabIndex = 0;
                         existingCard.dataset.votes = String(votes);
                         existingCard.dataset.topVoted = String(isTopVoted);
-                        existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') ? 'flipped' : ''}`;
-                        existingCard.style.setProperty('--mood-color', color);
-                        existingCard.innerHTML = cardHtml;
-                        existingCard.onclick = () => { 
-                            if (!existingCard.classList.contains('processing')) {
-                                SoundFX.playFlip();
-                                existingCard.classList.toggle('flipped'); 
-                            }
-                        };
+                        existingCard.dataset.moodGroup = moodGroup;
+                        existingCard.dataset.created = String(createdAtTime);
+                        if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted)) {
+                            existingCard.dataset.sentiment = color;
+                            existingCard.dataset.processing = String(isProcessing);
+                            existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') ? 'flipped' : ''}`;
+                            existingCard.style.setProperty('--mood-color', color);
+                            existingCard.innerHTML = cardHtml;
+                            existingCard.onclick = () => { 
+                                if (!existingCard.classList.contains('processing')) {
+                                    SoundFX.playFlip();
+                                    existingCard.classList.toggle('flipped'); 
+                                }
+                            };
+                        }
                     }
                 });
                 
+                reorderCards();
+                applyMoodFilter();
                 updateVoteBudgetUI();
 
                 const statusEl = document.getElementById(`load-more-status-${q.id}`);
@@ -1910,6 +2313,7 @@
                     if (typeof data.remaining_votes === 'number') {
                         voterRemainingVotes = data.remaining_votes;
                     }
+                    RetroConfetti.fire({ particleCount: 30, spread: 0.8 });
                     showToast(`👍 Vote counted! (${voterRemainingVotes} votes left)`, "success");
                     loadAnswers();
                 } else {
@@ -1925,6 +2329,7 @@
             const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card`);
             if (cards.length === 0) return showToast("No cards to reveal yet!", "info");
             SoundFX.playRevealCascade(Math.min(cards.length, 8));
+            RetroConfetti.fire({ particleCount: 80, spread: 1.2 });
             cards.forEach((card, idx) => {
                 setTimeout(() => {
                     card.classList.add('flipped');
@@ -2004,6 +2409,103 @@
         function downloadReport() { window.open(`/api/session/report?session_id=${sessionId}`, '_blank'); }
         function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
         function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
+
+        // ==========================================
+        // Keyboard Shortcuts Handler (Module 2)
+        // ==========================================
+        window.addEventListener('keydown', (e) => {
+            // Check if active element is text input or editor
+            const target = e.target;
+            const isInput = target && (
+                target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable ||
+                target.classList.contains('ql-editor') ||
+                (target.closest && target.closest('.ql-editor'))
+            );
+
+            // Escape always closes open modals
+            if (e.key === 'Escape') {
+                closeSubmitModal();
+                closeQuestionModal();
+                closeShortcutsModal();
+                return;
+            }
+
+            if (isInput) return;
+
+            // ? opens shortcuts cheat sheet
+            if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+                e.preventDefault();
+                openShortcutsModal();
+                return;
+            }
+
+            // C opens Add Feedback modal
+            if (e.key === 'c' || e.key === 'C') {
+                e.preventDefault();
+                const activeQ = currentQuestions.find(q => q.id === activeQuestionId);
+                if (activeQ) openSubmitModal(activeQ.id, activeQ.text);
+                return;
+            }
+
+            // ArrowLeft or J goes to previous question
+            if (e.key === 'ArrowLeft' || e.key === 'j' || e.key === 'J') {
+                e.preventDefault();
+                prevQuestion();
+                return;
+            }
+
+            // ArrowRight or K goes to next question
+            if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K') {
+                e.preventDefault();
+                nextQuestion();
+                return;
+            }
+
+            // V cycles sort mode
+            if (e.key === 'v' || e.key === 'V') {
+                e.preventDefault();
+                const modes = ['votes', 'newest', 'oldest'];
+                const nextIdx = (modes.indexOf(currentSortMode) + 1) % modes.length;
+                setSortMode(modes[nextIdx]);
+                showToast(`Sort: ${modes[nextIdx].toUpperCase()}`, 'info');
+                return;
+            }
+
+            // R reveals all cards
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                revealAllCards();
+                return;
+            }
+
+            // T toggles or starts timer if moderator
+            if (e.key === 't' || e.key === 'T') {
+                e.preventDefault();
+                if (isModerator) {
+                    const playBtn = document.getElementById('timerPlayBtn');
+                    if (playBtn && !playBtn.classList.contains('hidden')) {
+                        startTimer();
+                    }
+                }
+                return;
+            }
+
+            // Space or Enter on focused answer card flips it
+            if (e.key === ' ' || e.key === 'Enter') {
+                const focusedCard = document.activeElement && document.activeElement.closest('.answer-card');
+                if (focusedCard && !focusedCard.classList.contains('processing')) {
+                    e.preventDefault();
+                    SoundFX.playFlip();
+                    focusedCard.classList.toggle('flipped');
+                } else if (!focusedCard && e.key === ' ') {
+                    e.preventDefault();
+                    toggleFlipAllCards();
+                }
+            }
+        });
+
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>

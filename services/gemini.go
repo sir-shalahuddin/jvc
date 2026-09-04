@@ -7,24 +7,35 @@ import (
 	"log"
 	"retro-gcp/config"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
 
-var availableModels = []string{
-	"gemini-3.1-flash-lite",
-	"gemini-2.5-flash-lite",
-	"gemini-3-flash",
-	"gemini-2.5-flash",
-	"gemma-4-31b-it",
-	"gemma-4-26b-a4b-it",
+var (
+	modelMu         sync.Mutex
+	availableModels = []string{
+		"gemini-3.1-flash-lite",
+		"gemini-2.5-flash-lite",
+		"gemini-3-flash",
+		"gemini-2.5-flash",
+		"gemma-4-31b-it",
+		"gemma-4-26b-a4b-it",
+	}
+	currentModelIdx = 0
+)
+
+func getCurrentModel() string {
+	modelMu.Lock()
+	defer modelMu.Unlock()
+	return availableModels[currentModelIdx]
 }
 
-var currentModelIdx = 0
-
 func SwitchToNextModel() string {
+	modelMu.Lock()
+	defer modelMu.Unlock()
 	currentModelIdx = (currentModelIdx + 1) % len(availableModels)
 	newName := availableModels[currentModelIdx]
 	log.Printf("[WARN] AI QUOTA/ERROR EXCEEDED! Switching to next model: %s", newName)
@@ -40,7 +51,7 @@ type SentimentResult struct {
 func performGenAI(prompt string, maxTokens int32, tempe float32, systemPrompt string) (string, error) {
 	ctx := context.Background()
 	for attempt := 0; attempt < len(availableModels); attempt++ {
-		primaryModel := availableModels[currentModelIdx]
+		primaryModel := getCurrentModel()
 		
 		backoff := 1 * time.Second
 		const maxRetries = 3
