@@ -565,94 +565,6 @@
             border-color: var(--border-color);
         }
 
-        /* Media Discovery & Preset Chips (Neo-Brutalist) */
-        .topic-media-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            padding: 0.85rem 1.25rem;
-            margin: 0 auto 1.5rem auto;
-            max-width: 480px;
-            border: 2px dashed var(--border-color);
-            background: rgba(0,0,0,0.03);
-            cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: var(--text-sub);
-            box-shadow: 2px 2px 0px var(--border-color);
-            transition: all var(--transition);
-            user-select: none;
-        }
-        .topic-media-placeholder:hover {
-            background: var(--bg-card);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px var(--border-color);
-        }
-        .quick-chips-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.75rem;
-        }
-        .quick-chip {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem !important;
-            font-weight: 800;
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.25rem 0.55rem;
-            cursor: pointer;
-            box-shadow: 1px 1px 0px var(--border-color);
-            transition: all 0.15s ease;
-            user-select: none;
-            border-radius: 0px !important;
-            line-height: 1;
-        }
-        .quick-chip:hover {
-            background: var(--accent-primary);
-            color: #fff;
-            border-color: var(--border-color);
-            transform: translate(-1px, -1px);
-            box-shadow: 2px 2px 0px var(--border-color);
-        }
-        .media-preview-box {
-            margin-top: 0.75rem;
-            text-align: center;
-            display: none;
-        }
-        .media-preview-box.has-media {
-            display: block;
-        }
-        .remove-media-btn {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem !important;
-            font-weight: 800;
-            background: var(--bg-card);
-            border: 2px solid var(--accent-danger, #ef4444);
-            color: var(--accent-danger, #ef4444);
-            padding: 0.25rem 0.65rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            box-shadow: 2px 2px 0px var(--border-color);
-            transition: all 0.15s ease;
-            border-radius: 0px !important;
-            user-select: none;
-        }
-        .remove-media-btn:hover {
-            background: var(--accent-danger, #ef4444);
-            color: #fff;
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px var(--border-color);
-        }
-
         /* Action Items Modal List */
         .action-items-form {
             display: grid;
@@ -4105,7 +4017,6 @@
         });
 
         // Common Logic (Gifs, Upload, PDF, CRUD)
-        let searchTimeout = null;
         function debouncedSearch(resultId, inputId, previewId) { 
             clearTimeout(searchTimeout); 
             searchTimeout = setTimeout(() => searchGifs(resultId, inputId, previewId), 500); 
