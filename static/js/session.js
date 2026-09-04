@@ -505,8 +505,9 @@
             if (questionId) {
                 const qSection = document.getElementById(`q-${questionId}`);
                 if (qSection) {
-                    const qHeader = qSection.querySelector('.question-header') || qSection;
-                    const elementAbsoluteTop = qHeader.getBoundingClientRect().top + window.pageYOffset;
+                    const mediaEl = qSection.querySelector('.topic-media-container');
+                    const targetElement = mediaEl || qSection.querySelector('.question-header') || qSection;
+                    const elementAbsoluteTop = targetElement.getBoundingClientRect().top + window.pageYOffset;
                     window.scrollTo({
                         top: Math.max(0, elementAbsoluteTop - totalTopOffset),
                         behavior: 'smooth'

@@ -1626,8 +1626,9 @@
             }
         }
 
-        /* Topic Spotlight Active Header Styling */
-        .topic-container.spotlight-topic-active .sticky-wrapper .question-header {
+        /* Topic Spotlight Active Header & Media Styling */
+        .topic-container.spotlight-topic-active .sticky-wrapper .question-header,
+        .topic-container.spotlight-topic-active .topic-media-container {
             border-color: var(--primary) !important;
             box-shadow: 0 0 0 4px var(--primary), 8px 8px 0px var(--border-color);
             animation: topicSpotlightPulse 2s ease-in-out infinite;
