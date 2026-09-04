@@ -574,6 +574,113 @@
             box-shadow: 2px 2px 0px var(--border-color);
         }
 
+        /* Toolbar Dropdowns (Sort & Mood) */
+        .toolbar-dropdown-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .toolbar-dropdown-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            height: 32px;
+            padding: 0 0.75rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+            border-radius: 0px !important;
+        }
+        .toolbar-dropdown-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            border-color: var(--primary) !important;
+        }
+        .toolbar-dropdown-btn:active, .toolbar-dropdown-btn.active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+        .toolbar-btn-label {
+            color: var(--text-sub);
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .toolbar-btn-val {
+            color: var(--text-main);
+            font-weight: 900;
+        }
+        .toolbar-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 175px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            box-shadow: 4px 4px 0px var(--border-color);
+            z-index: 600;
+            display: flex;
+            flex-direction: column;
+            padding: 0.35rem;
+            gap: 0.2rem;
+            animation: dropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toolbar-dropdown-panel.hidden {
+            display: none !important;
+        }
+        .toolbar-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.6rem;
+            border: 2px solid transparent;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            transition: all 0.15s;
+            box-sizing: border-box;
+        }
+        .toolbar-dropdown-item:hover {
+            background: var(--bg-base);
+            border-color: var(--border-color);
+            transform: translate(-1px, -1px);
+            box-shadow: 2px 2px 0px var(--border-color);
+        }
+        .toolbar-dropdown-item.active {
+            background: rgba(255, 95, 31, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .item-check {
+            width: 14px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--primary);
+            flex-shrink: 0;
+            text-align: center;
+        }
+        .flip-cards-btn {
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
         /* Keyboard Focus Rings for Neo-Brutalist Accessibility */
         .answer-card:focus-visible {
             outline: 3px dashed var(--accent-primary, #ff5f1f) !important;

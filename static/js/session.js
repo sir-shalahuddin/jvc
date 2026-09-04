@@ -706,6 +706,7 @@
             closeFacilitatorDropdown();
             closeToolsDropdown();
             closeTopicDropdowns();
+            closeAllToolbarDropdowns();
         }
 
         function editCurrentTopic() {
@@ -945,21 +946,63 @@
                             </div>
                             <div class="board-toolbar ${isToolbarCollapsed ? 'toolbar-collapsed' : ''}" id="board-toolbar-${q.id}">
                                 <div class="toolbar-group">
-                                    <span class="toolbar-label">Sort:</span>
-                                    <button class="toolbar-pill ${currentSortMode === 'votes' ? 'active' : ''}" data-sort="votes" onclick="setSortMode('votes', '${q.id}')">▲ Top Voted</button>
-                                    <button class="toolbar-pill ${currentSortMode === 'newest' ? 'active' : ''}" data-sort="newest" onclick="setSortMode('newest', '${q.id}')">⏱️ Newest</button>
-                                    <button class="toolbar-pill ${currentSortMode === 'oldest' ? 'active' : ''}" data-sort="oldest" onclick="setSortMode('oldest', '${q.id}')">⏳ Oldest</button>
-                                    <button class="toolbar-pill" onclick="toggleFlipAllCards()" title="Flip all reflections" style="margin-left: 0.25rem;">🎴 Flip View</button>
-                                </div>
-                                <div class="toolbar-group">
-                                    <span class="toolbar-label">Mood:</span>
-                                    <button class="toolbar-pill ${currentMoodFilter === 'all' ? 'active' : ''}" data-mood="all" onclick="setMoodFilter('all', '${q.id}')">All</button>
-                                    <button class="toolbar-pill ${currentMoodFilter === 'wins' ? 'active' : ''}" data-mood="wins" onclick="setMoodFilter('wins', '${q.id}')">🔥 Wins</button>
-                                    <button class="toolbar-pill ${currentMoodFilter === 'challenges' ? 'active' : ''}" data-mood="challenges" onclick="setMoodFilter('challenges', '${q.id}')">⚠️ Challenges</button>
-                                    <button class="toolbar-pill ${currentMoodFilter === 'ideas' ? 'active' : ''}" data-mood="ideas" onclick="setMoodFilter('ideas', '${q.id}')">💡 Ideas</button>
+                                    <!-- Sort Dropdown -->
+                                    <div class="toolbar-dropdown-container">
+                                        <button type="button" class="toolbar-dropdown-btn" id="sortDropdownBtn-${q.id}" onclick="toggleSortDropdown(event, '${q.id}')" title="Change sorting order" aria-haspopup="true">
+                                            <span class="toolbar-btn-label">Sort:</span>
+                                            <span class="toolbar-btn-val" id="sortLabel-${q.id}">${getSortLabel(currentSortMode)}</span>
+                                            <span class="toolbar-dropdown-caret">▾</span>
+                                        </button>
+                                        <div class="toolbar-dropdown-panel hidden" id="sortDropdownPanel-${q.id}" role="menu">
+                                            <button type="button" class="toolbar-dropdown-item ${currentSortMode === 'votes' ? 'active' : ''}" data-sort="votes" onclick="setSortMode('votes', '${q.id}')">
+                                                <span class="item-check">${currentSortMode === 'votes' ? '✓' : ''}</span>
+                                                <span>▲ Top Voted</span>
+                                            </button>
+                                            <button type="button" class="toolbar-dropdown-item ${currentSortMode === 'newest' ? 'active' : ''}" data-sort="newest" onclick="setSortMode('newest', '${q.id}')">
+                                                <span class="item-check">${currentSortMode === 'newest' ? '✓' : ''}</span>
+                                                <span>⏱️ Newest</span>
+                                            </button>
+                                            <button type="button" class="toolbar-dropdown-item ${currentSortMode === 'oldest' ? 'active' : ''}" data-sort="oldest" onclick="setSortMode('oldest', '${q.id}')">
+                                                <span class="item-check">${currentSortMode === 'oldest' ? '✓' : ''}</span>
+                                                <span>⏳ Oldest</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mood Dropdown -->
+                                    <div class="toolbar-dropdown-container">
+                                        <button type="button" class="toolbar-dropdown-btn" id="moodDropdownBtn-${q.id}" onclick="toggleMoodDropdown(event, '${q.id}')" title="Filter by mood / sentiment" aria-haspopup="true">
+                                            <span class="toolbar-btn-label">Mood:</span>
+                                            <span class="toolbar-btn-val" id="moodLabel-${q.id}">${getMoodLabel(currentMoodFilter)}</span>
+                                            <span class="toolbar-dropdown-caret">▾</span>
+                                        </button>
+                                        <div class="toolbar-dropdown-panel hidden" id="moodDropdownPanel-${q.id}" role="menu">
+                                            <button type="button" class="toolbar-dropdown-item ${currentMoodFilter === 'all' ? 'active' : ''}" data-mood="all" onclick="setMoodFilter('all', '${q.id}')">
+                                                <span class="item-check">${currentMoodFilter === 'all' ? '✓' : ''}</span>
+                                                <span>All Moods</span>
+                                            </button>
+                                            <button type="button" class="toolbar-dropdown-item ${currentMoodFilter === 'wins' ? 'active' : ''}" data-mood="wins" onclick="setMoodFilter('wins', '${q.id}')">
+                                                <span class="item-check">${currentMoodFilter === 'wins' ? '✓' : ''}</span>
+                                                <span>🔥 Wins</span>
+                                            </button>
+                                            <button type="button" class="toolbar-dropdown-item ${currentMoodFilter === 'challenges' ? 'active' : ''}" data-mood="challenges" onclick="setMoodFilter('challenges', '${q.id}')">
+                                                <span class="item-check">${currentMoodFilter === 'challenges' ? '✓' : ''}</span>
+                                                <span>⚠️ Challenges</span>
+                                            </button>
+                                            <button type="button" class="toolbar-dropdown-item ${currentMoodFilter === 'ideas' ? 'active' : ''}" data-mood="ideas" onclick="setMoodFilter('ideas', '${q.id}')">
+                                                <span class="item-check">${currentMoodFilter === 'ideas' ? '✓' : ''}</span>
+                                                <span>💡 Ideas</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Flip Cards Toggle -->
+                                    <button type="button" class="toolbar-pill flip-cards-btn" onclick="toggleFlipAllCards()" title="Flip all reflections">
+                                        🎴 Flip Cards
+                                    </button>
                                 </div>
                                 <div class="toolbar-group cluster-filter-group" id="cluster-filter-group-${q.id}" style="display: none;">
-                                    <span class="toolbar-label">Cluster:</span>
+                                    <span class="toolbar-label">Tags:</span>
                                     <div class="cluster-pills-container" id="cluster-pills-${q.id}" style="display: inline-flex; gap: 0.35rem; flex-wrap: wrap;"></div>
                                 </div>
                             </div>
@@ -1138,27 +1181,80 @@
 
         /* RetroConfetti engine extracted to static/js/confetti.js */
 
+        function getSortLabel(mode) {
+            switch (mode) {
+                case 'votes': return '▲ Top Voted';
+                case 'newest': return '⏱️ Newest';
+                case 'oldest': return '⏳ Oldest';
+                default: return '▲ Top Voted';
+            }
+        }
+
+        function getMoodLabel(mood) {
+            switch (mood) {
+                case 'all': return 'All Moods';
+                case 'wins': return '🔥 Wins';
+                case 'challenges': return '⚠️ Challenges';
+                case 'ideas': return '💡 Ideas';
+                default: return 'All Moods';
+            }
+        }
+
+        function toggleSortDropdown(e, qId) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById(`sortDropdownPanel-${qId}`);
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            closeAllToolbarDropdowns();
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                SoundFX.playPop();
+            }
+        }
+
+        function toggleMoodDropdown(e, qId) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById(`moodDropdownPanel-${qId}`);
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            closeAllToolbarDropdowns();
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                SoundFX.playPop();
+            }
+        }
+
+        function closeAllToolbarDropdowns() {
+            document.querySelectorAll('.toolbar-dropdown-panel').forEach(p => p.classList.add('hidden'));
+        }
+
         function setSortMode(mode, qId) {
             currentSortMode = mode;
-            const targetQId = qId || activeQuestionId;
-            const toolbar = document.getElementById(`board-toolbar-${targetQId}`);
-            if (toolbar) {
-                toolbar.querySelectorAll('[data-sort]').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.sort === mode);
-                });
-            }
+            closeAllToolbarDropdowns();
+            document.querySelectorAll('[id^="sortLabel-"]').forEach(el => {
+                el.innerText = getSortLabel(mode);
+            });
+            document.querySelectorAll('.toolbar-dropdown-item[data-sort]').forEach(btn => {
+                const isActive = btn.dataset.sort === mode;
+                btn.classList.toggle('active', isActive);
+                const check = btn.querySelector('.item-check');
+                if (check) check.innerText = isActive ? '✓' : '';
+            });
             reorderCards();
         }
 
         function setMoodFilter(mood, qId) {
             currentMoodFilter = mood;
-            const targetQId = qId || activeQuestionId;
-            const toolbar = document.getElementById(`board-toolbar-${targetQId}`);
-            if (toolbar) {
-                toolbar.querySelectorAll('[data-mood]').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.mood === mood);
-                });
-            }
+            closeAllToolbarDropdowns();
+            document.querySelectorAll('[id^="moodLabel-"]').forEach(el => {
+                el.innerText = getMoodLabel(mood);
+            });
+            document.querySelectorAll('.toolbar-dropdown-item[data-mood]').forEach(btn => {
+                const isActive = btn.dataset.mood === mood;
+                btn.classList.toggle('active', isActive);
+                const check = btn.querySelector('.item-check');
+                if (check) check.innerText = isActive ? '✓' : '';
+            });
             applyMoodFilter();
         }
 
@@ -1269,6 +1365,9 @@
             }
             if (!e.target.closest('.topic-dropdown-container')) {
                 closeTopicDropdowns();
+            }
+            if (!e.target.closest('.toolbar-dropdown-container')) {
+                closeAllToolbarDropdowns();
             }
         });
 
