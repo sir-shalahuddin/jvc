@@ -270,8 +270,8 @@
         function applySpotlightState(data) {
             if (!data) return;
             try {
-                const isNewUpdate = data.updated_at_ms > lastObservedSpotlightMs;
-                const wasActive = currentSpotlight.active;
+                const isInitialLoad = lastObservedSpotlightMs === 0;
+                const isNewUpdate = !isInitialLoad && (data.updated_at_ms > lastObservedSpotlightMs);
                 currentSpotlight = data;
                 lastObservedSpotlightMs = data.updated_at_ms;
 
@@ -280,6 +280,7 @@
                 const bannerMsg = document.getElementById('spotlightBannerMsg');
 
                 if (data.active) {
+                    document.body.classList.add('has-spotlight');
                     if (banner) banner.classList.remove('hidden');
                     if (clearBtn) {
                         if (isModerator) clearBtn.classList.remove('hidden');
@@ -311,11 +312,12 @@
                     }
 
                     // If this is a newly triggered spotlight update, notify and auto-jump
-                    if (isNewUpdate && (!wasActive || isNewUpdate)) {
+                    if (isNewUpdate) {
                         SoundFX.playPop();
                         jumpToSpotlight(false);
                     }
                 } else {
+                    document.body.classList.remove('has-spotlight');
                     if (banner) banner.classList.add('hidden');
                     document.querySelectorAll('.answer-card.spotlight-active').forEach(el => el.classList.remove('spotlight-active'));
                     document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => el.classList.remove('spotlight-topic-active'));
@@ -355,6 +357,18 @@
                     btn.innerText = '🔦 Focus Topic';
                 }
             });
+            document.querySelectorAll('[data-spotlight-topic-id]').forEach(btn => {
+                const qId = btn.dataset.spotlightTopicId;
+                const isFocused = currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === qId;
+                btn.classList.toggle('active', isFocused);
+                const span = btn.querySelector('span');
+                if (span) span.innerText = isFocused ? '🔦 Unfocus Topic' : '🔦 Focus Topic';
+            });
+            const facilitatorItem = document.getElementById('facilitatorFocusItemTitle');
+            if (facilitatorItem) {
+                const isFocused = currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === activeQuestionId;
+                facilitatorItem.innerText = isFocused ? 'Unfocus Current Topic' : 'Focus Current Topic';
+            }
         }
 
         async function toggleSpotlightCard(qId, aId) {
@@ -462,6 +476,12 @@
         }
 
         function scrollToTargetElement(answerId, questionId) {
+            const topbar = document.querySelector('.app-topbar');
+            const topbarHeight = topbar ? topbar.offsetHeight : 56;
+            const banner = document.getElementById('spotlightBanner');
+            const bannerHeight = (banner && !banner.classList.contains('hidden')) ? banner.offsetHeight : 0;
+            const totalTopOffset = topbarHeight + bannerHeight + 16;
+
             if (answerId) {
                 const card = document.querySelector(`.answer-card[data-id="${answerId}"]`);
                 if (card) {
@@ -469,14 +489,28 @@
                         card.classList.add('flipped');
                     }
                     card.classList.add('spotlight-active');
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    const rect = card.getBoundingClientRect();
+                    const elementAbsoluteTop = rect.top + window.pageYOffset;
+                    const availableHeight = window.innerHeight - totalTopOffset;
+                    const targetScrollTop = Math.max(0, elementAbsoluteTop - totalTopOffset - Math.max(0, (availableHeight - rect.height) / 2));
+
+                    window.scrollTo({
+                        top: targetScrollTop,
+                        behavior: 'smooth'
+                    });
                     return;
                 }
             }
             if (questionId) {
-                const qHeader = document.querySelector(`#q-${questionId} .question-header`);
-                if (qHeader) {
-                    qHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const qSection = document.getElementById(`q-${questionId}`);
+                if (qSection) {
+                    const qHeader = qSection.querySelector('.question-header') || qSection;
+                    const elementAbsoluteTop = qHeader.getBoundingClientRect().top + window.pageYOffset;
+                    window.scrollTo({
+                        top: Math.max(0, elementAbsoluteTop - totalTopOffset),
+                        behavior: 'smooth'
+                    });
                 }
             }
         }
@@ -935,7 +969,7 @@
                                         <button type="button" class="topic-dropdown-item" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}'); closeTopicDropdowns();">
                                             <span>✏️ Edit Topic & GIF</span>
                                         </button>
-                                        <button type="button" class="topic-dropdown-item" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();">
+                                        <button type="button" class="topic-dropdown-item ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-spotlight-topic-id="${q.id}" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();">
                                             <span>${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Unfocus Topic' : '🔦 Focus Topic'}</span>
                                         </button>
                                         <button type="button" class="topic-dropdown-item" onclick="openQuestionModal(); closeTopicDropdowns();">

@@ -19,12 +19,18 @@
 
         :root {
             --topbar-height: 56px;
+            --spotlight-banner-height: 0px;
+        }
+
+        body.has-spotlight {
+            --spotlight-banner-height: 52px;
         }
 
         .container {
             max-width: 1100px;
             margin: 0 auto;
-            padding: calc(var(--topbar-height, 56px) + 16px) 2rem 5rem !important;
+            padding: calc(var(--topbar-height, 56px) + var(--spotlight-banner-height, 0px) + 16px) 2rem 5rem !important;
+            transition: padding-top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* Sleek Full-Width Fixed App Topbar (Single-Row, ~56px) */
@@ -367,10 +373,11 @@
         /* Sleek Compact Question Topic Header */
         .sticky-wrapper { 
             position: sticky; 
-            top: calc(var(--topbar-height, 56px) + 8px); 
+            top: calc(var(--topbar-height, 56px) + var(--spotlight-banner-height, 0px) + 8px); 
             z-index: 500; 
             margin-bottom: 1.5rem; 
             pointer-events: none; 
+            transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .question-header { 
             background: var(--bg-card); 
@@ -1488,32 +1495,46 @@
            Facilitator Spotlight & Live Focus Mode (Module 5)
            ========================================== */
         .spotlight-banner {
-            position: sticky;
-            top: 56px;
-            z-index: 99;
+            position: fixed;
+            top: var(--topbar-height, 56px);
+            left: 0;
+            right: 0;
             width: 100%;
-            background: #fef08a;
-            color: #854d0e;
+            height: 52px;
+            min-height: 52px;
+            max-height: 52px;
+            z-index: 1400;
+            background: #fff8e6;
+            color: var(--text-main);
             border-bottom: 3px solid var(--border-color);
-            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15);
-            padding: 0.5rem 1rem;
-            animation: slideDownBanner 0.25s ease-out;
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.08);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            animation: slideDownBanner 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .spotlight-banner.hidden {
+            display: none !important;
         }
         [data-theme="dark"] .spotlight-banner {
-            background: #854d0e;
-            color: #fef08a;
+            background: #231b14;
+            color: #ffedd5;
+            border-color: var(--border-color);
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.3);
         }
         @keyframes slideDownBanner {
             from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         .spotlight-banner-inner {
-            max-width: 1200px;
+            max-width: 1100px;
+            width: 100%;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
             gap: 0.75rem;
         }
         .spotlight-beacon-indicator {
@@ -1524,18 +1545,18 @@
             font-size: 0.72rem;
             font-weight: 900;
             letter-spacing: 0.05em;
-            background: #eab308;
-            color: #000;
+            background: var(--primary);
+            color: #ffffff;
             padding: 0.2rem 0.5rem;
-            border: 2px solid #000;
-            box-shadow: 2px 2px 0px #000;
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
         }
         .spotlight-beacon-pulse {
             width: 8px;
             height: 8px;
-            background: #ef4444;
+            background: #ffffff;
             border-radius: 50%;
-            border: 1px solid #000;
+            border: 1px solid var(--border-color);
             animation: beaconPulse 1.2s infinite alternate ease-in-out;
         }
         @keyframes beaconPulse {
@@ -1547,7 +1568,10 @@
             font-size: 0.82rem;
             font-weight: 800;
             flex: 1;
-            min-width: 200px;
+            min-width: 160px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             color: inherit;
         }
         .spotlight-banner-actions {
@@ -1560,51 +1584,61 @@
             font-size: 0.75rem;
             font-weight: 900;
             padding: 0.3rem 0.65rem;
-            border: 2px solid #000;
-            box-shadow: 2px 2px 0px #000;
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
             cursor: pointer;
             transition: all var(--transition);
         }
         .spotlight-btn-jump {
-            background: var(--primary, #0052cc);
-            color: #fff;
+            background: var(--primary);
+            color: #ffffff;
         }
         .spotlight-btn-jump:hover {
             transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #000;
+            box-shadow: 3px 3px 0px var(--border-color);
         }
         .spotlight-btn-clear {
-            background: #fff;
-            color: #dc2626;
+            background: var(--bg-card);
+            color: var(--accent-danger);
+            border-color: var(--accent-danger) !important;
         }
         .spotlight-btn-clear:hover {
-            background: #fef2f2;
+            background: rgba(244, 63, 94, 0.08);
             transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #000;
+            box-shadow: 3px 3px 0px var(--border-color);
         }
 
         /* Card Spotlight Active Styling */
         .answer-card.spotlight-active {
-            outline: 4px dashed var(--accent-primary, #ff5f1f) !important;
-            outline-offset: 4px;
-            box-shadow: 0 0 0 6px var(--primary, #0052cc), 12px 12px 0px var(--border-color) !important;
-            transform: translateY(-4px) scale(1.02);
+            z-index: 30;
+        }
+        .answer-card.spotlight-active .card-face {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px var(--primary), 8px 8px 0px var(--border-color);
             animation: spotlightCardPulse 2s ease-in-out infinite;
-            z-index: 5;
         }
         @keyframes spotlightCardPulse {
             0%, 100% {
-                box-shadow: 0 0 0 5px var(--primary, #0052cc), 10px 10px 0px var(--border-color);
+                box-shadow: 0 0 0 4px var(--primary), 8px 8px 0px var(--border-color);
             }
             50% {
-                box-shadow: 0 0 0 8px var(--accent-primary, #ff5f1f), 14px 14px 0px var(--border-color);
+                box-shadow: 0 0 0 8px rgba(255, 95, 31, 0.4), 12px 12px 0px var(--border-color);
             }
         }
 
         /* Topic Spotlight Active Header Styling */
         .topic-container.spotlight-topic-active .sticky-wrapper .question-header {
-            border-color: var(--accent-primary, #ff5f1f) !important;
-            box-shadow: 0 0 0 4px var(--accent-primary, #ff5f1f), 8px 8px 0px var(--border-color) !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px var(--primary), 8px 8px 0px var(--border-color);
+            animation: topicSpotlightPulse 2s ease-in-out infinite;
+        }
+        @keyframes topicSpotlightPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 4px var(--primary), 8px 8px 0px var(--border-color);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 95, 31, 0.4), 10px 10px 0px var(--border-color);
+            }
         }
 
         /* Trigger button on card back */
@@ -1623,21 +1657,21 @@
         .spotlight-card-btn:hover {
             transform: translate(-1px, -1px);
             box-shadow: 3px 3px 0px var(--border-color);
-            background: #fef08a !important;
-            color: #000 !important;
+            background: rgba(255, 95, 31, 0.1) !important;
+            color: var(--primary) !important;
         }
         .spotlight-card-btn.active {
-            background: #eab308 !important;
-            color: #000 !important;
-            border-color: #000 !important;
-            box-shadow: 2px 2px 0px #000;
+            background: var(--primary) !important;
+            color: #ffffff !important;
+            border-color: var(--primary) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
         }
 
         /* Topic Header Spotlight Button */
         .spotlight-topic-btn.active {
-            background: #eab308 !important;
-            color: #000 !important;
-            border-color: #000 !important;
+            background: var(--primary) !important;
+            color: #ffffff !important;
+            border-color: var(--primary) !important;
         }
 
         /* ==========================================
