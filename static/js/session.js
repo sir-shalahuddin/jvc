@@ -364,11 +364,6 @@
                 const span = btn.querySelector('span');
                 if (span) span.innerText = isFocused ? '🔦 Unfocus Topic' : '🔦 Focus Topic';
             });
-            const facilitatorItem = document.getElementById('facilitatorFocusItemTitle');
-            if (facilitatorItem) {
-                const isFocused = currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === activeQuestionId;
-                facilitatorItem.innerText = isFocused ? 'Unfocus Current Topic' : 'Focus Current Topic';
-            }
         }
 
         async function toggleSpotlightCard(qId, aId) {
@@ -646,42 +641,7 @@
             btn.setAttribute('aria-expanded', 'false');
         }
 
-        let isFacilitatorDropdownOpen = false;
         let isToolsDropdownOpen = false;
-
-        function toggleFacilitatorDropdown(e) {
-            if (e) e.stopPropagation();
-            const panel = document.getElementById('facilitatorDropdownPanel');
-            const btn = document.getElementById('facilitatorBtn');
-            if (!panel || !btn) return;
-
-            closePresenceDropdown();
-            closeToolsDropdown();
-
-            isFacilitatorDropdownOpen = !isFacilitatorDropdownOpen;
-            panel.classList.toggle('hidden', !isFacilitatorDropdownOpen);
-            btn.classList.toggle('active', isFacilitatorDropdownOpen);
-            btn.setAttribute('aria-expanded', isFacilitatorDropdownOpen ? 'true' : 'false');
-
-            if (isFacilitatorDropdownOpen) {
-                SoundFX.playPop();
-                const focusTitle = document.getElementById('facilitatorFocusItemTitle');
-                if (focusTitle) {
-                    const isFocused = currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === activeQuestionId;
-                    focusTitle.innerText = isFocused ? 'Unfocus Current Topic' : 'Focus Current Topic';
-                }
-            }
-        }
-
-        function closeFacilitatorDropdown() {
-            const panel = document.getElementById('facilitatorDropdownPanel');
-            const btn = document.getElementById('facilitatorBtn');
-            if (!panel || !btn) return;
-            isFacilitatorDropdownOpen = false;
-            panel.classList.add('hidden');
-            btn.classList.remove('active');
-            btn.setAttribute('aria-expanded', 'false');
-        }
 
         function toggleToolsDropdown(e) {
             if (e) e.stopPropagation();
@@ -690,7 +650,6 @@
             if (!panel || !btn) return;
 
             closePresenceDropdown();
-            closeFacilitatorDropdown();
 
             isToolsDropdownOpen = !isToolsDropdownOpen;
             panel.classList.toggle('hidden', !isToolsDropdownOpen);
@@ -738,7 +697,6 @@
 
         function closeAllTopbarDropdowns() {
             closePresenceDropdown();
-            closeFacilitatorDropdown();
             closeToolsDropdown();
             closeTopicDropdowns();
             closeAllToolbarDropdowns();
@@ -898,7 +856,6 @@
                 }
             }
             if (isModerator) {
-                document.getElementById('sm-controls').classList.remove('hidden');
                 const minEl = document.getElementById('timerMin');
                 const secEl = document.getElementById('timerSec');
                 if (minEl) minEl.removeAttribute('readonly');
@@ -967,13 +924,16 @@
                                         <span>⚙️ Topic</span> <span class="topic-dropdown-caret">▾</span>
                                     </button>
                                     <div class="topic-dropdown-panel hidden" id="topicDropdown-${q.id}" role="menu">
-                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}'); closeTopicDropdowns();">
-                                            <span>✏️ Edit Topic & GIF</span>
+                                        <button type="button" class="topic-dropdown-item" onclick="revealAllCards(); closeTopicDropdowns();" title="Flip reflections face-up for discussion">
+                                            <span>🪄 Reveal All Cards</span>
                                         </button>
-                                        <button type="button" class="topic-dropdown-item ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-spotlight-topic-id="${q.id}" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();">
+                                        <button type="button" class="topic-dropdown-item ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-spotlight-topic-id="${q.id}" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();" title="Spotlight topic for all participants">
                                             <span>${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Unfocus Topic' : '🔦 Focus Topic'}</span>
                                         </button>
-                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal(); closeTopicDropdowns();">
+                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}'); closeTopicDropdowns();" title="Modify current topic title & media">
+                                            <span>✏️ Edit Topic & GIF</span>
+                                        </button>
+                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal(); closeTopicDropdowns();" title="Create another discussion board">
                                             <span>➕ Add New Topic</span>
                                         </button>
                                     </div>

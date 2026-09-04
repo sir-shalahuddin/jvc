@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/static/style.css?v=283">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/static/css/session.css?v=288">
+    <link rel="stylesheet" href="/static/css/session.css?v=289">
 
     <script>
         (function() {
@@ -61,58 +61,6 @@
                         </div>
                     </div>
                     <span id="sessionIdDisplay" style="display: none;"></span>
-                </div>
-            </div>
-
-            <!-- Center: Facilitator Dropdown Menu (Moderator Only) -->
-            <div id="sm-controls" class="topbar-dropdown-container topbar-sm-actions hidden">
-                <button class="topbar-action-btn facilitator-btn" id="facilitatorBtn" onclick="toggleFacilitatorDropdown(event)" title="Facilitator & Session Controls" aria-haspopup="true" aria-expanded="false">
-                    <span class="facilitator-icon">⚡</span>
-                    <span class="facilitator-label">Facilitator</span>
-                    <span class="topbar-dropdown-caret" id="facilitatorArrow">▾</span>
-                </button>
-                <div class="topbar-dropdown-panel hidden" id="facilitatorDropdownPanel" role="menu" aria-label="Facilitator Controls">
-                    <div class="topbar-menu-header">
-                        <span>FACILITATOR CONTROLS</span>
-                    </div>
-                    <div class="topbar-menu-items">
-                        <button type="button" class="topbar-menu-item" onclick="openQuestionModal(); closeAllTopbarDropdowns();">
-                            <span class="menu-item-icon">➕</span>
-                            <div class="menu-item-text">
-                                <div class="menu-item-title">Add New Topic</div>
-                                <div class="menu-item-desc">Create another discussion board</div>
-                            </div>
-                        </button>
-                        <button type="button" class="topbar-menu-item" onclick="editCurrentTopic(); closeAllTopbarDropdowns();">
-                            <span class="menu-item-icon">✏️</span>
-                            <div class="menu-item-text">
-                                <div class="menu-item-title">Edit Topic & GIF</div>
-                                <div class="menu-item-desc">Modify current topic title & media</div>
-                            </div>
-                        </button>
-                        <button type="button" class="topbar-menu-item" onclick="revealAllCards(); closeAllTopbarDropdowns();">
-                            <span class="menu-item-icon">🪄</span>
-                            <div class="menu-item-text">
-                                <div class="menu-item-title">Reveal All Cards</div>
-                                <div class="menu-item-desc">Flip reflections face-up for discussion</div>
-                            </div>
-                        </button>
-                        <button type="button" class="topbar-menu-item" onclick="spotlightCurrentTopic(); closeAllTopbarDropdowns();">
-                            <span class="menu-item-icon">🔦</span>
-                            <div class="menu-item-text">
-                                <div class="menu-item-title" id="facilitatorFocusItemTitle">Focus Current Topic</div>
-                                <div class="menu-item-desc">Spotlight topic for all participants</div>
-                            </div>
-                        </button>
-                        <div class="topbar-menu-divider"></div>
-                        <button type="button" class="topbar-menu-item" onclick="downloadReport(); closeAllTopbarDropdowns();">
-                            <span class="menu-item-icon">📄</span>
-                            <div class="menu-item-text">
-                                <div class="menu-item-title">Export PDF Summary</div>
-                                <div class="menu-item-desc">Download session retrospective report</div>
-                            </div>
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -462,6 +410,6 @@
     <script src="/static/js/sound-fx.js?v=283"></script>
     <script src="/static/js/confetti.js?v=283"></script>
     <script src="/static/js/fingerprint.js?v=283"></script>
-    <script src="/static/js/session.js?v=288"></script>
+    <script src="/static/js/session.js?v=289"></script>
 </body>
 </html>
