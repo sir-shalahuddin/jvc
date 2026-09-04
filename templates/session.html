@@ -1013,6 +1013,162 @@
                 transition: none !important;
             }
         }
+
+        /* ==========================================
+           Facilitator Spotlight & Live Focus Mode (Module 5)
+           ========================================== */
+        .spotlight-banner {
+            position: sticky;
+            top: 56px;
+            z-index: 99;
+            width: 100%;
+            background: #fef08a;
+            color: #854d0e;
+            border-bottom: 3px solid var(--border-color);
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem 1rem;
+            animation: slideDownBanner 0.25s ease-out;
+        }
+        [data-theme="dark"] .spotlight-banner {
+            background: #854d0e;
+            color: #fef08a;
+        }
+        @keyframes slideDownBanner {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .spotlight-banner-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .spotlight-beacon-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            background: #eab308;
+            color: #000;
+            padding: 0.2rem 0.5rem;
+            border: 2px solid #000;
+            box-shadow: 2px 2px 0px #000;
+        }
+        .spotlight-beacon-pulse {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 1px solid #000;
+            animation: beaconPulse 1.2s infinite alternate ease-in-out;
+        }
+        @keyframes beaconPulse {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+        .spotlight-banner-msg {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 800;
+            flex: 1;
+            min-width: 200px;
+            color: inherit;
+        }
+        .spotlight-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .spotlight-btn-jump, .spotlight-btn-clear {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 0.3rem 0.65rem;
+            border: 2px solid #000;
+            box-shadow: 2px 2px 0px #000;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .spotlight-btn-jump {
+            background: var(--primary, #0052cc);
+            color: #fff;
+        }
+        .spotlight-btn-jump:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #000;
+        }
+        .spotlight-btn-clear {
+            background: #fff;
+            color: #dc2626;
+        }
+        .spotlight-btn-clear:hover {
+            background: #fef2f2;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        /* Card Spotlight Active Styling */
+        .answer-card.spotlight-active {
+            outline: 4px dashed var(--accent-primary, #ff5f1f) !important;
+            outline-offset: 4px;
+            box-shadow: 0 0 0 6px var(--primary, #0052cc), 12px 12px 0px var(--border-color) !important;
+            transform: translateY(-4px) scale(1.02);
+            animation: spotlightCardPulse 2s ease-in-out infinite;
+            z-index: 5;
+        }
+        @keyframes spotlightCardPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 5px var(--primary, #0052cc), 10px 10px 0px var(--border-color);
+            }
+            50% {
+                box-shadow: 0 0 0 8px var(--accent-primary, #ff5f1f), 14px 14px 0px var(--border-color);
+            }
+        }
+
+        /* Topic Spotlight Active Header Styling */
+        .topic-container.spotlight-topic-active .sticky-wrapper .question-header {
+            border-color: var(--accent-primary, #ff5f1f) !important;
+            box-shadow: 0 0 0 4px var(--accent-primary, #ff5f1f), 8px 8px 0px var(--border-color) !important;
+        }
+
+        /* Trigger button on card back */
+        .spotlight-card-btn {
+            font-size: 0.72rem !important;
+            padding: 0.35rem 0.6rem !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            border: 2px solid var(--border-color) !important;
+            background: var(--bg-card) !important;
+            color: var(--text) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .spotlight-card-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            background: #fef08a !important;
+            color: #000 !important;
+        }
+        .spotlight-card-btn.active {
+            background: #eab308 !important;
+            color: #000 !important;
+            border-color: #000 !important;
+            box-shadow: 2px 2px 0px #000;
+        }
+
+        /* Topic Header Spotlight Button */
+        .spotlight-topic-btn.active {
+            background: #eab308 !important;
+            color: #000 !important;
+            border-color: #000 !important;
+        }
     </style>
 </head>
 <body>
@@ -1075,6 +1231,29 @@
             </div>
         </div>
     </nav>
+    
+    <!-- Facilitator Spotlight Beacon Banner (Module 5) -->
+    <div id="spotlightBanner" class="spotlight-banner hidden" role="region" aria-label="Facilitator Spotlight Notification">
+        <div class="spotlight-banner-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 260px;">
+                <div class="spotlight-beacon-indicator">
+                    <span class="spotlight-beacon-pulse"></span>
+                    <span>LIVE FOCUS</span>
+                </div>
+                <div class="spotlight-banner-msg" id="spotlightBannerMsg">
+                    Facilitator is highlighting an item
+                </div>
+            </div>
+            <div class="spotlight-banner-actions">
+                <button class="spotlight-btn-jump" onclick="jumpToSpotlight()" title="Scroll directly to focused reflection (F)">
+                    🎯 Jump to Focus
+                </button>
+                <button class="spotlight-btn-clear hidden" id="spotlightClearBtn" onclick="clearSpotlight()" title="Clear spotlight for everyone">
+                    ✕ Clear
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <div id="questions-container"></div>
@@ -1170,6 +1349,10 @@
                 <div class="shortcut-row">
                     <span class="shortcut-desc">Action Items</span>
                     <div class="shortcut-keys"><span class="kbd-badge">A</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Jump to Focus</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">F</span></div>
                 </div>
                 <div class="shortcut-row" style="grid-column: 1 / -1;">
                     <span class="shortcut-desc">Close Modal / Unfocus</span>
@@ -1663,6 +1846,228 @@
         let questionPagination = {}; let isLoadingMore = false;
         const sessionId = new URLSearchParams(window.location.search).get('id');
 
+        // ==========================================
+        // Facilitator Spotlight & Live Focus Engine (Module 5)
+        // ==========================================
+        let currentSpotlight = {
+            active: false,
+            question_id: '',
+            answer_id: '',
+            updated_at_ms: 0
+        };
+        let lastObservedSpotlightMs = 0;
+
+        async function syncSpotlight() {
+            if (!sessionId) return;
+            try {
+                const res = await fetch(`/api/session/spotlight?session_id=${sessionId}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                applySpotlightState(data);
+            } catch (e) {}
+        }
+
+        function applySpotlightState(data) {
+            if (!data) return;
+            const isNewUpdate = data.updated_at_ms > lastObservedSpotlightMs;
+            const wasActive = currentSpotlight.active;
+            currentSpotlight = data;
+            lastObservedSpotlightMs = data.updated_at_ms;
+
+            const banner = document.getElementById('spotlightBanner');
+            const clearBtn = document.getElementById('spotlightClearBtn');
+            const bannerMsg = document.getElementById('spotlightBannerMsg');
+
+            if (data.active) {
+                if (banner) banner.classList.remove('hidden');
+                if (clearBtn) {
+                    if (isModerator) clearBtn.classList.remove('hidden');
+                    else clearBtn.classList.add('hidden');
+                }
+
+                // Remove previous spotlight classes
+                document.querySelectorAll('.answer-card.spotlight-active').forEach(el => {
+                    if (el.dataset.id !== data.answer_id) el.classList.remove('spotlight-active');
+                });
+                document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => {
+                    if (el.id !== `q-${data.question_id}`) el.classList.remove('spotlight-topic-active');
+                });
+
+                if (data.answer_id) {
+                    if (bannerMsg) bannerMsg.innerText = "FACILITATOR SPOTLIGHT: Reflection Card In Focus";
+                    const card = document.querySelector(`.answer-card[data-id="${data.answer_id}"]`);
+                    if (card) {
+                        card.classList.add('spotlight-active');
+                        if (!card.classList.contains('flipped')) {
+                            card.classList.add('flipped');
+                        }
+                    }
+                } else if (data.question_id) {
+                    const topic = document.getElementById(`q-${data.question_id}`);
+                    if (topic) topic.classList.add('spotlight-topic-active');
+                    const qObj = currentQuestions.find(q => q.id === data.question_id);
+                    if (bannerMsg) bannerMsg.innerText = `FACILITATOR SPOTLIGHT: ${qObj ? qObj.text : 'Topic Focus'}`;
+                }
+
+                // If this is a newly triggered spotlight update, notify and auto-jump
+                if (isNewUpdate && (!wasActive || isNewUpdate)) {
+                    SoundFX.playPop();
+                    jumpToSpotlight(false);
+                }
+            } else {
+                if (banner) banner.classList.add('hidden');
+                document.querySelectorAll('.answer-card.spotlight-active').forEach(el => el.classList.remove('spotlight-active'));
+                document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => el.classList.remove('spotlight-topic-active'));
+            }
+
+            updateSpotlightButtonsUI();
+        }
+
+        function updateSpotlightButtonsUI() {
+            document.querySelectorAll('.spotlight-card-btn').forEach(btn => {
+                const cardId = btn.dataset.cardId;
+                if (currentSpotlight.active && currentSpotlight.answer_id === cardId) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '🔦 Focused';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '🔦 Spotlight';
+                }
+            });
+            document.querySelectorAll('.spotlight-topic-btn').forEach(btn => {
+                const qId = btn.dataset.qId;
+                if (currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === qId) {
+                    btn.classList.add('active');
+                    btn.innerText = '🔦 Topic Focused';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerText = '🔦 Focus Topic';
+                }
+            });
+        }
+
+        async function toggleSpotlightCard(qId, aId) {
+            if (!isModerator) return;
+            const isCurrentlySpotlighted = currentSpotlight.active && currentSpotlight.answer_id === aId;
+            const action = isCurrentlySpotlighted ? 'clear' : 'focus';
+
+            try {
+                const res = await fetch('/api/session/spotlight/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        action: action,
+                        question_id: qId,
+                        answer_id: action === 'focus' ? aId : ''
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    applySpotlightState(data);
+                    if (action === 'focus') {
+                        showToast('🔦 Spotlight broadcasted to all participants!', 'success');
+                    } else {
+                        showToast('Spotlight cleared', 'info');
+                    }
+                } else {
+                    const err = await res.text();
+                    showToast(`Spotlight error: ${err}`, 'error');
+                }
+            } catch (e) {
+                showToast('Failed to update spotlight', 'error');
+            }
+        }
+
+        async function toggleSpotlightTopic(qId) {
+            if (!isModerator) return;
+            const isCurrentlySpotlighted = currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === qId;
+            const action = isCurrentlySpotlighted ? 'clear' : 'focus';
+
+            try {
+                const res = await fetch('/api/session/spotlight/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        action: action,
+                        question_id: action === 'focus' ? qId : '',
+                        answer_id: ''
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    applySpotlightState(data);
+                    if (action === 'focus') {
+                        showToast('🔦 Topic Spotlight broadcasted!', 'success');
+                    } else {
+                        showToast('Topic Spotlight cleared', 'info');
+                    }
+                } else {
+                    const err = await res.text();
+                    showToast(`Spotlight error: ${err}`, 'error');
+                }
+            } catch (e) {
+                showToast('Failed to update spotlight', 'error');
+            }
+        }
+
+        async function clearSpotlight() {
+            if (!isModerator) return;
+            try {
+                const res = await fetch('/api/session/spotlight/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        action: 'clear'
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    applySpotlightState(data);
+                    showToast('Spotlight cleared', 'info');
+                }
+            } catch (e) {}
+        }
+
+        function jumpToSpotlight(userInitiated = true) {
+            if (!currentSpotlight.active) return;
+
+            if (currentSpotlight.question_id && activeQuestionId !== currentSpotlight.question_id) {
+                showQuestion(currentSpotlight.question_id);
+                setTimeout(() => {
+                    scrollToTargetElement(currentSpotlight.answer_id, currentSpotlight.question_id);
+                }, 350);
+            } else {
+                scrollToTargetElement(currentSpotlight.answer_id, currentSpotlight.question_id);
+            }
+
+            if (userInitiated) {
+                SoundFX.playFlip();
+            }
+        }
+
+        function scrollToTargetElement(answerId, questionId) {
+            if (answerId) {
+                const card = document.querySelector(`.answer-card[data-id="${answerId}"]`);
+                if (card) {
+                    if (!card.classList.contains('flipped')) {
+                        card.classList.add('flipped');
+                    }
+                    card.classList.add('spotlight-active');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+            }
+            if (questionId) {
+                const qHeader = document.querySelector(`#q-${questionId} .question-header`);
+                if (qHeader) {
+                    qHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
         function updateThemeIcon() {
             const theme = document.documentElement.getAttribute('data-theme'); const icon = document.getElementById('theme-icon');
             if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
@@ -1750,7 +2155,10 @@
 
         function startBackgroundSync() {
             stopBackgroundSync();
-            timerSyncInterval = setInterval(syncTimer, 1500);
+            timerSyncInterval = setInterval(() => {
+                syncTimer();
+                syncSpotlight();
+            }, 1500);
             answersSyncInterval = setInterval(loadAnswers, 4000);
         }
 
@@ -1764,6 +2172,7 @@
                 stopBackgroundSync();
             } else {
                 syncTimer();
+                syncSpotlight();
                 loadAnswers();
                 loadActionItems();
                 startBackgroundSync();
@@ -1801,6 +2210,7 @@
             RetroConfetti.init();
             loadQuestions(); 
             syncTimer();
+            syncSpotlight();
             syncVoterStatus();
             loadActionItems();
             startBackgroundSync();
@@ -1842,6 +2252,7 @@
                             <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1; color: var(--text-main); font-weight: 900;">${q.text}</h2>
                             <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap;">
                                 ${isModerator ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="font-size: 0.85rem;" title="Edit question text and settings">✏️ Edit Topic</button>` : ''}
+                                ${isModerator ? `<button onclick="toggleSpotlightTopic('${q.id}')" class="btn btn-ghost spotlight-topic-btn ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-q-id="${q.id}" id="spotlight-topic-${q.id}" style="font-size: 0.85rem;" title="Spotlight focus this topic for all participants">${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Topic Focused' : '🔦 Focus Topic'}</button>` : ''}
                                 <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary">Add Your Feedback</button>
                             </div>
                             <div class="board-toolbar" id="board-toolbar-${q.id}">
@@ -2498,16 +2909,23 @@
                             </div>
                             <div class="card-content-body">${sanitizeHTML(a.text)}</div>
                             ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${escapeText(a.gif_url)}" loading="lazy" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
-                            <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 2px dashed var(--border-color); display: flex; justify-content: flex-end;">
+                            <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 2px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                ${isModerator ? `
+                                    <button class="spotlight-card-btn ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" data-card-id="${a.id}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}')" title="Spotlight focus this card for all participants">
+                                        ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Focused' : '🔦 Spotlight'}
+                                    </button>
+                                ` : '<div></div>'}
                                 <button class="action-convert-btn" onclick="event.stopPropagation(); convertCardToAction('${a.id}')" title="Turn this reflection into a commitment/action item">
                                     ⚡ Action Item
                                 </button>
                             </div>
                         </div>`;
                     
+                    const isCardSpotlighted = currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id;
+
                     if (!existingCard) {
                         const card = document.createElement('div');
-                        card.className = `answer-card ${isProcessing ? 'processing' : ''}`;
+                        card.className = `answer-card ${isProcessing ? 'processing' : ''} ${isCardSpotlighted ? 'spotlight-active flipped' : ''}`;
                         card.tabIndex = 0;
                         card.dataset.id = a.id;
                         card.dataset.sentiment = color;
@@ -2531,10 +2949,15 @@
                         existingCard.dataset.topVoted = String(isTopVoted);
                         existingCard.dataset.moodGroup = moodGroup;
                         existingCard.dataset.created = String(createdAtTime);
+                        if (isCardSpotlighted) {
+                            existingCard.classList.add('spotlight-active', 'flipped');
+                        } else {
+                            existingCard.classList.remove('spotlight-active');
+                        }
                         if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted)) {
                             existingCard.dataset.sentiment = color;
                             existingCard.dataset.processing = String(isProcessing);
-                            existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') ? 'flipped' : ''}`;
+                            existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') || isCardSpotlighted ? 'flipped' : ''} ${isCardSpotlighted ? 'spotlight-active' : ''}`;
                             existingCard.style.setProperty('--mood-color', color);
                             existingCard.innerHTML = cardHtml;
                             existingCard.onclick = () => { 
@@ -2928,6 +3351,13 @@
                         startTimer();
                     }
                 }
+                return;
+            }
+
+            // F jumps to live spotlight/focus
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                jumpToSpotlight();
                 return;
             }
 

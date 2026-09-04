@@ -82,6 +82,8 @@ func main() {
 	mux.HandleFunc("/api/session/voter-status", handlers.VoterStatusHandler)
 	mux.HandleFunc("/api/session/timer", handlers.GetTimerHandler)
 	mux.HandleFunc("/api/session/timer/action", handlers.TimerActionHandler)
+	mux.HandleFunc("/api/session/spotlight", handlers.GetSpotlightHandler)
+	mux.HandleFunc("/api/session/spotlight/action", handlers.SpotlightActionHandler)
 	mux.HandleFunc("/api/session/answers", handlers.GetAnswersHandler)
 	mux.HandleFunc("/api/session/report", handlers.GenerateReportHandler)
 	mux.HandleFunc("/api/action-items/get", handlers.GetActionItemsHandler)
