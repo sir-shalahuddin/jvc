@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Retro - About Page Styles
+   ========================================================================== */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem;
+}
+
+.container {
+    max-width: 1400px;
+    padding: 2rem;
+    width: 100%;
+}
+
+.split-layout {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.side-title {
+    text-align: left;
+}
+
+.side-logo {
+    width: 64px;
+    margin-bottom: 2rem;
+    border-radius: var(--radius);
+    border: 3px solid var(--border-color);
+    box-shadow: 3px 3px 0px var(--border-color);
+    transition: all var(--transition);
+}
+
+.side-logo:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px var(--border-color);
+}
+
+.side-title h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.side-title p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 320px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.bento-item {
+    background: var(--glass-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--glass-shadow);
+    transition: all var(--transition);
+}
+
+.bento-item:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0px var(--border-color);
+}
+
+.bento-wide {
+    grid-column: span 2;
+}
+
+h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary) !important;
+}
+
+.bento-item p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+    body {
+        height: auto;
+        overflow-y: auto;
+        padding: 2rem 1rem;
+    }
+
+    .split-layout {
+        grid-template-columns: 1fr;
+        text-align: left;
+        gap: 3rem;
+    }
+
+    .side-title {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .side-logo {
+        margin: 0 auto 2rem 0;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+}

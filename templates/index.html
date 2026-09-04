@@ -10,95 +10,14 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link href="/static/style.css?v=222" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=283">
+    <link rel="stylesheet" href="/static/css/index.css?v=283">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-    <style>
-        body { 
-            min-height: 100vh; 
-            background: var(--bg-base); 
-            color: var(--text);
-            line-height: 1.5;
-        }
-
-        .main-wrapper {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            width: 100%;
-        }
-        
-        .hero-split { 
-            display: grid; 
-            grid-template-columns: 1fr 450px; 
-            gap: 6rem; 
-            align-items: center; 
-            width: 100%; 
-            min-height: 80vh;
-        }
-
-        .hero-text { text-align: left; }
-        .hero-logo { width: 80px; height: 80px; margin-bottom: 2.5rem; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); }
-        
-        .hero-text h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 7rem; font-weight: 950; margin-bottom: 2rem; letter-spacing: -0.02em; color: var(--text); line-height: 1; }
-        .hero-text p { font-size: 1.4rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 4rem; font-weight: 500; }
-
-        .action-stack { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
-        .compact-card { background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius); border: 3px solid var(--border-color); box-shadow: var(--glass-shadow); transition: all var(--transition); }
-        .compact-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0px var(--border-color); }
-        
-        .auth-status-box { background: var(--bg-card); padding: 1.25rem 1.5rem; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; border: 3px solid var(--border-color); margin-bottom: 1.5rem; box-shadow: 3px 3px 0px var(--border-color); }
-        
-        .nav-links { display: flex; gap: 2rem; font-weight: 800; font-size: 1.15rem; font-family: 'JetBrains Mono', monospace !important; }
-        .nav-links a { transition: 0.2s; color: var(--text-secondary); text-decoration: none; position: relative; }
-        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 3px; background: var(--primary); transition: 0.2s; }
-        .nav-links a:hover { color: var(--text); }
-        .nav-links a:hover::after { width: 100%; }
-        .nav-links a.active { color: var(--primary); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 3px; }
-        .nav-links a.active::after { display: none; }
-
-        #historyPanel { width: 100%; margin-top: 6rem; border-radius: var(--radius); background: var(--bg-card); border: 3px solid var(--border-color); box-shadow: 8px 8px 0px var(--border-color); padding: 4rem; }
-        
-        .history-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-
-        .products-title { font-size: 4rem; }
-        .products-subtitle { font-size: 1.4rem; }
-
-        @media (max-width: 1200px) {
-            .product-grid { grid-template-columns: repeat(2, 1fr); }
-            .hero-split { grid-template-columns: 1fr; gap: 4rem; text-align: center; }
-            .hero-text { display: flex; flex-direction: column; align-items: center; }
-            .hero-text h1 { font-size: 5rem; }
-            .action-stack { max-width: 500px; margin: 0 auto; }
-            .nav-links { justify-content: center; flex-wrap: wrap; gap: 1.5rem; }
-        }
-
-        @media (max-width: 768px) {
-            .product-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 600px) {
-            .nav-links { gap: 1rem; font-size: 1rem; }
-            .hero-text h1 { font-size: 3.5rem; margin-bottom: 1rem; }
-            .hero-text p { font-size: 1.15rem; margin-bottom: 2.5rem; }
-            #historyPanel { padding: 1.5rem !important; border-radius: var(--radius); margin-top: 3rem; }
-            #historyPanel h2 { font-size: 1.75rem !important; }
-            .products-title { font-size: 2.5rem; }
-            .products-subtitle { font-size: 1.15rem; }
-            .history-grid { grid-template-columns: 1fr; }
-            .compact-card { padding: 1.5rem !important; }
-        }
-    </style>
 </head>
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
@@ -123,8 +42,6 @@
                 </div>
 
                 <div class="action-stack">
-
-
                     <!-- Host Session Card -->
                     <div class="compact-card">
                         <h2 style="font-size: 1.5rem; margin-bottom: 2rem;">Host Session</h2>
@@ -168,155 +85,8 @@
                 </a>
             </div>
         </div>
-
     </div>
 
-    <script>
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type} animate-fade-up`;
-            toast.style.cssText = `
-                background: var(--bg-card);
-                border: 3px solid var(--border-color);
-                padding: 1rem 2rem;
-                border-radius: var(--radius);
-                margin-bottom: 1rem;
-                box-shadow: 4px 4px 0px var(--border-color);
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                color: var(--text);
-                font-family: 'JetBrains Mono', monospace !important;
-                font-weight: 700;
-                font-size: 0.9rem;
-            `;
-            
-            const colors = {
-                success: '#10b981',
-                error: '#ef4444',
-                info: '#ff8552'
-            };
-            
-            const dot = `<div style="width: 10px; height: 10px; border-radius: 0px; background: ${colors[type] || colors.info}"></div>`;
-            toast.innerHTML = `${dot} <span>${message}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-20px)';
-                toast.style.transition = 'all 0.5s ease';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
-        }
-
-        function updateThemeIcon() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
-            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
-            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
-        }
-        function toggleTheme() {
-            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            updateThemeIcon();
-        }
-        function toggleHistory() {
-            const panel = document.getElementById('historyPanel');
-            panel.classList.toggle('hidden');
-            if (!panel.classList.contains('hidden')) {
-                loadHistory();
-                setTimeout(() => panel.scrollIntoView({ behavior: 'smooth' }), 100);
-            }
-        }
-        async function checkAuth() {
-            const res = await fetch('/api/me');
-            const data = await res.json();
-            const authSection = document.getElementById('authSection');
-            const nav = document.getElementById('mainNav');
-            
-            if (data.authenticated) {
-                const encodedMsg = encodeURIComponent(`Halo Admin Retro, saya ingin request penambahan kuota sesi untuk akun ${data.email}. Terima kasih!`);
-                const waUrl = `https://wa.me/6285640390800?text=${encodedMsg}`;
-                
-                const waBtn = document.getElementById('waRequestBtn');
-                if (waBtn) {
-                    waBtn.href = waUrl;
-                }
-
-                authSection.innerHTML = `
-                    <div class="auth-status-box">
-                        <div style="font-weight: 700; font-size: 0.9rem;">${data.email.split('@')[0]}</div>
-                        <span class="badge badge-success">${data.quota} Units</span>
-                    </div>
-                    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
-                        <input type="text" id="sessionName" placeholder="Discussion Topic" value="Sprint Sync" style="padding: 0.75rem 1rem; flex-grow: 1;">
-                        <button id="createSessionBtn" class="btn btn-primary" style="padding: 0 1.25rem;">Start</button>
-                    </div>
-                    <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; font-weight: 700;">
-                        <a href="${waUrl}" target="_blank" style="color: var(--primary); text-decoration:none;">Tambah Kuota (WA)</a>
-                        <a href="/auth/logout" style="color: var(--danger); text-decoration:none;">Sign Out</a>
-                    </div>
-                `;
-                document.getElementById('createSessionBtn').onclick = createSession;
-                
-                // Inject Activity Logs link ONLY if logged in
-                const activityLink = document.createElement('a');
-                activityLink.href = 'javascript:void(0)';
-                activityLink.onclick = toggleHistory;
-                activityLink.innerText = 'Activity Logs';
-                nav.appendChild(activityLink);
-
-                if (data.is_admin) { 
-                    const adminLink = document.createElement('a');
-                    adminLink.href = '/admin';
-                    adminLink.innerText = 'Dashboard';
-                    adminLink.style.color = 'var(--primary)';
-                    nav.appendChild(adminLink);
-                }
-            } else {
-                authSection.innerHTML = `<button class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 0px;" onclick="window.location.href='/auth/google/login'">Continue with Google</button>`;
-            }
-        }
-        async function createSession() {
-            const name = document.getElementById('sessionName').value || "Sprint Sync";
-            const res = await fetch('/api/session/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-            if (res.ok) { const d = await res.json(); window.location.href = `/session/?id=${d.id}&role=sm`; }
-        }
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>"']/g, m => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-            })[m]);
-        }
-
-        async function loadHistory() {
-            const res = await fetch('/api/history');
-            const data = await res.json();
-            const container = document.getElementById('history-container');
-            container.innerHTML = (data.sessions || []).map(s => `
-                <div class="compact-card" style="display: flex; flex-direction: column; gap: 1rem; padding: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">${new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</div>
-                            <h3 style="margin: 0; font-size: 1.2rem; line-height: 1.4; color: var(--text);">${escapeHTML(s.name)}</h3>
-                        </div>
-                        <code style="background: rgba(255, 95, 31, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 0px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color);">${escapeHTML(s.id.substring(0, 8))}</code>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <a href="/session/?id=${encodeURIComponent(s.id)}&role=sm" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.9rem; border-radius: 0px;">Open Board</a>
-                    </div>
-                </div>
-            `).join('') || '<div style="grid-column: 1 / -1; text-align:center; padding: 4rem; color: var(--text-muted);">No sessions found in your history. Start a new one to see it here!</div>';
-        }
-
-        document.getElementById('joinSessionBtn').onclick = () => {
-            const code = document.getElementById('joinCode').value.trim();
-            if (code) window.location.href = `/session/?id=${code}`;
-        };
-        checkAuth();
-        updateThemeIcon();
-    </script>
+    <script src="/static/js/index.js?v=283"></script>
 </body>
 </html>

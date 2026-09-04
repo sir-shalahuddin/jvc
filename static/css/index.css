@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Retro - Home / Index Page Styles
+   ========================================================================== */
+
+body { 
+    min-height: 100vh; 
+    background: var(--bg-base); 
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.main-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.container { 
+    max-width: 1400px; 
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    width: 100%;
+}
+
+.hero-split { 
+    display: grid; 
+    grid-template-columns: 1fr 450px; 
+    gap: 6rem; 
+    align-items: center; 
+    width: 100%; 
+    min-height: 80vh;
+}
+
+.hero-text {
+    text-align: left;
+}
+
+.hero-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 2.5rem;
+    border-radius: var(--radius);
+    border: 3px solid var(--border-color);
+    box-shadow: 4px 4px 0px var(--border-color);
+}
+
+.hero-text h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 7rem;
+    font-weight: 950;
+    margin-bottom: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1;
+}
+
+.hero-text p {
+    font-size: 1.4rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 4rem;
+    font-weight: 500;
+}
+
+.action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.compact-card {
+    background: var(--bg-card);
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--glass-shadow);
+    transition: all var(--transition);
+}
+
+.compact-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px var(--border-color);
+}
+
+.auth-status-box {
+    background: var(--bg-card);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 3px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    box-shadow: 3px 3px 0px var(--border-color);
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    font-weight: 800;
+    font-size: 1.15rem;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.nav-links a {
+    transition: 0.2s;
+    color: var(--text-secondary);
+    text-decoration: none;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--primary);
+    transition: 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--text);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.nav-links a.active {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 3px;
+}
+
+.nav-links a.active::after {
+    display: none;
+}
+
+#historyPanel {
+    width: 100%;
+    margin-top: 6rem;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    border: 3px solid var(--border-color);
+    box-shadow: 8px 8px 0px var(--border-color);
+    padding: 4rem;
+}
+
+.history-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.products-title {
+    font-size: 4rem;
+}
+
+.products-subtitle {
+    font-size: 1.4rem;
+}
+
+@media (max-width: 1200px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-split { grid-template-columns: 1fr; gap: 4rem; text-align: center; }
+    .hero-text { display: flex; flex-direction: column; align-items: center; }
+    .hero-text h1 { font-size: 5rem; }
+    .action-stack { max-width: 500px; margin: 0 auto; }
+    .nav-links { justify-content: center; flex-wrap: wrap; gap: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+    .product-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .nav-links { gap: 1rem; font-size: 1rem; }
+    .hero-text h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+    .hero-text p { font-size: 1.15rem; margin-bottom: 2.5rem; }
+    #historyPanel { padding: 1.5rem !important; border-radius: var(--radius); margin-top: 3rem; }
+    #historyPanel h2 { font-size: 1.75rem !important; }
+    .products-title { font-size: 2.5rem; }
+    .products-subtitle { font-size: 1.15rem; }
+    .history-grid { grid-template-columns: 1fr; }
+    .compact-card { padding: 1.5rem !important; }
+}

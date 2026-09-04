@@ -10,74 +10,14 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=222">
+    <link rel="stylesheet" href="/static/style.css?v=283">
+    <link rel="stylesheet" href="/static/css/admin.css?v=283">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-    <style>
-        .admin-header { padding: 4rem 0 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--border-color); margin-bottom: 3rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
-        .stat-card { 
-            background: var(--bg-card); 
-            padding: 1.5rem; 
-            border-radius: var(--radius); 
-            border: 3px solid var(--border-color); 
-            box-shadow: var(--glass-shadow);
-            text-align: center; 
-            transition: all var(--transition);
-        }
-        .stat-card:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--border-color);
-        }
-        .stat-value { font-size: 2rem; font-weight: 900; color: var(--primary); display: block; font-family: 'JetBrains Mono', monospace !important; }
-        .stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-family: 'JetBrains Mono', monospace !important; }
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0 0.75rem; }
-        th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 800; font-family: 'JetBrains Mono', monospace !important; }
-        td { padding: 1.25rem 1rem; background: var(--bg-card); border-top: 3px solid var(--border-color); border-bottom: 3px solid var(--border-color); font-family: 'JetBrains Mono', monospace !important; }
-        td:first-child { border-left: 3px solid var(--border-color); border-radius: var(--radius); }
-        td:last-child { border-right: 3px solid var(--border-color); border-radius: var(--radius); }
-        
-        .action-btn { 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem; 
-            border-radius: var(--radius); 
-            font-size: 0.8rem; 
-            font-weight: 800; 
-            font-family: 'JetBrains Mono', monospace !important;
-            cursor: pointer; 
-            transition: all var(--transition); 
-            border: 2px solid var(--border-color); 
-            background: var(--primary); 
-            color: #ffffff;
-            box-shadow: 2px 2px 0px var(--border-color);
-            text-decoration: none;
-        }
-        .action-btn:hover { 
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px var(--border-color);
-            background: var(--primary); 
-            color: #ffffff; 
-        }
-        .action-btn:active {
-            transform: translate(1px, 1px);
-            box-shadow: 1px 1px 0px var(--border-color);
-        }
-
-        @media (max-width: 768px) {
-            .admin-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; padding: 2rem 0 1rem; margin-bottom: 2rem; }
-            .admin-header h1 { font-size: 1.75rem !important; }
-            .stats-grid { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
-            .stat-card { padding: 1.25rem; }
-            .stat-value { font-size: 1.5rem; }
-        }
-    </style>
 </head>
 <body>
     <a href="/" class="back-to-home">
@@ -131,54 +71,6 @@
         </div>
     </div>
 
-    <script>
-        function updateThemeIcon() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
-            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
-            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
-        }
-
-        function toggleTheme() {
-            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            updateThemeIcon();
-        }
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>"']/g, m => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-            })[m]);
-        }
-
-        async function loadAdminData() {
-            try {
-                const res = await fetch('/api/admin/stats');
-                if (res.status === 403) return window.location.href = '/';
-                const data = await res.json();
-                
-                document.getElementById('totalSessions').innerText = data.total_sessions;
-                document.getElementById('totalUsers').innerText = data.total_users;
-                document.getElementById('totalRevenue').innerText = data.total_revenue || 0;
-
-                const sList = document.getElementById('sessionList');
-                sList.innerHTML = (data.recent_sessions || []).map(s => `
-                    <tr>
-                        <td style="font-weight: 700;">${escapeHTML(s.creator_email || 'System')}</td>
-                        <td>${escapeHTML(s.name)}</td>
-                        <td style="color: var(--text-muted); font-size: 0.8rem;">${new Date(s.created_at).toLocaleString()}</td>
-                        <td>
-                            <a href="/session/?id=${encodeURIComponent(s.id)}&role=sm" class="action-btn">Manage</a>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error(e); }
-        }
-
-        updateThemeIcon();
-        loadAdminData();
-    </script>
+    <script src="/static/js/admin.js?v=283"></script>
 </body>
 </html>

@@ -10,122 +10,14 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=222">
+    <link rel="stylesheet" href="/static/style.css?v=283">
+    <link rel="stylesheet" href="/static/css/contact.css?v=283">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-    <style>
-        body { 
-            height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            overflow: hidden; 
-            background: var(--bg-base);
-        }
-        .contact-container {
-            max-width: 1200px;
-            width: 95%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .contact-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .contact-info h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-        }
-        .contact-info p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
-            font-family: 'JetBrains Mono', monospace !important;
-        }
-        .contact-info img {
-            border-radius: var(--radius);
-            border: 3px solid var(--border-color);
-            box-shadow: 3px 3px 0px var(--border-color);
-            transition: all var(--transition);
-        }
-        .contact-info img:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px var(--border-color);
-        }
-        .contact-card {
-            background: var(--glass-bg);
-            padding: 2.5rem;
-            border-radius: var(--radius);
-            border: 3px solid var(--border-color);
-            box-shadow: var(--glass-shadow);
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            transition: all var(--transition);
-        }
-        .contact-card:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 7px 7px 0px var(--border-color);
-        }
-        .info-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1.5rem;
-        }
-        .info-icon {
-            width: 54px;
-            height: 54px;
-            background: var(--primary);
-            border-radius: var(--radius);
-            border: 3px solid var(--border-color);
-            box-shadow: 2px 2px 0px var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            flex-shrink: 0;
-        }
-        .info-text h4 {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-            font-family: 'JetBrains Mono', monospace !important;
-        }
-        .info-text p {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace !important;
-        }
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 700;
-            margin-top: 2rem;
-            transition: 0.3s;
-        }
-        .back-btn:hover { color: var(--primary); transform: translateX(-5px); }
-
-        @media (max-width: 800px) {
-            body { height: auto; overflow: auto; padding: 2rem 1rem; }
-            .contact-container { grid-template-columns: 1fr; text-align: left; }
-            .contact-info { align-items: flex-start; }
-            .info-item { flex-direction: row; align-items: flex-start; justify-content: flex-start; text-align: left; gap: 1rem; }
-        }
-    </style>
 </head>
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
@@ -177,20 +69,6 @@
         </div>
     </div>
 
-    <script>
-        function updateThemeIcon() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
-            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
-            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
-        }
-        function toggleTheme() {
-            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            updateThemeIcon();
-        }
-        updateThemeIcon();
-    </script>
+    <script src="/static/js/theme.js?v=283"></script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,132 +10,15 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=222">
+    <link rel="stylesheet" href="/static/style.css?v=283">
+    <link rel="stylesheet" href="/static/css/about.css?v=283">
     <script>
         (function () {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-    <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem 1rem;
-        }
-
-        .container {
-            max-width: 1400px;
-            padding: 2rem;
-            width: 100%;
-        }
-
-        .split-layout {
-            display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .side-title {
-            text-align: left;
-        }
-
-        .side-logo {
-            width: 64px;
-            margin-bottom: 2rem;
-            border-radius: var(--radius);
-            border: 3px solid var(--border-color);
-            box-shadow: 3px 3px 0px var(--border-color);
-            transition: all var(--transition);
-        }
-
-        .side-logo:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px var(--border-color);
-        }
-
-        .side-title h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .side-title p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 320px;
-            line-height: 1.5;
-            font-family: 'JetBrains Mono', monospace !important;
-        }
-
-        .bento-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .bento-item {
-            background: var(--glass-bg);
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            border: 3px solid var(--border-color);
-            box-shadow: var(--glass-shadow);
-            transition: all var(--transition);
-        }
-
-        .bento-item:hover {
-            transform: translate(-3px, -3px);
-            box-shadow: 7px 7px 0px var(--border-color);
-        }
-
-        .bento-wide {
-            grid-column: span 2;
-        }
-
-        h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary) !important;
-        }
-
-        .bento-item p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        @media (max-width: 1000px) {
-            body {
-                height: auto;
-                overflow-y: auto;
-                padding: 2rem 1rem;
-            }
-
-            .split-layout {
-                grid-template-columns: 1fr;
-                text-align: left;
-                gap: 3rem;
-            }
-
-            .side-title {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .side-logo {
-                margin: 0 auto 2rem 0;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-        }
-    </style>
 </head>
-
 <body>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
         <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -160,53 +42,32 @@
                 <!-- USP: Privacy -->
                 <div class="bento-item">
                     <h3>100% Anonymous</h3>
-                    <p>No accounts required for participants. We ensure absolute privacy so your team can speak the
-                        truth without fear.</p>
+                    <p>No accounts required for participants. We ensure absolute privacy so your team can speak the truth without fear.</p>
                 </div>
                 <!-- USP: AI -->
                 <div class="bento-item">
                     <h3>Read the Room</h3>
-                    <p>Our AI (Gemini) analyzes the emotional tone of every response, helping you understand the team
-                        mood instantly.</p>
+                    <p>Our AI (Gemini) analyzes the emotional tone of every response, helping you understand the team mood instantly.</p>
                 </div>
                 <!-- Tech: Cloud & Scaling -->
                 <div class="bento-item bento-wide">
                     <h3>Built for Infinite Scaling</h3>
-                    <p>Utilizing Google Cloud's serverless infrastructure, Retro handles everything from small teams to
-                        entire organizations with zero lag and 99.9% reliability.</p>
+                    <p>Utilizing Google Cloud's serverless infrastructure, Retro handles everything from small teams to entire organizations with zero lag and 99.9% reliability.</p>
                 </div>
                 <!-- Tech: Real-time -->
                 <div class="bento-item">
                     <h3>Live Sync Magic</h3>
-                    <p>Watch thoughts appear as they are typed. Powered by Firestore for a "no-refresh" real-time
-                        collaborative experience.</p>
+                    <p>Watch thoughts appear as they are typed. Powered by Firestore for a "no-refresh" real-time collaborative experience.</p>
                 </div>
                 <!-- AI Branding -->
                 <div class="bento-item">
                     <h3>Autonomous Core</h3>
-                    <p>This entire platform was architected and built by <b>Antigravity AI</b>, a demonstration of the
-                        next generation of software engineering.</p>
+                    <p>This entire platform was architected and built by <b>Antigravity AI</b>, a demonstration of the next generation of software engineering.</p>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <script>
-        function updateThemeIcon() {
-            const theme = document.documentElement.getAttribute('data-theme');
-            const icon = document.getElementById('theme-icon');
-            if (theme === 'dark') { icon.innerHTML = '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"></path>'; }
-            else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
-        }
-        function toggleTheme() {
-            const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            updateThemeIcon();
-        }
-        updateThemeIcon();
-    </script>
+    <script src="/static/js/theme.js?v=283"></script>
 </body>
-
 </html>
