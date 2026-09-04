@@ -56,3 +56,40 @@ func (m *mockAnswerRepo) CastVote(ctx context.Context, sid string, aid string, v
 type mockTransactionRepo struct{}
 func (m *mockTransactionRepo) Create(ctx context.Context, t models.Transaction) error { return nil }
 func (m *mockTransactionRepo) GetByID(ctx context.Context, id string) (*models.Transaction, error) { return nil, nil }
+
+type mockActionItemRepo struct {
+	items map[string][]models.ActionItem
+}
+func (m *mockActionItemRepo) Create(ctx context.Context, sid string, item models.ActionItem) error {
+	if m.items == nil { m.items = make(map[string][]models.ActionItem) }
+	m.items[sid] = append(m.items[sid], item)
+	return nil
+}
+func (m *mockActionItemRepo) GetBySession(ctx context.Context, sid string) ([]models.ActionItem, error) {
+	if m.items == nil { return []models.ActionItem{}, nil }
+	return m.items[sid], nil
+}
+func (m *mockActionItemRepo) Toggle(ctx context.Context, sid string, itemID string, completed bool) error {
+	if m.items != nil {
+		for i := range m.items[sid] {
+			if m.items[sid][i].ID == itemID {
+				m.items[sid][i].Completed = completed
+				break
+			}
+		}
+	}
+	return nil
+}
+func (m *mockActionItemRepo) Delete(ctx context.Context, sid string, itemID string) error {
+	if m.items != nil {
+		var res []models.ActionItem
+		for _, it := range m.items[sid] {
+			if it.ID != itemID {
+				res = append(res, it)
+			}
+		}
+		m.items[sid] = res
+	}
+	return nil
+}
+

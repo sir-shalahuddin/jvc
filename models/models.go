@@ -67,3 +67,15 @@ type VoterRecord struct {
 	UpdatedAt    time.Time `json:"updated_at" firestore:"updated_at"`
 }
 
+type ActionItem struct {
+	ID        string    `json:"id" firestore:"id"`
+	SessionID string    `json:"session_id" firestore:"session_id"`
+	AnswerID  string    `json:"answer_id,omitempty" firestore:"answer_id,omitempty"`
+	Text      string    `json:"text" firestore:"text"`
+	Assignee  string    `json:"assignee" firestore:"assignee"`
+	DueDate   string    `json:"due_date" firestore:"due_date"`
+	Completed bool      `json:"completed" firestore:"completed"`
+	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
+}
+
+

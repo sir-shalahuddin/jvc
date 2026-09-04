@@ -251,6 +251,66 @@ func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
 		pdf.Ln(6)
 	}
 
+	// Action Items & Commitments Section
+	if ActionItemRepo != nil {
+		actionItems, _ := ActionItemRepo.GetBySession(ctx, sessionID)
+		if len(actionItems) > 0 {
+			if pdf.GetY() > 220 {
+				pdf.AddPage()
+			}
+			pdf.Ln(4)
+			pdf.SetFont("Arial", "B", 14)
+			pdf.SetTextColor(26, 26, 26)
+			pdf.Cell(0, 8, "ACTION ITEMS & COMMITMENTS")
+			pdf.Ln(10)
+
+			for _, item := range actionItems {
+				currY := pdf.GetY()
+				if currY > 260 {
+					pdf.AddPage()
+					currY = pdf.GetY()
+				}
+
+				itemH := 12.0
+
+				// Shadow
+				pdf.SetFillColor(26, 26, 26)
+				pdf.Rect(15+1.5, currY+1.5, wBox, itemH, "F")
+
+				// Box
+				pdf.SetFillColor(255, 255, 255)
+				pdf.SetDrawColor(26, 26, 26)
+				pdf.Rect(15, currY, wBox, itemH, "FD")
+
+				// Accent Left Indicator: Green if completed, Orange if pending
+				if item.Completed {
+					pdf.SetFillColor(16, 185, 129) // #10b981
+				} else {
+					pdf.SetFillColor(255, 95, 31) // #ff5f1f
+				}
+				pdf.Rect(15, currY, 4.0, itemH, "F")
+
+				statusMark := "[ ]"
+				if item.Completed {
+					statusMark = "[x]"
+				}
+
+				pdf.SetFont("Arial", "B", 9)
+				pdf.SetTextColor(26, 26, 26)
+				pdf.SetXY(22, currY+3.5)
+				pdf.Cell(0, 5, fmt.Sprintf("%s %s", statusMark, item.Text))
+
+				pdf.SetFont("Arial", "", 8)
+				pdf.SetTextColor(100, 100, 100)
+				metaText := fmt.Sprintf("Assignee: %s  |  Due: %s", item.Assignee, item.DueDate)
+				pdf.SetXY(wBox-30, currY+3.5)
+				pdf.Cell(0, 5, metaText)
+
+				pdf.SetY(currY + itemH + 3.5)
+			}
+		}
+	}
+
 	pdf.AliasNbPages("")
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"Retro_Report_%s.pdf\"", time.Now().Format("20060102")))

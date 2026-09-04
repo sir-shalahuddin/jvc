@@ -25,6 +25,7 @@ func main() {
 	quesRepo := &repositories.QuestionRepository{}
 	ansRepo := &repositories.AnswerRepository{}
 	tranRepo := &repositories.TransactionRepository{}
+	actionItemRepo := &repositories.ActionItemRepository{}
 
 	// Initialize Services
 	handlers.SessionServ = &services.SessionService{
@@ -39,6 +40,7 @@ func main() {
 	handlers.AnswerRepo = ansRepo
 	handlers.UserRepo = userRepo
 	handlers.TranRepo = tranRepo
+	handlers.ActionItemRepo = actionItemRepo
 
 	// Load configuration
 	config.LoadConfig()
@@ -82,6 +84,10 @@ func main() {
 	mux.HandleFunc("/api/session/timer/action", handlers.TimerActionHandler)
 	mux.HandleFunc("/api/session/answers", handlers.GetAnswersHandler)
 	mux.HandleFunc("/api/session/report", handlers.GenerateReportHandler)
+	mux.HandleFunc("/api/action-items/get", handlers.GetActionItemsHandler)
+	mux.HandleFunc("/api/action-items/add", handlers.AddActionItemHandler)
+	mux.HandleFunc("/api/action-items/toggle", handlers.ToggleActionItemHandler)
+	mux.HandleFunc("/api/action-items/delete", handlers.DeleteActionItemHandler)
 
 	// Monetization & Admin API
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)

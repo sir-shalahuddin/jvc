@@ -28,6 +28,7 @@ func TestMain(m *testing.M) {
 		UserRepo:        userRepo,
 	}
 	AnswerRepo = &mockAnswerRepo{}
+	ActionItemRepo = &mockActionItemRepo{}
 	
 	code := m.Run()
 	

@@ -406,6 +406,154 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
+        /* ==========================================
+           Phase 2: Action Items Tracker
+           ========================================== */
+        .topbar-action-btn {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.35rem 0.7rem;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            height: 34px;
+            transition: all var(--transition);
+            border-radius: 0px !important;
+        }
+        .topbar-action-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            border-color: var(--primary);
+        }
+        .topbar-action-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--border-color);
+        }
+        .action-count-pill {
+            background: var(--accent-primary, #ff5f1f);
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 0.1rem 0.4rem;
+            line-height: 1;
+            border: 1px solid var(--border-color);
+        }
+
+        .action-convert-btn {
+            font-size: 0.75rem !important;
+            padding: 0.35rem 0.65rem !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            border: 2px solid var(--border-color) !important;
+            background: var(--bg-card) !important;
+            color: var(--text) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .action-convert-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            color: var(--accent-primary, #ff5f1f) !important;
+            border-color: var(--accent-primary, #ff5f1f) !important;
+        }
+
+        /* Action Items Modal List */
+        .action-items-form {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr auto;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px dashed var(--border-color);
+        }
+        @media (max-width: 680px) {
+            .action-items-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        .action-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+        .action-item-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: all var(--transition);
+        }
+        .action-item-card.completed {
+            opacity: 0.65;
+            background: rgba(0,0,0,0.02);
+            border-color: var(--border-color);
+        }
+        .action-item-card.completed .action-item-text {
+            text-decoration: line-through;
+            color: var(--text-sub);
+        }
+        .action-item-left {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex: 1;
+        }
+        .action-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+        .action-item-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+        }
+        .action-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .action-badge-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.2rem 0.45rem;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.04);
+            color: var(--text-sub);
+            white-space: nowrap;
+        }
+        .action-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--accent-danger);
+            opacity: 0.7;
+            padding: 0.2rem;
+            transition: opacity var(--transition);
+        }
+        .action-delete-btn:hover {
+            opacity: 1;
+        }
+
         /* Responsive Breakpoints (Tablet & Mobile) */
         @media (max-width: 900px) {
             .app-topbar { height: auto; min-height: 52px; padding: 0.4rem 0; }
@@ -910,6 +1058,10 @@
                     🎯 <span id="voteBudgetCount">5</span>/5 <span class="vote-label-text">Votes</span>
                 </div>
 
+                <button class="topbar-action-btn" id="actionItemsBtn" onclick="openActionItemsModal()" title="View Action Items & Commitments">
+                    ✅ <span class="action-btn-text">Actions</span> <span id="actionItemsBadge" class="action-count-pill">0</span>
+                </button>
+
                 <div class="topbar-utility-group">
                     <button class="topbar-icon-btn" id="shortcutsBtn" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">⌨️</button>
                     <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
@@ -939,6 +1091,42 @@
     <!-- Modals -->
     <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div class="modal-form-grid"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Anonymous Alias (Assigned)</label><div class="assigned-alias-badge" id="assignedAliasBadge">🎭 <span id="assignedAliasDisplay">Random Guest</span></div></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
     <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div class="modal-form-grid-2col"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
+
+    <!-- Action Items & Follow-Through Modal -->
+    <div id="actionItemsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 750px; width: 92vw;">
+            <button onclick="closeActionItemsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; padding-right: 1.5rem;">
+                <h2 style="font-size: 1.5rem; margin: 0; font-weight: 900;">✅ ACTION ITEMS & COMMITMENTS</h2>
+                <button onclick="downloadReport()" class="btn btn-ghost sm-btn" style="font-size: 0.75rem;">📄 Export PDF</button>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; margin: 0 0 1.25rem 0;">Transform reflections into real sprint accountability.</p>
+            
+            <div class="action-items-form">
+                <input type="text" id="actionItemTextInput" placeholder="Describe the action item / task..." style="width: 100%;">
+                <input type="text" id="actionItemAssigneeInput" placeholder="Assignee (e.g. Person/Team)" style="width: 100%;">
+                <input type="text" id="actionItemDueInput" placeholder="Due Date (e.g. Sprint 42)" style="width: 100%;">
+                <input type="hidden" id="actionItemAnswerId">
+                <button onclick="submitActionItem()" class="btn btn-primary sm-btn" style="white-space: nowrap; height: 100%;">+ Commit</button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div class="toolbar-group">
+                    <span class="toolbar-label">Show:</span>
+                    <button class="toolbar-pill active" data-action-filter="all" onclick="setActionFilter('all')">All</button>
+                    <button class="toolbar-pill" data-action-filter="pending" onclick="setActionFilter('pending')">⏳ Pending</button>
+                    <button class="toolbar-pill" data-action-filter="completed" onclick="setActionFilter('completed')">✅ Done</button>
+                </div>
+                <div style="font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--text-sub);">
+                    <span id="actionItemsStatsText">0 items</span>
+                </div>
+            </div>
+
+            <div id="actionItemsListContainer" class="action-items-list">
+                <!-- Action items dynamically populated -->
+            </div>
+        </div>
+    </div>
 
     <!-- Shortcuts Cheat Sheet Modal -->
     <div id="shortcutsModal" class="modal-overlay hidden">
@@ -978,6 +1166,10 @@
                 <div class="shortcut-row">
                     <span class="shortcut-desc">Shortcuts Help</span>
                     <div class="shortcut-keys"><span class="kbd-badge">?</span></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">Action Items</span>
+                    <div class="shortcut-keys"><span class="kbd-badge">A</span></div>
                 </div>
                 <div class="shortcut-row" style="grid-column: 1 / -1;">
                     <span class="shortcut-desc">Close Modal / Unfocus</span>
@@ -1204,6 +1396,28 @@
                         osc.start(noteTime);
                         osc.stop(noteTime + 0.18);
                     }
+                } catch(e) {}
+            },
+            // High-pitched chime for Action Item completion
+            playDing() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.15);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
                 } catch(e) {}
             }
         };
@@ -1551,6 +1765,7 @@
             } else {
                 syncTimer();
                 loadAnswers();
+                loadActionItems();
                 startBackgroundSync();
             }
         });
@@ -1587,6 +1802,7 @@
             loadQuestions(); 
             syncTimer();
             syncVoterStatus();
+            loadActionItems();
             startBackgroundSync();
         }
 
@@ -1997,6 +2213,216 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        // ==========================================
+        // Action Items Tracker & Accountability (Module 4)
+        // ==========================================
+        let actionItemsList = [];
+        let currentActionFilter = 'all'; // 'all' | 'pending' | 'completed'
+
+        async function loadActionItems() {
+            if (!sessionId) return;
+            try {
+                const res = await fetch(`/api/action-items/get?session_id=${sessionId}`);
+                if (res.ok) {
+                    actionItemsList = await res.json() || [];
+                    renderActionItems();
+                }
+            } catch (e) {
+                console.error("Error loading action items", e);
+            }
+        }
+
+        function renderActionItems() {
+            const container = document.getElementById('actionItemsListContainer');
+            const badge = document.getElementById('actionItemsBadge');
+            const statsText = document.getElementById('actionItemsStatsText');
+            if (!container) return;
+
+            const pendingCount = actionItemsList.filter(item => !item.completed).length;
+            
+            if (badge) {
+                badge.innerText = String(pendingCount);
+            }
+            if (statsText) {
+                statsText.innerText = `${pendingCount} pending / ${actionItemsList.length} total`;
+            }
+
+            const filteredItems = actionItemsList.filter(item => {
+                if (currentActionFilter === 'pending') return !item.completed;
+                if (currentActionFilter === 'completed') return item.completed;
+                return true;
+            });
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                        ${actionItemsList.length === 0 
+                            ? "✨ No action items committed yet.<br>Click '⚡ Action Item' on any card or add one above!" 
+                            : "No items match the selected filter."}
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filteredItems.map(item => `
+                <div class="action-item-card ${item.completed ? 'completed' : ''}" id="action-item-${item.id}">
+                    <div class="action-item-left">
+                        <input type="checkbox" class="action-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleActionItem('${item.id}', ${item.completed})" title="Toggle status">
+                        <span class="action-item-text">${escapeText(item.text)}</span>
+                    </div>
+                    <div class="action-item-meta">
+                        <span class="action-badge-tag" title="Assignee">👤 ${escapeText(item.assignee || 'Unassigned')}</span>
+                        <span class="action-badge-tag" title="Due Date">📅 ${escapeText(item.due_date || 'Next Sprint')}</span>
+                        <button class="action-delete-btn" onclick="deleteActionItem('${item.id}')" title="Delete action item">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setActionFilter(filter) {
+            currentActionFilter = filter;
+            document.querySelectorAll('[data-action-filter]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.actionFilter === filter);
+            });
+            renderActionItems();
+        }
+
+        function openActionItemsModal() {
+            const modal = document.getElementById('actionItemsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                SoundFX.playPop();
+                loadActionItems();
+            }
+        }
+
+        function closeActionItemsModal() {
+            const modal = document.getElementById('actionItemsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                const tInput = document.getElementById('actionItemTextInput');
+                const aInput = document.getElementById('actionItemAnswerId');
+                if (tInput) tInput.value = '';
+                if (aInput) aInput.value = '';
+            }
+        }
+
+        function convertCardToAction(cardId) {
+            const card = document.querySelector(`.answer-card[data-id="${cardId}"]`);
+            let text = "";
+            if (card) {
+                const body = card.querySelector('.card-content-body');
+                if (body) text = body.innerText.trim();
+            }
+            openActionItemsModal();
+            const textInput = document.getElementById('actionItemTextInput');
+            const answerIdInput = document.getElementById('actionItemAnswerId');
+            const assigneeInput = document.getElementById('actionItemAssigneeInput');
+            if (textInput) textInput.value = text;
+            if (answerIdInput) answerIdInput.value = cardId;
+            if (assigneeInput && !assigneeInput.value) {
+                assigneeInput.value = assignedGuestName || '';
+            }
+            if (textInput) textInput.focus();
+        }
+
+        async function submitActionItem() {
+            const textEl = document.getElementById('actionItemTextInput');
+            const assigneeEl = document.getElementById('actionItemAssigneeInput');
+            const dueEl = document.getElementById('actionItemDueInput');
+            const ansIdEl = document.getElementById('actionItemAnswerId');
+
+            const text = (textEl ? textEl.value : '').trim();
+            if (!text) {
+                showToast("Please enter an action description!", "error");
+                return;
+            }
+
+            const assignee = (assigneeEl ? assigneeEl.value : '').trim() || assignedGuestName || "Unassigned";
+            const due = (dueEl ? dueEl.value : '').trim() || "Next Sprint";
+            const ansId = ansIdEl ? ansIdEl.value : '';
+
+            try {
+                const res = await fetch('/api/action-items/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        answer_id: ansId,
+                        text: text,
+                        assignee: assignee,
+                        due_date: due
+                    })
+                });
+
+                if (res.ok) {
+                    const newItem = await res.json();
+                    actionItemsList.unshift(newItem);
+                    if (textEl) textEl.value = '';
+                    if (ansIdEl) ansIdEl.value = '';
+                    renderActionItems();
+                    SoundFX.playPost();
+                    showToast("✅ Action item committed!", "success");
+                } else {
+                    showToast("Failed to save action item", "error");
+                }
+            } catch (e) {
+                showToast("Network error", "error");
+            }
+        }
+
+        async function toggleActionItem(id, currentlyCompleted) {
+            const newCompleted = !currentlyCompleted;
+            try {
+                const res = await fetch('/api/action-items/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        id: id,
+                        completed: newCompleted
+                    })
+                });
+
+                if (res.ok) {
+                    const item = actionItemsList.find(it => it.id === id);
+                    if (item) item.completed = newCompleted;
+                    if (newCompleted) {
+                        SoundFX.playDing();
+                        RetroConfetti.fire({ particleCount: 40, spread: 0.9 });
+                        showToast("🎉 Action item completed!", "success");
+                    } else {
+                        SoundFX.playPop();
+                        showToast("Action item marked pending", "info");
+                    }
+                    renderActionItems();
+                }
+            } catch (e) {
+                showToast("Error updating action item", "error");
+            }
+        }
+
+        async function deleteActionItem(id) {
+            if (!confirm("Delete this action item?")) return;
+            try {
+                const res = await fetch('/api/action-items/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        id: id
+                    })
+                });
+
+                if (res.ok) {
+                    actionItemsList = actionItemsList.filter(it => it.id !== id);
+                    renderActionItems();
+                    showToast("Action item deleted", "info");
+                }
+            } catch (e) {
+                showToast("Error deleting item", "error");
+            }
+        }
+
         async function loadAnswers() {
             if (!activeQuestionId) return;
             const activePage = questionPagination[activeQuestionId] || { limit: 12, hasMore: true };
@@ -2072,6 +2498,11 @@
                             </div>
                             <div class="card-content-body">${sanitizeHTML(a.text)}</div>
                             ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${escapeText(a.gif_url)}" loading="lazy" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
+                            <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 2px dashed var(--border-color); display: flex; justify-content: flex-end;">
+                                <button class="action-convert-btn" onclick="event.stopPropagation(); convertCardToAction('${a.id}')" title="Turn this reflection into a commitment/action item">
+                                    ⚡ Action Item
+                                </button>
+                            </div>
                         </div>`;
                     
                     if (!existingCard) {
@@ -2429,6 +2860,7 @@
                 closeSubmitModal();
                 closeQuestionModal();
                 closeShortcutsModal();
+                closeActionItemsModal();
                 return;
             }
 
@@ -2438,6 +2870,13 @@
             if (e.key === '?' || (e.shiftKey && e.key === '/')) {
                 e.preventDefault();
                 openShortcutsModal();
+                return;
+            }
+
+            // A opens Action Items modal
+            if (e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
+                openActionItemsModal();
                 return;
             }
 
