@@ -235,6 +235,16 @@
         let quill; let currentQuestions = []; let activeQuestionId = ''; let searchTimeout; let isModerator = false;
         let questionPagination = {}; let isLoadingMore = false;
         const sessionId = new URLSearchParams(window.location.search).get('id');
+        let sessionOwnerEmail = '';
+        let topicAnswerCounts = {};
+        let presenceClientId = sessionStorage.getItem('retro_client_id');
+        if (!presenceClientId) {
+            presenceClientId = 'c_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now().toString(36);
+            sessionStorage.setItem('retro_client_id', presenceClientId);
+        }
+        let activeParticipants = [];
+        let isPresenceDropdownOpen = false;
+        let presenceSyncInterval = null;
 
         // ==========================================
         // Facilitator Spotlight & Live Focus Engine (Module 5)
@@ -478,6 +488,251 @@
         }
 
         // ==========================================
+        // Real-Time Active Participants Presence & Topic Counters
+        // ==========================================
+        function updateTopicAnswerCount(qId, count) {
+            if (typeof count !== 'number') return;
+            topicAnswerCounts[qId] = count;
+            const el = document.getElementById(`topic-count-${qId}`);
+            if (el) {
+                const prevText = el.innerText.trim();
+                const newText = `(${count})`;
+                if (prevText !== newText) {
+                    el.innerText = newText;
+                    el.classList.add('count-bump');
+                    setTimeout(() => el.classList.remove('count-bump'), 300);
+                }
+            }
+            const qIdx = currentQuestions.findIndex(q => q.id === qId);
+            if (qIdx !== -1) {
+                const dot = document.querySelector(`.nav-dot:nth-child(${qIdx + 1})`);
+                if (dot) {
+                    dot.title = `Topic ${qIdx + 1}: ${currentQuestions[qIdx].text} (${count})`;
+                }
+            }
+        }
+
+        async function syncPresence() {
+            if (!sessionId) return;
+            try {
+                let clientName = '';
+                if (isModerator) {
+                    clientName = sessionOwnerEmail ? `Host (${sessionOwnerEmail.split('@')[0]})` : 'Host (Facilitator)';
+                } else {
+                    clientName = assignedGuestName || 'Participant';
+                }
+                const clientRole = isModerator ? 'moderator' : 'participant';
+
+                const res = await fetch('/api/session/presence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        client_id: presenceClientId,
+                        name: clientName,
+                        role: clientRole
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    renderPresenceUI(data);
+                    if (data.topic_counts) {
+                        Object.keys(data.topic_counts).forEach(qId => {
+                            updateTopicAnswerCount(qId, data.topic_counts[qId]);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Presence sync error:", e);
+            }
+        }
+
+        function renderPresenceUI(data) {
+            if (!data) return;
+            activeParticipants = data.participants || [];
+            const count = typeof data.count === 'number' ? data.count : activeParticipants.length;
+
+            const countEl = document.getElementById('activeParticipantsCount');
+            const dropdownCountEl = document.getElementById('presenceDropdownCount');
+            if (countEl) countEl.innerText = String(count);
+            if (dropdownCountEl) dropdownCountEl.innerText = `${count} Online`;
+
+            const listEl = document.getElementById('presenceList');
+            if (!listEl) return;
+
+            if (activeParticipants.length === 0) {
+                listEl.innerHTML = '<div class="presence-loading-msg">Connecting to room...</div>';
+                return;
+            }
+
+            listEl.innerHTML = activeParticipants.map(p => {
+                const isYou = p.id === presenceClientId;
+                const isHost = p.role === 'moderator';
+                const avatar = isHost ? '👑' : '🎭';
+
+                return `
+                <div class="presence-item" ${isYou ? 'style="border-color: var(--primary); background: rgba(255, 95, 31, 0.04);"' : ''}>
+                    <div class="presence-user-left">
+                        <span class="presence-user-avatar">${avatar}</span>
+                        <span class="presence-user-name" title="${escapeText(p.name)}">${escapeText(p.name)}</span>
+                    </div>
+                    <div class="presence-tags">
+                        ${isYou ? '<span class="presence-you-badge">YOU</span>' : ''}
+                        <span class="presence-role-pill ${isHost ? 'host' : 'member'}">${isHost ? 'HOST' : 'MEMBER'}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function togglePresenceDropdown(e) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById('presenceDropdownPanel');
+            const btn = document.getElementById('presenceBtn');
+            if (!panel || !btn) return;
+
+            isPresenceDropdownOpen = !isPresenceDropdownOpen;
+            panel.classList.toggle('hidden', !isPresenceDropdownOpen);
+            btn.classList.toggle('active', isPresenceDropdownOpen);
+            btn.setAttribute('aria-expanded', isPresenceDropdownOpen ? 'true' : 'false');
+
+            if (isPresenceDropdownOpen) {
+                SoundFX.playPop();
+            }
+        }
+
+        function closePresenceDropdown() {
+            const panel = document.getElementById('presenceDropdownPanel');
+            const btn = document.getElementById('presenceBtn');
+            if (!panel || !btn) return;
+            isPresenceDropdownOpen = false;
+            panel.classList.add('hidden');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        let isFacilitatorDropdownOpen = false;
+        let isToolsDropdownOpen = false;
+
+        function toggleFacilitatorDropdown(e) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById('facilitatorDropdownPanel');
+            const btn = document.getElementById('facilitatorBtn');
+            if (!panel || !btn) return;
+
+            closePresenceDropdown();
+            closeToolsDropdown();
+
+            isFacilitatorDropdownOpen = !isFacilitatorDropdownOpen;
+            panel.classList.toggle('hidden', !isFacilitatorDropdownOpen);
+            btn.classList.toggle('active', isFacilitatorDropdownOpen);
+            btn.setAttribute('aria-expanded', isFacilitatorDropdownOpen ? 'true' : 'false');
+
+            if (isFacilitatorDropdownOpen) {
+                SoundFX.playPop();
+                const focusTitle = document.getElementById('facilitatorFocusItemTitle');
+                if (focusTitle) {
+                    const isFocused = currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === activeQuestionId;
+                    focusTitle.innerText = isFocused ? 'Unfocus Current Topic' : 'Focus Current Topic';
+                }
+            }
+        }
+
+        function closeFacilitatorDropdown() {
+            const panel = document.getElementById('facilitatorDropdownPanel');
+            const btn = document.getElementById('facilitatorBtn');
+            if (!panel || !btn) return;
+            isFacilitatorDropdownOpen = false;
+            panel.classList.add('hidden');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleToolsDropdown(e) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById('toolsDropdownPanel');
+            const btn = document.getElementById('toolsBtn');
+            if (!panel || !btn) return;
+
+            closePresenceDropdown();
+            closeFacilitatorDropdown();
+
+            isToolsDropdownOpen = !isToolsDropdownOpen;
+            panel.classList.toggle('hidden', !isToolsDropdownOpen);
+            btn.classList.toggle('active', isToolsDropdownOpen);
+            btn.setAttribute('aria-expanded', isToolsDropdownOpen ? 'true' : 'false');
+
+            if (isToolsDropdownOpen) {
+                SoundFX.playPop();
+                updateToolsSoundState();
+            }
+        }
+
+        function closeToolsDropdown() {
+            const panel = document.getElementById('toolsDropdownPanel');
+            const btn = document.getElementById('toolsBtn');
+            if (!panel || !btn) return;
+            isToolsDropdownOpen = false;
+            panel.classList.add('hidden');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        function updateToolsSoundState() {
+            const icon = document.getElementById('toolsSoundIcon');
+            const title = document.getElementById('toolsSoundTitle');
+            if (icon) icon.innerText = SoundFX.muted ? '🔇' : '🔊';
+            if (title) title.innerText = SoundFX.muted ? 'Sound Effects (Muted)' : 'Sound Effects (On)';
+        }
+
+        function toggleTopicDropdown(e, qId) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById(`topicDropdown-${qId}`);
+            if (!panel) return;
+            const isCurrentlyHidden = panel.classList.contains('hidden');
+            closeTopicDropdowns();
+            if (isCurrentlyHidden) {
+                panel.classList.remove('hidden');
+                SoundFX.playPop();
+            }
+        }
+
+        function closeTopicDropdowns() {
+            document.querySelectorAll('.topic-dropdown-panel').forEach(p => p.classList.add('hidden'));
+        }
+
+        function closeAllTopbarDropdowns() {
+            closePresenceDropdown();
+            closeFacilitatorDropdown();
+            closeToolsDropdown();
+            closeTopicDropdowns();
+        }
+
+        function editCurrentTopic() {
+            const q = currentQuestions.find(item => item.id === activeQuestionId);
+            if (q) {
+                openQuestionModal(q.id, q.text, q.gif_url || '');
+            } else {
+                openQuestionModal();
+            }
+        }
+
+        function spotlightCurrentTopic() {
+            if (activeQuestionId) {
+                toggleSpotlightTopic(activeQuestionId);
+            }
+        }
+
+        // Send beacon on page exit to leave immediately
+        window.addEventListener('beforeunload', () => {
+            if (sessionId && presenceClientId) {
+                const payload = JSON.stringify({ session_id: sessionId, client_id: presenceClientId });
+                const blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon('/api/session/presence/leave', blob);
+            }
+        });
+
+        // ==========================================
         // Security: Light DOM Sanitizer & Escaping
         // ==========================================
         function escapeText(str) {
@@ -563,11 +818,13 @@
                 syncSpotlight();
             }, 1500);
             answersSyncInterval = setInterval(loadAnswers, 4000);
+            presenceSyncInterval = setInterval(syncPresence, 3500);
         }
 
         function stopBackgroundSync() {
             if (timerSyncInterval) { clearInterval(timerSyncInterval); timerSyncInterval = null; }
             if (answersSyncInterval) { clearInterval(answersSyncInterval); answersSyncInterval = null; }
+            if (presenceSyncInterval) { clearInterval(presenceSyncInterval); presenceSyncInterval = null; }
         }
 
         document.addEventListener('visibilitychange', () => {
@@ -576,6 +833,7 @@
             } else {
                 syncTimer();
                 syncSpotlight();
+                syncPresence();
                 loadAnswers();
                 loadActionItems();
                 startBackgroundSync();
@@ -592,6 +850,7 @@
             const res = await fetch(`/api/session/get?id=${sessionId}&role=${role}`); const session = await res.json();
             document.getElementById('sessionNameTitle').innerText = session.name;
             isModerator = session.is_owner;
+            sessionOwnerEmail = session.owner_email || '';
             const roleBadge = document.getElementById('roleBadge');
             if (roleBadge) {
                 if (isModerator) {
@@ -615,6 +874,7 @@
             syncTimer();
             syncSpotlight();
             syncVoterStatus();
+            syncPresence();
             loadActionItems();
             refreshSessionClusterTags();
             startBackgroundSync();
@@ -631,10 +891,14 @@
                 if (!questionPagination[q.id]) {
                     questionPagination[q.id] = { limit: 12, hasMore: true };
                 }
+                if (typeof q.answer_count === 'number') {
+                    topicAnswerCounts[q.id] = q.answer_count;
+                }
             });
             const container = document.getElementById('questions-container'); const nav = document.getElementById('nav-questions');
             container.innerHTML = currentQuestions.map(q => {
                 let mediaHtml = '';
+                const aCount = typeof topicAnswerCounts[q.id] === 'number' ? topicAnswerCounts[q.id] : (q.answer_count || 0);
                 if (q.gif_url) {
                     mediaHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem; margin-bottom: 1.5rem;">
@@ -646,16 +910,6 @@
                                 </div>` : ''}
                         </div>
                     </div>`;
-                } else if (isModerator) {
-                    mediaHtml = `
-                    <div class="topic-media-placeholder" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '')" title="Click to attach an engaging cover GIF or image to this topic">
-                        <span class="media-ph-icon">🖼️</span>
-                        <div class="media-ph-content">
-                            <span class="media-ph-title">+ Add Cover GIF or Meme</span>
-                            <span class="media-ph-subtitle">Topics with cover images get 2x more team participation</span>
-                        </div>
-                        <span class="media-ph-badge">✨ Boost Engagement</span>
-                    </div>`;
                 }
 
                 return `
@@ -663,14 +917,31 @@
                     ${mediaHtml}
                     <div class="sticky-wrapper">
                         <div class="question-header">
-                            <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1; color: var(--text-main); font-weight: 900;">${q.text}</h2>
+                            <h2 style="font-size: 2.5rem; margin:0; line-height: 1.1; color: var(--text-main); font-weight: 900; display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+                                <span>${escapeText(q.text)}</span> <span class="topic-answers-count" id="topic-count-${q.id}">(${aCount})</span>
+                            </h2>
                             <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; align-items: center;">
-                                ${isModerator ? `<button onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}')" class="btn btn-ghost" style="font-size: 0.85rem;" title="Edit topic title and cover GIF">✏️ Edit Topic & GIF</button>` : ''}
-                                ${isModerator ? `<button onclick="toggleSpotlightTopic('${q.id}')" class="btn btn-ghost spotlight-topic-btn ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-q-id="${q.id}" id="spotlight-topic-${q.id}" style="font-size: 0.85rem;" title="Spotlight focus this topic for all participants">${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Topic Focused' : '🔦 Focus Topic'}</button>` : ''}
                                 <button onclick="openSubmitModal('${q.id}', '${q.text.replace(/'/g, "\\'")}')" class="btn btn-primary" title="Post reflection card with reaction GIF or meme">✍️ Post Card & GIF</button>
                                 <button onclick="toggleBoardToolbar('${q.id}')" id="toggle-toolbar-${q.id}" class="btn btn-ghost toolbar-toggle-btn ${isToolbarCollapsed ? 'active' : ''}" title="Hide/show filters and sort controls (H)">
                                     <span>⚡ Filters & Sort</span> <span class="toolbar-toggle-arrow">${isToolbarCollapsed ? '▸' : '▾'}</span>
                                 </button>
+                                ${isModerator ? `
+                                <div class="topic-dropdown-container">
+                                    <button type="button" onclick="toggleTopicDropdown(event, '${q.id}')" class="btn btn-ghost topic-menu-btn" title="Topic Options & Facilitator Controls">
+                                        <span>⚙️ Topic</span> <span class="topic-dropdown-caret">▾</span>
+                                    </button>
+                                    <div class="topic-dropdown-panel hidden" id="topicDropdown-${q.id}" role="menu">
+                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal('${q.id}', '${q.text.replace(/'/g, "\\'")}', '${q.gif_url || ''}'); closeTopicDropdowns();">
+                                            <span>✏️ Edit Topic & GIF</span>
+                                        </button>
+                                        <button type="button" class="topic-dropdown-item" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();">
+                                            <span>${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Unfocus Topic' : '🔦 Focus Topic'}</span>
+                                        </button>
+                                        <button type="button" class="topic-dropdown-item" onclick="openQuestionModal(); closeTopicDropdowns();">
+                                            <span>➕ Add New Topic</span>
+                                        </button>
+                                    </div>
+                                </div>` : ''}
                             </div>
                             <div class="board-toolbar ${isToolbarCollapsed ? 'toolbar-collapsed' : ''}" id="board-toolbar-${q.id}">
                                 <div class="toolbar-group">
@@ -699,7 +970,10 @@
                 </div>`;
             }).join('');
             const dotsWrapper = document.getElementById('nav-dots-wrapper');
-            const dotsHtml = currentQuestions.map((q, i) => `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}"></div>`).join('');
+            const dotsHtml = currentQuestions.map((q, i) => {
+                const aCount = typeof topicAnswerCounts[q.id] === 'number' ? topicAnswerCounts[q.id] : (q.answer_count || 0);
+                return `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}: ${escapeText(q.text)} (${aCount})"></div>`;
+            }).join('');
             if (dotsWrapper) {
                 dotsWrapper.innerHTML = dotsHtml;
             } else if (nav) {
@@ -984,6 +1258,18 @@
             if (!e.target.closest('.card-actions-dropdown')) {
                 closeAllCardDropdowns();
             }
+            if (!e.target.closest('.topbar-presence-container')) {
+                closePresenceDropdown();
+            }
+            if (!e.target.closest('#sm-controls')) {
+                closeFacilitatorDropdown();
+            }
+            if (!e.target.closest('#toolsDropdownContainer')) {
+                closeToolsDropdown();
+            }
+            if (!e.target.closest('.topic-dropdown-container')) {
+                closeTopicDropdowns();
+            }
         });
 
         // ==========================================
@@ -1192,6 +1478,15 @@
             if (badge) {
                 badge.innerText = String(pendingCount);
             }
+            const toolsBadge = document.getElementById('toolsBadge');
+            const toolsActionBadge = document.getElementById('toolsActionBadge');
+            if (toolsActionBadge) {
+                toolsActionBadge.innerText = String(pendingCount);
+            }
+            if (toolsBadge) {
+                toolsBadge.innerText = String(pendingCount);
+                toolsBadge.classList.toggle('hidden', pendingCount === 0);
+            }
             if (statsText) {
                 statsText.innerText = `${pendingCount} pending / ${actionItemsList.length} total`;
             }
@@ -1384,6 +1679,10 @@
                     activePage.hasMore = false;
                 } else {
                     activePage.hasMore = true;
+                }
+
+                if (!activePage.hasMore || answers.length > (topicAnswerCounts[activeQuestionId] || 0)) {
+                    updateTopicAnswerCount(activeQuestionId, answers.length);
                 }
                 
                 const q = currentQuestions.find(currQ => currQ.id === activeQuestionId);
@@ -1852,9 +2151,12 @@
                     if (data.author_name) {
                         assignedGuestName = data.author_name;
                     }
+                    const newCount = (topicAnswerCounts[activeQuestionId] || 0) + 1;
+                    updateTopicAnswerCount(activeQuestionId, newCount);
                     SoundFX.playPost();
                     closeSubmitModal(); 
                     loadAnswers(); 
+                    syncPresence();
                     showToast(`Posted as 🎭 ${assignedGuestName}!`, "success"); 
                 } 
             } finally {} 
@@ -1884,6 +2186,7 @@
                 closeShortcutsModal();
                 closeActionItemsModal();
                 closeClusterModal();
+                closePresenceDropdown();
                 return;
             }
 

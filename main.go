@@ -92,6 +92,8 @@ func main() {
 	mux.HandleFunc("/api/action-items/delete", handlers.DeleteActionItemHandler)
 	mux.HandleFunc("/api/answer/cluster", handlers.ClusterAnswerHandler)
 	mux.HandleFunc("/api/session/clusters", handlers.GetClustersHandler)
+	mux.HandleFunc("/api/session/presence", handlers.PresenceHandler)
+	mux.HandleFunc("/api/session/presence/leave", handlers.PresenceLeaveHandler)
 
 	// Monetization & Admin API
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)

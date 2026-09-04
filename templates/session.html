@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/static/style.css?v=283">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/static/css/session.css?v=283">
+    <link rel="stylesheet" href="/static/css/session.css?v=285">
 
     <script>
         (function() {
@@ -36,20 +36,87 @@
                     <span>Exit</span>
                 </a>
                 <div class="topbar-brand">
-                    <h1 id="sessionNameTitle" class="topbar-title">Loading...</h1>
+                    <h1 id="sessionNameTitle" class="topbar-title" title="Session Name">Loading...</h1>
                     <span id="roleBadge" class="session-role-badge">PARTICIPANT</span>
+                    <!-- Active Participants Tracker Widget -->
+                    <div class="topbar-presence-container">
+                        <button class="topbar-action-btn presence-btn" id="presenceBtn" onclick="togglePresenceDropdown(event)" title="Active online participants in this session" aria-haspopup="true" aria-expanded="false">
+                            <span class="presence-pulse-dot" id="presencePulseDot"></span>
+                            <span class="presence-icon">👥</span>
+                            <span id="activeParticipantsCount" class="presence-count-val">1</span>
+                            <span class="presence-label-text">Online</span>
+                            <span class="presence-arrow" id="presenceArrow">▾</span>
+                        </button>
+                        <div class="presence-dropdown-panel hidden" id="presenceDropdownPanel" role="menu" aria-label="Active Participants List">
+                            <div class="presence-dropdown-header">
+                                <div class="presence-header-title">
+                                    <span class="presence-pulse-dot static"></span>
+                                    <span>ONLINE NOW</span>
+                                </div>
+                                <span id="presenceDropdownCount" class="presence-header-badge">1 Active</span>
+                            </div>
+                            <div class="presence-list" id="presenceList">
+                                <div class="presence-loading-msg">Connecting to room...</div>
+                            </div>
+                        </div>
+                    </div>
                     <span id="sessionIdDisplay" style="display: none;"></span>
                 </div>
             </div>
 
-            <!-- Center: Inline SM Actions -->
-            <div id="sm-controls" class="topbar-sm-actions hidden">
-                <button onclick="openQuestionModal()" class="btn btn-success sm-btn" title="Create new topic with cover GIF or image">+ Topic & GIF</button>
-                <button onclick="revealAllCards()" class="btn btn-ghost sm-btn" style="color: var(--primary); border-color: var(--primary);">🪄 Reveal</button>
-                <button onclick="downloadReport()" class="btn btn-ghost sm-btn">📄 PDF</button>
+            <!-- Center: Facilitator Dropdown Menu (Moderator Only) -->
+            <div id="sm-controls" class="topbar-dropdown-container topbar-sm-actions hidden">
+                <button class="topbar-action-btn facilitator-btn" id="facilitatorBtn" onclick="toggleFacilitatorDropdown(event)" title="Facilitator & Session Controls" aria-haspopup="true" aria-expanded="false">
+                    <span class="facilitator-icon">⚡</span>
+                    <span class="facilitator-label">Facilitator</span>
+                    <span class="topbar-dropdown-caret" id="facilitatorArrow">▾</span>
+                </button>
+                <div class="topbar-dropdown-panel hidden" id="facilitatorDropdownPanel" role="menu" aria-label="Facilitator Controls">
+                    <div class="topbar-menu-header">
+                        <span>FACILITATOR CONTROLS</span>
+                    </div>
+                    <div class="topbar-menu-items">
+                        <button type="button" class="topbar-menu-item" onclick="openQuestionModal(); closeAllTopbarDropdowns();">
+                            <span class="menu-item-icon">➕</span>
+                            <div class="menu-item-text">
+                                <div class="menu-item-title">Add New Topic</div>
+                                <div class="menu-item-desc">Create another discussion board</div>
+                            </div>
+                        </button>
+                        <button type="button" class="topbar-menu-item" onclick="editCurrentTopic(); closeAllTopbarDropdowns();">
+                            <span class="menu-item-icon">✏️</span>
+                            <div class="menu-item-text">
+                                <div class="menu-item-title">Edit Topic & GIF</div>
+                                <div class="menu-item-desc">Modify current topic title & media</div>
+                            </div>
+                        </button>
+                        <button type="button" class="topbar-menu-item" onclick="revealAllCards(); closeAllTopbarDropdowns();">
+                            <span class="menu-item-icon">🪄</span>
+                            <div class="menu-item-text">
+                                <div class="menu-item-title">Reveal All Cards</div>
+                                <div class="menu-item-desc">Flip reflections face-up for discussion</div>
+                            </div>
+                        </button>
+                        <button type="button" class="topbar-menu-item" onclick="spotlightCurrentTopic(); closeAllTopbarDropdowns();">
+                            <span class="menu-item-icon">🔦</span>
+                            <div class="menu-item-text">
+                                <div class="menu-item-title" id="facilitatorFocusItemTitle">Focus Current Topic</div>
+                                <div class="menu-item-desc">Spotlight topic for all participants</div>
+                            </div>
+                        </button>
+                        <div class="topbar-menu-divider"></div>
+                        <button type="button" class="topbar-menu-item" onclick="downloadReport(); closeAllTopbarDropdowns();">
+                            <span class="menu-item-icon">📄</span>
+                            <div class="menu-item-text">
+                                <div class="menu-item-title">Export PDF Summary</div>
+                                <div class="menu-item-desc">Download session retrospective report</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Right: Timer, Votes, Utility Icons, Invite -->
+            <!-- Right: Timer, Votes, Tools Dropdown, Theme, Invite -->
             <div class="topbar-right">
                 <div class="timer-widget">
                     <span style="font-size: 0.85rem;">⏱</span>
@@ -66,19 +133,64 @@
                     🎯 <span id="voteBudgetCount">5</span>/5 <span class="vote-label-text">Votes</span>
                 </div>
 
-                <button class="topbar-action-btn" id="actionItemsBtn" onclick="openActionItemsModal()" title="View Action Items & Commitments">
-                    ✅ <span class="action-btn-text">Actions</span> <span id="actionItemsBadge" class="action-count-pill">0</span>
-                </button>
-
-                <div class="topbar-utility-group">
-                    <button class="topbar-icon-btn" id="shortcutsBtn" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">⌨️</button>
-                    <button class="topbar-icon-btn" id="soundToggleBtn" onclick="SoundFX.toggle()" title="Toggle Sound FX">🔊</button>
-                    <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme"><svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg></button>
+                <!-- Consolidated Session Tools Dropdown -->
+                <div class="topbar-dropdown-container" id="toolsDropdownContainer">
+                    <button class="topbar-action-btn tools-btn" id="toolsBtn" onclick="toggleToolsDropdown(event)" title="Session Tools & Utilities" aria-haspopup="true" aria-expanded="false">
+                        <span class="tools-btn-icon">⚙️</span>
+                        <span class="tools-btn-label">Tools</span>
+                        <span id="toolsBadge" class="action-count-pill hidden">0</span>
+                        <span class="topbar-dropdown-caret" id="toolsArrow">▾</span>
+                    </button>
+                    <div class="topbar-dropdown-panel right-aligned hidden" id="toolsDropdownPanel" role="menu" aria-label="Session Tools">
+                        <div class="topbar-menu-header">
+                            <span>SESSION TOOLS</span>
+                        </div>
+                        <div class="topbar-menu-items">
+                            <button type="button" class="topbar-menu-item" onclick="openActionItemsModal(); closeAllTopbarDropdowns();">
+                                <span class="menu-item-icon">✅</span>
+                                <div class="menu-item-text">
+                                    <div class="menu-item-title" style="display: flex; align-items: center; gap: 6px;">
+                                        <span>Action Items</span>
+                                        <span id="toolsActionBadge" class="menu-badge">0</span>
+                                    </div>
+                                    <div class="menu-item-desc">Commitments, tasks & owners</div>
+                                </div>
+                            </button>
+                            <button type="button" class="topbar-menu-item" onclick="downloadReport(); closeAllTopbarDropdowns();">
+                                <span class="menu-item-icon">📄</span>
+                                <div class="menu-item-text">
+                                    <div class="menu-item-title">Export PDF Summary</div>
+                                    <div class="menu-item-desc">Download complete session report</div>
+                                </div>
+                            </button>
+                            <div class="topbar-menu-divider"></div>
+                            <button type="button" class="topbar-menu-item" onclick="SoundFX.toggle(); updateToolsSoundState();">
+                                <span class="menu-item-icon" id="toolsSoundIcon">🔊</span>
+                                <div class="menu-item-text">
+                                    <div class="menu-item-title" id="toolsSoundTitle">Sound Effects (On)</div>
+                                    <div class="menu-item-desc">Card flip, reveal & click sounds</div>
+                                </div>
+                            </button>
+                            <button type="button" class="topbar-menu-item" onclick="openShortcutsModal(); closeAllTopbarDropdowns();">
+                                <span class="menu-item-icon">⌨️</span>
+                                <div class="menu-item-text">
+                                    <div class="menu-item-title">Keyboard Shortcuts</div>
+                                    <div class="menu-item-desc">Press ? to view hotkeys</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Direct Theme Switcher -->
+                <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle Theme" aria-label="Toggle Theme">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg>
+                </button>
+
+                <!-- Direct Invite Button -->
                 <button onclick="copyInvite()" class="btn btn-ghost topbar-invite-btn" title="Copy Invite Link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                    Invite
+                    <span>Invite</span>
                 </button>
             </div>
         </div>
@@ -350,6 +462,6 @@
     <script src="/static/js/sound-fx.js?v=283"></script>
     <script src="/static/js/confetti.js?v=283"></script>
     <script src="/static/js/fingerprint.js?v=283"></script>
-    <script src="/static/js/session.js?v=283"></script>
+    <script src="/static/js/session.js?v=285"></script>
 </body>
 </html>

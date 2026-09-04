@@ -25,6 +25,7 @@ type Question struct {
 	GifURL           string    `json:"gif_url" firestore:"gif_url"`
 	TimeLimitSeconds int       `json:"time_limit_seconds" firestore:"time_limit_seconds"`
 	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
+	AnswerCount      int       `json:"answer_count" firestore:"-"`
 }
 
 type Answer struct {

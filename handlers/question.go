@@ -23,6 +23,18 @@ func GetQuestionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if AnswerRepo != nil {
+		if answers, err := AnswerRepo.GetBySession(r.Context(), sessionID); err == nil {
+			counts := make(map[string]int)
+			for _, a := range answers {
+				counts[a.QuestionID]++
+			}
+			for i := range questions {
+				questions[i].AnswerCount = counts[questions[i].ID]
+			}
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(questions)
 }
