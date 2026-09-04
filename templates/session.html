@@ -1982,6 +1982,28 @@
                     clickOsc.stop(now + 0.04);
                 } catch(e) {}
             },
+            // Snappy tactical UI pop / spotlight beacon
+            playPop() {
+                if (this.muted) return;
+                this.init();
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                try {
+                    const ctx = this.audioCtx;
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(640, now);
+                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.06);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                } catch(e) {}
+            },
             // Satisfying crystal joycon / waterdrop chime
             playVote() {
                 if (this.muted) return;
@@ -2419,61 +2441,72 @@
 
         function applySpotlightState(data) {
             if (!data) return;
-            const isNewUpdate = data.updated_at_ms > lastObservedSpotlightMs;
-            const wasActive = currentSpotlight.active;
-            currentSpotlight = data;
-            lastObservedSpotlightMs = data.updated_at_ms;
+            try {
+                const isNewUpdate = data.updated_at_ms > lastObservedSpotlightMs;
+                const wasActive = currentSpotlight.active;
+                currentSpotlight = data;
+                lastObservedSpotlightMs = data.updated_at_ms;
 
-            const banner = document.getElementById('spotlightBanner');
-            const clearBtn = document.getElementById('spotlightClearBtn');
-            const bannerMsg = document.getElementById('spotlightBannerMsg');
+                const banner = document.getElementById('spotlightBanner');
+                const clearBtn = document.getElementById('spotlightClearBtn');
+                const bannerMsg = document.getElementById('spotlightBannerMsg');
 
-            if (data.active) {
-                if (banner) banner.classList.remove('hidden');
-                if (clearBtn) {
-                    if (isModerator) clearBtn.classList.remove('hidden');
-                    else clearBtn.classList.add('hidden');
-                }
-
-                // Remove previous spotlight classes
-                document.querySelectorAll('.answer-card.spotlight-active').forEach(el => {
-                    if (el.dataset.id !== data.answer_id) el.classList.remove('spotlight-active');
-                });
-                document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => {
-                    if (el.id !== `q-${data.question_id}`) el.classList.remove('spotlight-topic-active');
-                });
-
-                if (data.answer_id) {
-                    if (bannerMsg) bannerMsg.innerText = "FACILITATOR SPOTLIGHT: Reflection Card In Focus";
-                    const card = document.querySelector(`.answer-card[data-id="${data.answer_id}"]`);
-                    if (card) {
-                        card.classList.add('spotlight-active');
-                        if (!card.classList.contains('flipped')) {
-                            card.classList.add('flipped');
-                        }
+                if (data.active) {
+                    if (banner) banner.classList.remove('hidden');
+                    if (clearBtn) {
+                        if (isModerator) clearBtn.classList.remove('hidden');
+                        else clearBtn.classList.add('hidden');
                     }
-                } else if (data.question_id) {
-                    const topic = document.getElementById(`q-${data.question_id}`);
-                    if (topic) topic.classList.add('spotlight-topic-active');
-                    const qObj = currentQuestions.find(q => q.id === data.question_id);
-                    if (bannerMsg) bannerMsg.innerText = `FACILITATOR SPOTLIGHT: ${qObj ? qObj.text : 'Topic Focus'}`;
+
+                    // Remove previous spotlight classes
+                    document.querySelectorAll('.answer-card.spotlight-active').forEach(el => {
+                        if (el.dataset.id !== data.answer_id) el.classList.remove('spotlight-active');
+                    });
+                    document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => {
+                        if (el.id !== `q-${data.question_id}`) el.classList.remove('spotlight-topic-active');
+                    });
+
+                    if (data.answer_id) {
+                        if (bannerMsg) bannerMsg.innerText = "FACILITATOR SPOTLIGHT: Reflection Card In Focus";
+                        const card = document.querySelector(`.answer-card[data-id="${data.answer_id}"]`);
+                        if (card) {
+                            card.classList.add('spotlight-active');
+                            if (!card.classList.contains('flipped')) {
+                                card.classList.add('flipped');
+                            }
+                        }
+                    } else if (data.question_id) {
+                        const topic = document.getElementById(`q-${data.question_id}`);
+                        if (topic) topic.classList.add('spotlight-topic-active');
+                        const qObj = currentQuestions.find(q => q.id === data.question_id);
+                        if (bannerMsg) bannerMsg.innerText = `FACILITATOR SPOTLIGHT: ${qObj ? qObj.text : 'Topic Focus'}`;
+                    }
+
+                    // If this is a newly triggered spotlight update, notify and auto-jump
+                    if (isNewUpdate && (!wasActive || isNewUpdate)) {
+                        SoundFX.playPop();
+                        jumpToSpotlight(false);
+                    }
+                } else {
+                    if (banner) banner.classList.add('hidden');
+                    document.querySelectorAll('.answer-card.spotlight-active').forEach(el => el.classList.remove('spotlight-active'));
+                    document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => el.classList.remove('spotlight-topic-active'));
                 }
 
-                // If this is a newly triggered spotlight update, notify and auto-jump
-                if (isNewUpdate && (!wasActive || isNewUpdate)) {
-                    SoundFX.playPop();
-                    jumpToSpotlight(false);
-                }
-            } else {
-                if (banner) banner.classList.add('hidden');
-                document.querySelectorAll('.answer-card.spotlight-active').forEach(el => el.classList.remove('spotlight-active'));
-                document.querySelectorAll('.topic-container.spotlight-topic-active').forEach(el => el.classList.remove('spotlight-topic-active'));
+                updateSpotlightButtonsUI();
+            } catch (err) {
+                console.error("Error in applySpotlightState:", err);
             }
-
-            updateSpotlightButtonsUI();
         }
 
         function updateSpotlightButtonsUI() {
+            document.querySelectorAll('[data-spotlight-card-id]').forEach(btn => {
+                const cardId = btn.dataset.spotlightCardId;
+                const isFocused = currentSpotlight.active && currentSpotlight.answer_id === cardId;
+                btn.classList.toggle('active', isFocused);
+                const span = btn.querySelector('span');
+                if (span) span.innerText = isFocused ? '🔦 Remove Focus' : '🔦 Spotlight Focus';
+            });
             document.querySelectorAll('.spotlight-card-btn').forEach(btn => {
                 const cardId = btn.dataset.cardId;
                 if (currentSpotlight.active && currentSpotlight.answer_id === cardId) {
@@ -2525,6 +2558,7 @@
                     showToast(`Spotlight error: ${err}`, 'error');
                 }
             } catch (e) {
+                console.error("toggleSpotlightCard error:", e);
                 showToast('Failed to update spotlight', 'error');
             }
         }
@@ -2558,6 +2592,7 @@
                     showToast(`Spotlight error: ${err}`, 'error');
                 }
             } catch (e) {
+                console.error("toggleSpotlightTopic error:", e);
                 showToast('Failed to update spotlight', 'error');
             }
         }
@@ -3712,7 +3747,7 @@
                                         <span>⚡ Action Item</span>
                                     </button>
                                     ${isModerator ? `
-                                        <button class="card-dropdown-item ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}'); closeAllCardDropdowns();" title="Spotlight focus this card for all participants">
+                                        <button class="card-dropdown-item ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" data-spotlight-card-id="${a.id}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}'); closeAllCardDropdowns();" title="Spotlight focus this card for all participants">
                                             <span>${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Remove Focus' : '🔦 Spotlight Focus'}</span>
                                         </button>
                                         <button class="card-dropdown-item ${a.cluster_tag ? 'has-tag' : ''}" onclick="event.stopPropagation(); openClusterModal('${a.id}', '${escapeText(a.cluster_tag || '')}'); closeAllCardDropdowns();" title="Categorize or cluster this reflection">
