@@ -481,48 +481,88 @@
             border-color: var(--accent-primary, #ff5f1f) !important;
         }
 
-        .card-actions-row {
-            margin-top: 1.25rem;
-            padding-top: 0.75rem;
-            border-top: 2px dashed var(--border-color);
+        /* Card Actions Dropdown */
+        .card-actions-dropdown {
+            position: relative;
+            margin-top: auto;
+            padding-top: 0.85rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            transition: all 0.2s ease;
+            justify-content: flex-end;
+            width: 100%;
         }
-        .card-actions-row.hidden-actions {
-            display: none !important;
-        }
-        .card-footer-toggle-btn {
-            font-size: 0.7rem !important;
-            padding: 0.2rem 0.45rem !important;
-            font-family: 'JetBrains Mono', monospace !important;
-            font-weight: 800 !important;
-            border: 2px solid var(--border-color) !important;
+        .card-dropdown-toggle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem !important;
+            font-weight: 800;
+            padding: 0.35rem 0.65rem !important;
             background: var(--bg-card) !important;
-            color: var(--text-sub) !important;
-            box-shadow: 1px 1px 0px var(--border-color);
+            color: var(--text-main) !important;
+            border: 2px solid var(--border-color) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
             cursor: pointer;
-            transition: all var(--transition);
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.35rem;
+            transition: all var(--transition);
             user-select: none;
             border-radius: 0px !important;
             line-height: 1;
         }
-        .card-footer-toggle-btn:hover {
+        .card-dropdown-toggle:hover {
             transform: translate(-1px, -1px);
-            box-shadow: 2px 2px 0px var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
             color: var(--accent-primary) !important;
             border-color: var(--accent-primary) !important;
         }
-        .card-footer-toggle-btn.active {
-            background: var(--primary) !important;
+        .card-dropdown-toggle.active {
+            background: var(--accent-primary) !important;
             color: #fff !important;
             border-color: var(--border-color) !important;
+        }
+        .card-dropdown-menu {
+            position: absolute;
+            bottom: calc(100% + 4px);
+            right: 0;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
+            z-index: 150;
+            min-width: 165px;
+            display: none;
+            flex-direction: column;
+            padding: 4px;
+            gap: 2px;
+            border-radius: 0px !important;
+        }
+        .card-dropdown-menu.show {
+            display: flex;
+            animation: dropDownPop 0.12s ease-out;
+        }
+        @keyframes dropDownPop {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-dropdown-item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem !important;
+            font-weight: 800;
+            padding: 0.45rem 0.65rem;
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.1s ease;
+            white-space: nowrap;
+            border-radius: 0px !important;
+        }
+        .card-dropdown-item:hover {
+            background: var(--accent-primary);
+            color: #fff;
+            border-color: var(--border-color);
         }
 
         /* Action Items Modal List */
@@ -1569,10 +1609,6 @@
                     <span class="shortcut-desc">Toggle Toolbar</span>
                     <div class="shortcut-keys"><span class="kbd-badge">H</span></div>
                 </div>
-                <div class="shortcut-row">
-                    <span class="shortcut-desc">Toggle Card Actions</span>
-                    <div class="shortcut-keys"><span class="kbd-badge">X</span></div>
-                </div>
                 <div class="shortcut-row" style="grid-column: 1 / -1;">
                     <span class="shortcut-desc">Close Modal / Unfocus</span>
                     <div class="shortcut-keys"><span class="kbd-badge">Esc</span></div>
@@ -2522,12 +2558,6 @@
                                     <span class="toolbar-label">Cluster:</span>
                                     <div class="cluster-pills-container" id="cluster-pills-${q.id}" style="display: inline-flex; gap: 0.35rem; flex-wrap: wrap;"></div>
                                 </div>
-                                <div class="toolbar-group">
-                                    <span class="toolbar-label">Cards:</span>
-                                    <button class="toolbar-pill ${!areCardActionsHidden ? 'active' : ''}" id="toggle-card-actions-pill-${q.id}" onclick="toggleAllCardActions()" title="Hide or show action item footer on cards (X)">
-                                        ⚡ Actions: <span id="card-actions-text-${q.id}">${!areCardActionsHidden ? 'Visible' : 'Hidden'}</span>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -2543,7 +2573,6 @@
                 nav.innerHTML = dotsHtml;
             }
             updateToolbarVisibility();
-            updateCardActionsVisibility();
             if (currentQuestions.length > 0) showQuestion(currentQuestions[0].id);
         }
 
@@ -2699,7 +2728,6 @@
         let currentMoodFilter = 'all';  // 'all' | 'wins' | 'challenges' | 'ideas'
         let allCardsFlipped = false;
         let isToolbarCollapsed = localStorage.getItem('retro_toolbar_collapsed') === 'true';
-        let areCardActionsHidden = localStorage.getItem('retro_card_actions_hidden') === 'true';
 
         const RetroConfetti = {
             canvas: null,
@@ -2887,55 +2915,37 @@
             });
         }
 
-        function toggleAllCardActions() {
-            areCardActionsHidden = !areCardActionsHidden;
-            localStorage.setItem('retro_card_actions_hidden', areCardActionsHidden ? 'true' : 'false');
-            updateCardActionsVisibility();
-            showToast(areCardActionsHidden ? 'Card action items hidden' : 'Card action items visible', 'info');
-        }
-
-        function updateCardActionsVisibility() {
-            document.querySelectorAll('.card-actions-row').forEach(row => {
-                if (areCardActionsHidden) {
-                    row.classList.add('hidden-actions');
-                } else {
-                    row.classList.remove('hidden-actions');
-                }
-            });
-            document.querySelectorAll('.card-footer-toggle-btn').forEach(btn => {
-                if (!areCardActionsHidden) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            document.querySelectorAll('[id^="card-actions-text-"]').forEach(el => {
-                el.textContent = areCardActionsHidden ? 'Hidden' : 'Visible';
-            });
-            document.querySelectorAll('[id^="toggle-card-actions-pill-"]').forEach(btn => {
-                if (!areCardActionsHidden) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        function toggleSingleCardActions(cardId) {
-            const row = document.getElementById(`card-actions-${cardId}`);
-            const btn = document.getElementById(`card-toggle-btn-${cardId}`);
-            if (row) {
-                row.classList.toggle('hidden-actions');
-                const isNowHidden = row.classList.contains('hidden-actions');
-                if (btn) {
-                    if (isNowHidden) {
-                        btn.classList.remove('active');
-                    } else {
-                        btn.classList.add('active');
-                    }
-                }
+        function toggleCardDropdown(cardId) {
+            const menu = document.getElementById(`card-dropdown-${cardId}`);
+            const btn = document.getElementById(`card-dropdown-btn-${cardId}`);
+            const isShowing = menu && menu.classList.contains('show');
+            
+            closeAllCardDropdowns();
+            
+            if (!isShowing && menu && btn) {
+                menu.classList.add('show');
+                btn.classList.add('active');
+                const arrow = btn.querySelector('.dropdown-arrow');
+                if (arrow) arrow.textContent = '▴';
             }
         }
+
+        function closeAllCardDropdowns() {
+            document.querySelectorAll('.card-dropdown-menu.show').forEach(m => {
+                m.classList.remove('show');
+            });
+            document.querySelectorAll('.card-dropdown-toggle.active').forEach(b => {
+                b.classList.remove('active');
+                const arrow = b.querySelector('.dropdown-arrow');
+                if (arrow) arrow.textContent = '▾';
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.card-actions-dropdown')) {
+                closeAllCardDropdowns();
+            }
+        });
 
         // ==========================================
         // Thematic Card Clustering & Duplicate Grouping (Module 6)
@@ -3394,29 +3404,29 @@
                                     <button class="card-vote-btn ${hasVoted ? 'has-voted' : ''}" onclick="event.stopPropagation(); voteCard('${a.id}')" title="Upvote feedback">
                                         ▲ <span>${votes}</span>
                                     </button>
-                                    <button class="card-footer-toggle-btn ${!areCardActionsHidden ? 'active' : ''}" id="card-toggle-btn-${a.id}" onclick="event.stopPropagation(); toggleSingleCardActions('${a.id}')" title="Toggle action items for this card">
-                                        ⚡
-                                    </button>
                                     <span class="back-emot-pill">${displayEmot}</span>
                                     <div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div>
                                 </div>
                             </div>
                             <div class="card-content-body">${sanitizeHTML(a.text)}</div>
                             ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${escapeText(a.gif_url)}" loading="lazy" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
-                            <div id="card-actions-${a.id}" class="card-actions-row ${areCardActionsHidden ? 'hidden-actions' : ''}">
-                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                                    ${isModerator ? `
-                                        <button class="spotlight-card-btn ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" data-card-id="${a.id}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}')" title="Spotlight focus this card for all participants">
-                                            ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Focused' : '🔦 Spotlight'}
-                                        </button>
-                                        <button class="cluster-card-btn ${a.cluster_tag ? 'has-tag' : ''}" onclick="event.stopPropagation(); openClusterModal('${a.id}', '${escapeText(a.cluster_tag || '')}')" title="Categorize or cluster this reflection">
-                                            🏷️ ${a.cluster_tag ? '#' + escapeText(a.cluster_tag) : 'Cluster'}
-                                        </button>
-                                    ` : '<div></div>'}
-                                </div>
-                                <button class="action-convert-btn" onclick="event.stopPropagation(); convertCardToAction('${a.id}')" title="Turn this reflection into a commitment/action item">
-                                    ⚡ Action Item
+                            <div class="card-actions-dropdown">
+                                <button class="card-dropdown-toggle" id="card-dropdown-btn-${a.id}" onclick="event.stopPropagation(); toggleCardDropdown('${a.id}')" title="Actions menu">
+                                    <span>⚡ Actions</span> <span class="dropdown-arrow">▾</span>
                                 </button>
+                                <div class="card-dropdown-menu" id="card-dropdown-${a.id}">
+                                    <button class="card-dropdown-item" onclick="event.stopPropagation(); convertCardToAction('${a.id}'); closeAllCardDropdowns();" title="Turn this reflection into a commitment/action item">
+                                        <span>⚡ Action Item</span>
+                                    </button>
+                                    ${isModerator ? `
+                                        <button class="card-dropdown-item ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}'); closeAllCardDropdowns();" title="Spotlight focus this card for all participants">
+                                            <span>${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Remove Focus' : '🔦 Spotlight Focus'}</span>
+                                        </button>
+                                        <button class="card-dropdown-item ${a.cluster_tag ? 'has-tag' : ''}" onclick="event.stopPropagation(); openClusterModal('${a.id}', '${escapeText(a.cluster_tag || '')}'); closeAllCardDropdowns();" title="Categorize or cluster this reflection">
+                                            <span>🏷️ ${a.cluster_tag ? '#' + escapeText(a.cluster_tag) : 'Cluster'}</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>`;
                     
@@ -3477,7 +3487,6 @@
                 reorderCards();
                 applyMoodFilter();
                 updateVoteBudgetUI();
-                updateCardActionsVisibility();
 
                 const statusEl = document.getElementById(`load-more-status-${q.id}`);
                 if (statusEl) {
@@ -3874,13 +3883,6 @@
             if (e.key === 'h' || e.key === 'H') {
                 e.preventDefault();
                 toggleBoardToolbar();
-                return;
-            }
-
-            // X toggles card action items footer
-            if (e.key === 'x' || e.key === 'X') {
-                e.preventDefault();
-                toggleAllCardActions();
                 return;
             }
 
