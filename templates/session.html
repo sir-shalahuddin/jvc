@@ -647,15 +647,70 @@
             #sendAnswerBtn {
                 margin-top: 1.5rem !important;
             }
+
+            /* Module 2: Hide keyboard shortcuts button on touchscreen devices */
+            #shortcutsBtn {
+                display: none !important;
+            }
+
+            /* Module 1: Compact toolbar pills on mobile */
+            .board-toolbar {
+                margin-top: 0.85rem;
+                padding-top: 0.75rem;
+                gap: 0.5rem;
+            }
+            .toolbar-group {
+                gap: 0.35rem;
+            }
+            .toolbar-pill {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            /* Module 5: Compact facilitator spotlight banner on mobile */
+            .spotlight-banner {
+                padding: 0.5rem 0.75rem;
+            }
+            .spotlight-banner-inner {
+                gap: 0.5rem;
+            }
+            .spotlight-banner-msg {
+                font-size: 0.75rem;
+                min-width: 140px;
+            }
+            .spotlight-btn-jump, .spotlight-btn-clear {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            /* Module 4: Responsive Action Item Card on mobile (stack details vertically) */
+            .action-item-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.65rem;
+                padding: 0.75rem 0.85rem;
+            }
+            .action-item-left {
+                width: 100%;
+                align-items: flex-start;
+            }
+            .action-item-meta {
+                width: 100%;
+                justify-content: space-between;
+                padding-left: 1.85rem;
+            }
         }
 
         @media (max-width: 440px) {
             .app-topbar-inner { padding: 0.35rem 0.5rem; }
-            .topbar-title { max-width: 120px; font-size: 0.95rem !important; }
+            .topbar-title { max-width: 110px; font-size: 0.95rem !important; }
             .topbar-exit-btn { padding: 0 6px; font-size: 0.7rem; }
             .timer-widget { height: 32px; padding: 0 5px; font-size: 0.75rem; }
             .vote-budget-badge { height: 32px; padding: 0 6px; font-size: 0.7rem; }
             .vote-budget-badge .vote-label-text { display: none; }
+            /* Compact Action Items button on very small screens */
+            .topbar-action-btn { height: 32px; padding: 0.25rem 0.45rem; font-size: 0.7rem; }
+            .topbar-action-btn .action-btn-text { display: none; }
             .topbar-icon-btn { width: 32px; height: 32px; font-size: 0.85rem; }
             .topbar-invite-btn { height: 32px; padding: 0 0.65rem !important; font-size: 0.7rem !important; }
             .sm-btn { height: 30px; padding: 0 0.6rem !important; font-size: 0.7rem !important; }
@@ -3575,6 +3630,9 @@
             }
 
             if (isInput) return;
+
+            // Never intercept browser combos with modifier keys (e.g. Ctrl+Shift+R, Ctrl+R, Cmd+R, Alt+..., Ctrl+C, Ctrl+V, etc.)
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
 
             // ? opens shortcuts cheat sheet
             if (e.key === '?' || (e.shiftKey && e.key === '/')) {
