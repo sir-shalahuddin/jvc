@@ -40,10 +40,14 @@
             --btn-text: #ffffff;
         }
 
+        :root {
+            --topbar-height: 56px;
+        }
+
         .container {
             max-width: 1100px;
             margin: 0 auto;
-            padding: 76px 2rem 5rem !important;
+            padding: calc(var(--topbar-height, 56px) + 16px) 2rem 5rem !important;
         }
 
         /* Sleek Full-Width Fixed App Topbar (Single-Row, ~56px) */
@@ -156,7 +160,7 @@
         /* Sleek Compact Question Topic Header */
         .sticky-wrapper { 
             position: sticky; 
-            top: 68px; 
+            top: calc(var(--topbar-height, 56px) + 8px); 
             z-index: 500; 
             margin-bottom: 1.5rem; 
             pointer-events: none; 
@@ -205,9 +209,61 @@
         .btn-ghost:hover { border-color: var(--border-color); color: var(--primary); background: var(--bg-card); transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-color) !important; }
         .btn-ghost:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color) !important; }
 
-        #nav-questions { position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: var(--bg-card); padding: 1rem 2rem; border-radius: 0px !important; box-shadow: var(--glass-shadow); z-index: 1000; border: 3px solid var(--border-color); backdrop-filter: none !important; }
-        .nav-dot { width: 12px; height: 12px; border-radius: 0px !important; background: var(--text-muted); cursor: pointer; transition: all var(--transition); border: 1px solid var(--border-color); }
-        .nav-dot.active { background: var(--primary); transform: scale(1.3); border: 2px solid var(--border-color); }
+        #nav-questions { 
+            position: fixed; 
+            bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem)); 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            align-items: center;
+            gap: 0.85rem; 
+            background: var(--bg-card); 
+            padding: 0.6rem 1.2rem; 
+            border-radius: 0px !important; 
+            box-shadow: var(--glass-shadow); 
+            z-index: 1000; 
+            border: 3px solid var(--border-color); 
+            backdrop-filter: none !important; 
+        }
+        .nav-dots-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-dot { 
+            width: 13px; 
+            height: 13px; 
+            border-radius: 0px !important; 
+            background: var(--text-muted); 
+            cursor: pointer; 
+            transition: all var(--transition); 
+            border: 2px solid var(--border-color); 
+            position: relative;
+        }
+        /* Expanded touch hit-area for dots on mobile devices */
+        .nav-dot::before {
+            content: '';
+            position: absolute;
+            top: -10px; bottom: -10px; left: -10px; right: -10px;
+        }
+        .nav-dot.active { background: var(--primary); transform: scale(1.25); border: 2px solid var(--border-color); }
+        .nav-dock-btn {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 900;
+            font-size: 1.15rem;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            transition: all var(--transition);
+            line-height: 1;
+            padding: 0;
+            user-select: none;
+        }
+        .nav-dock-btn:hover { background: var(--primary); color: #ffffff; transform: translate(-1px, -1px); box-shadow: 3px 3px 0px var(--border-color); }
+        .nav-dock-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--border-color); }
         
         .nav-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--glass-shadow); z-index: 900; transition: all var(--transition); color: var(--primary); }
         .nav-btn:hover { background: var(--primary); color: white; transform: translateY(-50%) translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); }
@@ -217,13 +273,123 @@
 
         .modal-content { background: var(--bg-card); backdrop-filter: none !important; border: 3px solid var(--border-color); border-radius: 0px !important; padding: 3rem; position: relative; box-shadow: 8px 8px 0px var(--border-color); max-height: 90vh; overflow-y: auto; color: var(--text); }
 
+        /* Form Grid Layouts for Modals */
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 1.5rem;
+        }
+        .modal-form-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Responsive Breakpoints (Tablet & Mobile) */
         @media (max-width: 900px) {
             .app-topbar { height: auto; min-height: 52px; padding: 0.4rem 0; }
-            .app-topbar-inner { flex-wrap: wrap; padding: 0 1rem; gap: 0.5rem; }
-            .container { padding: 115px 1rem 3rem !important; }
-            .sticky-wrapper { top: 105px; }
+            .app-topbar-inner { flex-wrap: wrap; padding: 0 0.85rem; gap: 0.5rem; }
             .question-header { padding: 1rem 1.25rem; }
-            .question-header h2 { font-size: 1.4rem !important; }
+            .question-header h2 { font-size: 1.5rem !important; }
+            .nav-btn.prev { left: 0.85rem; width: 48px; height: 48px; }
+            .nav-btn.next { right: 0.85rem; width: 48px; height: 48px; }
+        }
+
+        @media (max-width: 768px) {
+            /* Hide bulky fixed side arrows that obscure cards on touch screens */
+            .nav-btn { display: none !important; }
+            
+            .topbar-title { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.1rem !important; }
+            .topbar-sm-actions {
+                width: 100%;
+                order: 3;
+                justify-content: center;
+                padding-top: 0.35rem;
+                margin-top: 0.15rem;
+                border-top: 2px dashed var(--border-color);
+            }
+            #nav-questions {
+                bottom: max(0.85rem, env(safe-area-inset-bottom, 0.85rem));
+                padding: 0.5rem 0.85rem;
+                gap: 0.65rem;
+            }
+            .modal-content {
+                padding: 2rem 1.5rem;
+                width: 92vw;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 0.65rem !important;
+                padding-right: 0.65rem !important;
+                padding-bottom: 5.5rem !important;
+            }
+            .question-header {
+                padding: 0.85rem 0.9rem !important;
+                margin-bottom: 0.75rem;
+            }
+            .question-header h2 {
+                font-size: 1.25rem !important;
+                line-height: 1.25 !important;
+            }
+            .question-header .btn {
+                height: 34px !important;
+                padding: 0 0.85rem !important;
+                font-size: 0.8rem !important;
+            }
+
+            /* Single column full-width masonry layout on smartphones */
+            .answers-grid {
+                column-count: 1 !important;
+                column-width: auto !important;
+                column-gap: 0 !important;
+                padding-top: 0.5rem;
+            }
+            .answer-card {
+                min-height: 240px;
+                margin-bottom: 1.15rem;
+            }
+            .card-face {
+                min-height: 240px;
+                padding: 1.25rem 1rem !important;
+            }
+            .card-back {
+                min-height: 240px;
+            }
+            .emoji-main {
+                font-size: clamp(1.75rem, 7vw, 2.3rem) !important;
+            }
+
+            /* Stack modal form fields on narrow viewports */
+            .modal-form-grid,
+            .modal-form-grid-2col {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            .modal-content {
+                padding: 1.5rem 1.15rem !important;
+                width: 95vw !important;
+                max-height: 86vh !important;
+            }
+            #editor-container {
+                height: 120px !important;
+            }
+            #sendAnswerBtn {
+                margin-top: 1.5rem !important;
+            }
+        }
+
+        @media (max-width: 440px) {
+            .app-topbar-inner { padding: 0.35rem 0.5rem; }
+            .topbar-title { max-width: 120px; font-size: 0.95rem !important; }
+            .topbar-exit-btn { padding: 0 6px; font-size: 0.7rem; }
+            .timer-widget { height: 32px; padding: 0 5px; font-size: 0.75rem; }
+            .vote-budget-badge { height: 32px; padding: 0 6px; font-size: 0.7rem; }
+            .vote-budget-badge .vote-label-text { display: none; }
+            .topbar-icon-btn { width: 32px; height: 32px; font-size: 0.85rem; }
+            .topbar-invite-btn { height: 32px; padding: 0 0.65rem !important; font-size: 0.7rem !important; }
+            .sm-btn { height: 30px; padding: 0 0.6rem !important; font-size: 0.7rem !important; }
         }
 
         /* AI Thinking Animation Styles (Neo-Brutalist) */
@@ -620,7 +786,7 @@
                 </div>
 
                 <div class="vote-budget-badge" id="voteBudgetBadge" title="Your remaining dot votes">
-                    🎯 <span id="voteBudgetCount">5</span>/5 Votes
+                    🎯 <span id="voteBudgetCount">5</span>/5 <span class="vote-label-text">Votes</span>
                 </div>
 
                 <div class="topbar-utility-group">
@@ -638,15 +804,19 @@
 
     <div class="container">
         <div id="questions-container"></div>
-        <div id="nav-questions"></div>
+        <div id="nav-questions">
+            <button class="nav-dock-btn prev" onclick="prevQuestion()" aria-label="Previous Topic" title="Previous Topic">‹</button>
+            <div id="nav-dots-wrapper" class="nav-dots-wrapper"></div>
+            <button class="nav-dock-btn next" onclick="nextQuestion()" aria-label="Next Topic" title="Next Topic">›</button>
+        </div>
 
         <div class="nav-btn prev" onclick="prevQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 18l-6-6 6-6"/></svg></div>
         <div class="nav-btn next" onclick="nextQuestion()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg></div>
     </div>
 
     <!-- Modals -->
-    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Anonymous Alias (Assigned)</label><div class="assigned-alias-badge" id="assignedAliasBadge">🎭 <span id="assignedAliasDisplay">Random Guest</span></div></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
-    <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
+    <div id="submitModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeSubmitModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="modalQuestionTitle" style="font-size: 1.5rem; margin-bottom: 2rem;">Add Your Feedback</h2><div id="editor-wrapper" style="margin-bottom: 2rem;"><div id="editor-container" style="height: 150px;"></div></div><div class="modal-form-grid"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">Your Anonymous Alias (Assigned)</label><div class="assigned-alias-badge" id="assignedAliasBadge">🎭 <span id="assignedAliasDisplay">Random Guest</span></div></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.75rem; text-transform: uppercase;">GIF</label><input type="text" id="gifSearchQuery" placeholder="Search..." style="width: 100%;" oninput="debouncedSearch('gif-results', 'selectedGifUrl')"></div></div><div id="gif-results" class="gif-results"></div><input type="hidden" id="selectedGifUrl"><button id="sendAnswerBtn" class="btn btn-primary" style="width: 100%; margin-top: 2.5rem;">Post to Board</button></div></div>
+    <div id="questionModal" class="modal-overlay hidden"><div class="modal-content" style="max-width: 650px;"><button onclick="closeQuestionModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button><h2 id="qModalTitle" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Edit Question</h2><input type="hidden" id="editQId"><div style="margin-bottom: 1.5rem;"><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Text</label><input type="text" id="qModalText" style="width: 100%;"></div><div class="modal-form-grid-2col"><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">GIF</label><input type="text" id="qGifSearch" oninput="debouncedSearch('q-gif-results', 'qModalGif')" style="width: 100%;"></div><div><label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Upload</label><input type="file" onchange="handleFileUpload(this, 'qModalGif')" style="width: 100%;"></div></div><div id="q-gif-results" class="gif-results"></div><div id="q-preview" style="text-align: center;"></div><input type="hidden" id="qModalGif"><div style="display: flex; gap: 1rem; margin-top: 2rem;"><button onclick="saveQuestion()" class="btn btn-primary" style="flex: 2;">Save</button><button id="deleteQBtn" onclick="deleteQuestion()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Delete</button></div></div></div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js" defer></script>
     <script>
@@ -1111,14 +1281,105 @@
             else { icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; }
         }
 
+        // ==========================================
+        // Security: Light DOM Sanitizer & Escaping
+        // ==========================================
+        function escapeText(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function sanitizeHTML(html) {
+            if (!html) return '';
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            // Remove executable script and embed elements
+            const blocked = temp.querySelectorAll('script, style, iframe, object, embed, applet');
+            blocked.forEach(el => el.remove());
+            // Strip inline event listeners and dangerous URIs
+            const allElements = temp.querySelectorAll('*');
+            allElements.forEach(el => {
+                for (let i = el.attributes.length - 1; i >= 0; i--) {
+                    const attr = el.attributes[i];
+                    const name = attr.name.toLowerCase();
+                    const val = attr.value.trim().toLowerCase();
+                    if (name.startsWith('on') || val.startsWith('javascript:') || val.startsWith('data:text/html') || val.startsWith('vbscript:')) {
+                        el.removeAttribute(attr.name);
+                    }
+                }
+            });
+            return temp.innerHTML;
+        }
+
         function updateStickyOffset() {
             const topbar = document.querySelector('.app-topbar');
             if (topbar) {
                 const height = topbar.getBoundingClientRect().height;
-                document.documentElement.style.setProperty('--topbar-height', `${Math.round(height + 12)}px`);
+                document.documentElement.style.setProperty('--topbar-height', `${Math.round(height)}px`);
             }
         }
         window.addEventListener('resize', updateStickyOffset);
+
+        // Mobile Touch Gesture Support (Swipe left/right to change questions)
+        (function initTouchGestures() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', (e) => {
+                if (e.changedTouches.length === 1) {
+                    const diffX = e.changedTouches[0].clientX - touchStartX;
+                    const diffY = e.changedTouches[0].clientY - touchStartY;
+                    // Detect deliberate horizontal swipe (>= 60px horizontal, >= 1.5x vertical)
+                    if (Math.abs(diffX) >= 60 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+                        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                        if (activeTag === 'input' || activeTag === 'textarea' || (document.activeElement && document.activeElement.isContentEditable)) {
+                            return;
+                        }
+                        if (diffX < 0) {
+                            nextQuestion();
+                        } else {
+                            prevQuestion();
+                        }
+                    }
+                }
+            }, { passive: true });
+        })();
+
+        // Background Tab Optimization (Save mobile CPU & battery when tab is hidden)
+        let timerSyncInterval = null;
+        let answersSyncInterval = null;
+
+        function startBackgroundSync() {
+            stopBackgroundSync();
+            timerSyncInterval = setInterval(syncTimer, 1500);
+            answersSyncInterval = setInterval(loadAnswers, 4000);
+        }
+
+        function stopBackgroundSync() {
+            if (timerSyncInterval) { clearInterval(timerSyncInterval); timerSyncInterval = null; }
+            if (answersSyncInterval) { clearInterval(answersSyncInterval); answersSyncInterval = null; }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopBackgroundSync();
+            } else {
+                syncTimer();
+                loadAnswers();
+                startBackgroundSync();
+            }
+        });
 
         async function init() {
             if (!sessionId) return window.location.href = '/';
@@ -1151,8 +1412,7 @@
             loadQuestions(); 
             syncTimer();
             syncVoterStatus();
-            setInterval(syncTimer, 1500);
-            setInterval(loadAnswers, 4000);
+            startBackgroundSync();
         }
 
         function toggleTheme() {
@@ -1199,7 +1459,13 @@
                     <div id="load-more-status-${q.id}" class="load-more-status" style="text-align: center; margin: 2rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 800; color: var(--text-sub);"></div>
                 </div>`;
             }).join('');
-            nav.innerHTML = currentQuestions.map((q, i) => `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}"></div>`).join('');
+            const dotsWrapper = document.getElementById('nav-dots-wrapper');
+            const dotsHtml = currentQuestions.map((q, i) => `<div class="nav-dot" onclick="showQuestion('${q.id}')" title="Topic ${i+1}"></div>`).join('');
+            if (dotsWrapper) {
+                dotsWrapper.innerHTML = dotsHtml;
+            } else if (nav) {
+                nav.innerHTML = dotsHtml;
+            }
             if (currentQuestions.length > 0) showQuestion(currentQuestions[0].id);
         }
 
@@ -1400,7 +1666,7 @@
                         <div class="card-face card-back">
                             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${a.author_name || 'Anonymous'}</span>
+                                    <span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${escapeText(a.author_name || 'Anonymous')}</span>
                                     ${isTopVoted ? `<span class="top-voted-pill">🔥 Top</span>` : ''}
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -1411,8 +1677,8 @@
                                     <div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div>
                                 </div>
                             </div>
-                            <div class="card-content-body">${a.text}</div>
-                            ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${a.gif_url}" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
+                            <div class="card-content-body">${sanitizeHTML(a.text)}</div>
+                            ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${escapeText(a.gif_url)}" loading="lazy" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
                         </div>`;
                     
                     if (!existingCard) {
