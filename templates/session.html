@@ -227,7 +227,7 @@
             50%, 100% { opacity: 0.6; }
         }
 
-        /* Neo-Brutalist Emoji/Emoticon & Subtitle Styles */
+        /* Neo-Brutalist Emoji/Emoticon & Subtitle Styles with Hardware-Accelerated Micro-Animations */
         .emoji-main {
             font-size: 3rem;
             font-weight: 900;
@@ -236,6 +236,48 @@
             font-family: 'JetBrains Mono', monospace !important;
             color: var(--text);
             text-shadow: 2px 2px 0px rgba(0,0,0,0.08);
+            display: inline-block;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+        }
+
+        /* Snappy 60fps Entrance Pop-In when Card Loads / Analysis Completes (Zero CPU after completion) */
+        @keyframes emotPopIn {
+            0% { 
+                opacity: 0; 
+                transform: scale3d(0.8, 0.8, 1); 
+            }
+            70% { 
+                transform: scale3d(1.1, 1.1, 1); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale3d(1, 1, 1); 
+            }
+        }
+
+        .answer-card:not(.processing) .emoji-main {
+            animation: emotPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        /* Playful Hop & Tilt Micro-Animation on Card Hover (Pure Compositor Transform, Zero Repaints) */
+        @keyframes emotHoverHop {
+            0% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
+            45% { transform: translate3d(0, -10px, 0) scale3d(1.14, 1.14, 1) rotate(-3deg); }
+            75% { transform: translate3d(0, -5px, 0) scale3d(1.08, 1.08, 1) rotate(1.5deg); }
+            100% { transform: translate3d(0, -7px, 0) scale3d(1.1, 1.1, 1) rotate(0deg); }
+        }
+
+        .answer-card:not(.processing):not(.flipped):hover .emoji-main {
+            animation: emotHoverHop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .answer-card:not(.processing):not(.flipped):active .emoji-main {
+            transform: translate3d(0, -2px, 0) scale3d(1.02, 1.02, 1);
+            transition-duration: 0.1s;
         }
 
         .emoji-sub {
@@ -250,6 +292,45 @@
             background: var(--bg-base);
             box-shadow: 3px 3px 0px var(--border-color);
             margin-top: 0.25rem;
+            display: inline-block;
+            transform: translate3d(0, 0, 0);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+
+        .answer-card:not(.processing):not(.flipped):hover .emoji-sub {
+            transform: translate3d(0, -2px, 0);
+            box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        /* Back Card Mini-Emoticon Hover Touch */
+        .back-emot-pill {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 0.85rem;
+            border: 2px solid var(--border-color);
+            padding: 2px 6px;
+            background: var(--bg-base);
+            box-shadow: 2px 2px 0px var(--border-color);
+            display: inline-block;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .answer-card.flipped:hover .back-emot-pill {
+            transform: translate3d(0, -2px, 0) scale3d(1.05, 1.05, 1);
+        }
+
+        /* Accessibility & Low-End Battery/Motion Saver */
+        @media (prefers-reduced-motion: reduce) {
+            .emoji-main,
+            .answer-card:not(.processing) .emoji-main,
+            .answer-card:not(.processing):not(.flipped):hover .emoji-main,
+            .answer-card:not(.processing):not(.flipped):active .emoji-main,
+            .emoji-sub,
+            .back-emot-pill {
+                animation: none !important;
+                transform: none !important;
+                transition: none !important;
+            }
         }
     </style>
 </head>
@@ -986,7 +1067,7 @@
                                     <button class="card-vote-btn ${hasVoted ? 'has-voted' : ''}" onclick="event.stopPropagation(); voteCard('${a.id}')" title="Upvote feedback">
                                         ▲ <span>${votes}</span>
                                     </button>
-                                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.85rem; border: 2px solid var(--border-color); padding: 2px 6px; background: var(--bg-base); box-shadow: 2px 2px 0px var(--border-color);">${displayEmot}</span>
+                                    <span class="back-emot-pill">${displayEmot}</span>
                                     <div style="background: ${color}; width: 10px; height: 10px; border: 1px solid var(--border-color);"></div>
                                 </div>
                             </div>
