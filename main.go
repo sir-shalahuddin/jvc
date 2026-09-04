@@ -90,6 +90,8 @@ func main() {
 	mux.HandleFunc("/api/action-items/add", handlers.AddActionItemHandler)
 	mux.HandleFunc("/api/action-items/toggle", handlers.ToggleActionItemHandler)
 	mux.HandleFunc("/api/action-items/delete", handlers.DeleteActionItemHandler)
+	mux.HandleFunc("/api/answer/cluster", handlers.ClusterAnswerHandler)
+	mux.HandleFunc("/api/session/clusters", handlers.GetClustersHandler)
 
 	// Monetization & Admin API
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)

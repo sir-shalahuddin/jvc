@@ -1169,6 +1169,101 @@
             color: #000 !important;
             border-color: #000 !important;
         }
+
+        /* ==========================================
+           Thematic Card Clustering & Tags (Module 6)
+           ========================================== */
+        .card-cluster-badge {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 0.2rem 0.45rem;
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+            cursor: pointer;
+            z-index: 3;
+            transition: all var(--transition);
+        }
+        [data-theme="dark"] .card-cluster-badge {
+            background: #312e81;
+            color: #c7d2fe;
+        }
+        .card-cluster-badge:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+        }
+        .back-cluster-pill {
+            display: inline-flex;
+            align-items: center;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 0.15rem 0.4rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        [data-theme="dark"] .back-cluster-pill {
+            background: #312e81;
+            color: #c7d2fe;
+        }
+        .cluster-card-btn {
+            font-size: 0.72rem !important;
+            padding: 0.35rem 0.6rem !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            border: 2px solid var(--border-color) !important;
+            background: var(--bg-card) !important;
+            color: var(--text) !important;
+            box-shadow: 2px 2px 0px var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .cluster-card-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            border-color: #6366f1 !important;
+            color: #4f46e5 !important;
+        }
+        .cluster-card-btn.has-tag {
+            background: #e0e7ff !important;
+            color: #3730a3 !important;
+            border-color: #4338ca !important;
+        }
+        [data-theme="dark"] .cluster-card-btn.has-tag {
+            background: #312e81 !important;
+            color: #c7d2fe !important;
+            border-color: #6366f1 !important;
+        }
+        .cluster-tags-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 0.75rem 0 1.25rem 0;
+        }
+        .cluster-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .cluster-chip:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--border-color);
+            background: #e0e7ff;
+            color: #3730a3;
+        }
     </style>
 </head>
 <body>
@@ -1360,6 +1455,31 @@
                 </div>
             </div>
             <button onclick="closeShortcutsModal()" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">Got It (Esc)</button>
+        </div>
+    </div>
+
+    <!-- Thematic Cluster Modal (Module 6) -->
+    <div id="clusterModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 520px;">
+            <button onclick="closeClusterModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub);">&times;</button>
+            <h2 style="font-size: 1.4rem; margin-bottom: 0.35rem; font-weight: 900;">🏷️ THEMATIC CLUSTER</h2>
+            <p style="font-size: 0.8rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; margin: 0 0 1.25rem 0;">Group similar reflections under a common theme or tag.</p>
+            
+            <input type="hidden" id="clusterAnswerId">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase;">Cluster Tag / Topic</label>
+                <input type="text" id="clusterTagInput" placeholder="e.g. CI/CD, Documentation, Team Sync" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-weight: 800;" />
+            </div>
+
+            <div id="existingClustersSection" style="display: none;">
+                <label style="display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-sub); margin-bottom: 0.3rem; text-transform: uppercase;">Existing Session Tags (Click to select)</label>
+                <div class="cluster-tags-cloud" id="clusterTagsCloud"></div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button onclick="saveCardCluster()" class="btn btn-primary" style="flex: 2;">Save Tag</button>
+                <button onclick="removeCardCluster()" class="btn btn-ghost" style="flex: 1; color: var(--accent-danger); border-color: var(--accent-danger);">Remove</button>
+            </div>
         </div>
     </div>
 
@@ -2213,6 +2333,7 @@
             syncSpotlight();
             syncVoterStatus();
             loadActionItems();
+            refreshSessionClusterTags();
             startBackgroundSync();
         }
 
@@ -2269,6 +2390,10 @@
                                     <button class="toolbar-pill ${currentMoodFilter === 'wins' ? 'active' : ''}" data-mood="wins" onclick="setMoodFilter('wins', '${q.id}')">🔥 Wins</button>
                                     <button class="toolbar-pill ${currentMoodFilter === 'challenges' ? 'active' : ''}" data-mood="challenges" onclick="setMoodFilter('challenges', '${q.id}')">⚠️ Challenges</button>
                                     <button class="toolbar-pill ${currentMoodFilter === 'ideas' ? 'active' : ''}" data-mood="ideas" onclick="setMoodFilter('ideas', '${q.id}')">💡 Ideas</button>
+                                </div>
+                                <div class="toolbar-group cluster-filter-group" id="cluster-filter-group-${q.id}" style="display: none;">
+                                    <span class="toolbar-label">Cluster:</span>
+                                    <div class="cluster-pills-container" id="cluster-pills-${q.id}" style="display: inline-flex; gap: 0.35rem; flex-wrap: wrap;"></div>
                                 </div>
                             </div>
                         </div>
@@ -2591,12 +2716,161 @@
         function applyMoodFilter() {
             const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card`);
             cards.forEach(card => {
-                if (currentMoodFilter === 'all') {
-                    card.style.display = '';
-                } else {
-                    card.style.display = (card.dataset.moodGroup === currentMoodFilter) ? '' : 'none';
-                }
+                const matchesMood = (currentMoodFilter === 'all') || (card.dataset.moodGroup === currentMoodFilter);
+                const matchesCluster = (currentClusterFilter === 'all') || (card.dataset.clusterTag === currentClusterFilter);
+                card.style.display = (matchesMood && matchesCluster) ? '' : 'none';
             });
+        }
+
+        // ==========================================
+        // Thematic Card Clustering & Duplicate Grouping (Module 6)
+        // ==========================================
+        let currentClusterFilter = 'all';
+        let allSessionClusterTags = [];
+
+        async function refreshSessionClusterTags() {
+            if (!sessionId) return;
+            try {
+                const res = await fetch(`/api/session/clusters?session_id=${sessionId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    allSessionClusterTags = (data || []).map(item => item.tag).filter(Boolean);
+                }
+            } catch (e) {}
+        }
+
+        function updateTopicClusterPills(qId, topicTags) {
+            const group = document.getElementById(`cluster-filter-group-${qId}`);
+            const container = document.getElementById(`cluster-pills-${qId}`);
+            if (!group || !container) return;
+
+            if (!topicTags || topicTags.length === 0) {
+                group.style.display = 'none';
+                return;
+            }
+
+            group.style.display = 'flex';
+            let html = `<button class="toolbar-pill ${currentClusterFilter === 'all' ? 'active' : ''}" onclick="setClusterFilter('all', '${qId}')">#All</button>`;
+            topicTags.forEach(tag => {
+                const isActive = currentClusterFilter === tag;
+                html += `<button class="toolbar-pill ${isActive ? 'active' : ''}" onclick="setClusterFilter('${escapeText(tag)}', '${qId}')">#${escapeText(tag)}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function setClusterFilter(tag, qId) {
+            currentClusterFilter = tag;
+            const targetQId = qId || activeQuestionId;
+            const group = document.getElementById(`cluster-pills-${targetQId}`);
+            if (group) {
+                group.querySelectorAll('.toolbar-pill').forEach(pill => {
+                    const pillText = pill.innerText.replace(/^#/, '');
+                    pill.classList.toggle('active', (tag === 'all' && pillText === 'All') || pillText === tag);
+                });
+            }
+            applyMoodFilter();
+            showToast(`Cluster: ${tag === 'all' ? 'ALL' : '#' + tag}`, 'info');
+        }
+
+        function filterByClusterTag(tag, qId) {
+            currentClusterFilter = tag;
+            const targetQId = qId || activeQuestionId;
+            currentMoodFilter = 'all';
+            const moodGroup = document.getElementById(`board-toolbar-${targetQId}`);
+            if (moodGroup) {
+                moodGroup.querySelectorAll('[data-mood]').forEach(b => b.classList.toggle('active', b.dataset.mood === 'all'));
+            }
+            const clusterGroup = document.getElementById(`cluster-pills-${targetQId}`);
+            if (clusterGroup) {
+                clusterGroup.querySelectorAll('.toolbar-pill').forEach(pill => {
+                    const pillText = pill.innerText.replace(/^#/, '');
+                    pill.classList.toggle('active', pillText === tag);
+                });
+            }
+            applyMoodFilter();
+            showToast(`Filtered by Cluster: #${tag}`, 'info');
+        }
+
+        function openClusterModal(answerId, currentTag) {
+            const modal = document.getElementById('clusterModal');
+            if (!modal) return;
+
+            document.getElementById('clusterAnswerId').value = answerId;
+            const input = document.getElementById('clusterTagInput');
+            if (input) {
+                input.value = currentTag || '';
+            }
+
+            const section = document.getElementById('existingClustersSection');
+            const cloud = document.getElementById('clusterTagsCloud');
+            if (cloud && allSessionClusterTags.length > 0) {
+                cloud.innerHTML = allSessionClusterTags.map(tag => `
+                    <button type="button" class="cluster-chip" onclick="selectClusterChip('${escapeText(tag)}')">
+                        🏷️ #${escapeText(tag)}
+                    </button>
+                `).join('');
+                if (section) section.style.display = 'block';
+            } else if (section) {
+                section.style.display = 'none';
+            }
+
+            modal.classList.remove('hidden');
+            SoundFX.playPop();
+            if (input) setTimeout(() => input.focus(), 50);
+        }
+
+        function selectClusterChip(tag) {
+            const input = document.getElementById('clusterTagInput');
+            if (input) {
+                input.value = tag;
+                input.focus();
+            }
+        }
+
+        function closeClusterModal() {
+            const modal = document.getElementById('clusterModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        async function saveCardCluster() {
+            const answerId = document.getElementById('clusterAnswerId').value;
+            const tag = (document.getElementById('clusterTagInput').value || '').trim();
+
+            if (!sessionId || !answerId) return;
+
+            try {
+                const res = await fetch('/api/answer/cluster', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        answer_id: answerId,
+                        cluster_tag: tag
+                    })
+                });
+
+                if (res.ok) {
+                    closeClusterModal();
+                    SoundFX.playDing();
+                    RetroConfetti.fire({ particleCount: 35, spread: 0.8 });
+                    showToast(tag ? `Card clustered under #${tag}` : 'Cluster tag removed', 'success');
+                    await loadAnswers();
+                    await refreshSessionClusterTags();
+                } else {
+                    const err = await res.text();
+                    showToast(`Cluster error: ${err}`, 'error');
+                }
+            } catch (e) {
+                showToast('Failed to save cluster tag', 'error');
+            }
+        }
+
+        async function removeCardCluster() {
+            const input = document.getElementById('clusterTagInput');
+            if (input) input.value = '';
+            await saveCardCluster();
         }
 
         function toggleFlipAllCards() {
@@ -2885,6 +3159,7 @@
                     const cardHtml = `
                         <div class="card-face card-front">
                             ${isTopVoted ? `<div class="top-voted-badge">🔥 TOP VOTED</div>` : ''}
+                            ${a.cluster_tag ? `<div class="card-cluster-badge" onclick="event.stopPropagation(); filterByClusterTag('${escapeText(a.cluster_tag)}', '${q.id}')">🏷️ #${escapeText(a.cluster_tag)}</div>` : ''}
                             ${frontContent}
                             ${a.sentiment_color === '#ef4444' ? `<div class="warning-overlay"><span>⚠️ Critical</span></div>` : ''}
                             <div style="position: absolute; bottom: 1rem; right: 1rem;">
@@ -2895,9 +3170,10 @@
                         </div>
                         <div class="card-face card-back">
                             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span style="font-weight: 800; font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase;">${escapeText(a.author_name || 'Anonymous')}</span>
                                     ${isTopVoted ? `<span class="top-voted-pill">🔥 Top</span>` : ''}
+                                    ${a.cluster_tag ? `<span class="back-cluster-pill" onclick="event.stopPropagation(); filterByClusterTag('${escapeText(a.cluster_tag)}', '${q.id}')">🏷️ #${escapeText(a.cluster_tag)}</span>` : ''}
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <button class="card-vote-btn ${hasVoted ? 'has-voted' : ''}" onclick="event.stopPropagation(); voteCard('${a.id}')" title="Upvote feedback">
@@ -2909,12 +3185,17 @@
                             </div>
                             <div class="card-content-body">${sanitizeHTML(a.text)}</div>
                             ${a.gif_url ? `<div style="width: 100%; margin-top: 15px; border-radius: 0px; border: 3px solid var(--border-color); overflow: hidden; background: rgba(0,0,0,0.05);"><img src="${escapeText(a.gif_url)}" loading="lazy" style="width: 100%; max-height: 250px; object-fit: contain; display: block;"></div>` : ''}
-                            <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 2px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                ${isModerator ? `
-                                    <button class="spotlight-card-btn ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" data-card-id="${a.id}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}')" title="Spotlight focus this card for all participants">
-                                        ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Focused' : '🔦 Spotlight'}
-                                    </button>
-                                ` : '<div></div>'}
+                            <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 2px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    ${isModerator ? `
+                                        <button class="spotlight-card-btn ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? 'active' : ''}" data-card-id="${a.id}" onclick="event.stopPropagation(); toggleSpotlightCard('${q.id}', '${a.id}')" title="Spotlight focus this card for all participants">
+                                            ${currentSpotlight && currentSpotlight.active && currentSpotlight.answer_id === a.id ? '🔦 Focused' : '🔦 Spotlight'}
+                                        </button>
+                                        <button class="cluster-card-btn ${a.cluster_tag ? 'has-tag' : ''}" onclick="event.stopPropagation(); openClusterModal('${a.id}', '${escapeText(a.cluster_tag || '')}')" title="Categorize or cluster this reflection">
+                                            🏷️ ${a.cluster_tag ? '#' + escapeText(a.cluster_tag) : 'Cluster'}
+                                        </button>
+                                    ` : '<div></div>'}
+                                </div>
                                 <button class="action-convert-btn" onclick="event.stopPropagation(); convertCardToAction('${a.id}')" title="Turn this reflection into a commitment/action item">
                                     ⚡ Action Item
                                 </button>
@@ -2933,6 +3214,7 @@
                         card.dataset.votes = String(votes);
                         card.dataset.topVoted = String(isTopVoted);
                         card.dataset.moodGroup = moodGroup;
+                        card.dataset.clusterTag = a.cluster_tag || '';
                         card.dataset.created = String(createdAtTime);
                         card.style.setProperty('--mood-color', color);
                         card.onclick = () => { 
@@ -2948,13 +3230,14 @@
                         existingCard.dataset.votes = String(votes);
                         existingCard.dataset.topVoted = String(isTopVoted);
                         existingCard.dataset.moodGroup = moodGroup;
+                        existingCard.dataset.clusterTag = a.cluster_tag || '';
                         existingCard.dataset.created = String(createdAtTime);
                         if (isCardSpotlighted) {
                             existingCard.classList.add('spotlight-active', 'flipped');
                         } else {
                             existingCard.classList.remove('spotlight-active');
                         }
-                        if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted)) {
+                        if (existingCard.dataset.sentiment !== color || existingCard.dataset.processing !== String(isProcessing) || existingCard.dataset.votes !== String(votes) || existingCard.dataset.topVoted !== String(isTopVoted) || existingCard.dataset.clusterTag !== (a.cluster_tag || '')) {
                             existingCard.dataset.sentiment = color;
                             existingCard.dataset.processing = String(isProcessing);
                             existingCard.className = `answer-card ${isProcessing ? 'processing' : ''} ${existingCard.classList.contains('flipped') || isCardSpotlighted ? 'flipped' : ''} ${isCardSpotlighted ? 'spotlight-active' : ''}`;
@@ -2970,6 +3253,9 @@
                     }
                 });
                 
+                const topicClusterTags = [...new Set(answers.map(ans => ans.cluster_tag).filter(Boolean))];
+                updateTopicClusterPills(q.id, topicClusterTags);
+
                 reorderCards();
                 applyMoodFilter();
                 updateVoteBudgetUI();
@@ -3284,6 +3570,7 @@
                 closeQuestionModal();
                 closeShortcutsModal();
                 closeActionItemsModal();
+                closeClusterModal();
                 return;
             }
 

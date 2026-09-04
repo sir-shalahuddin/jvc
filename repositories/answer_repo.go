@@ -98,6 +98,26 @@ func (r *AnswerRepository) updateSentimentInCache(sessionID string, answerID str
 	}
 }
 
+func (r *AnswerRepository) updateClusterInCache(sessionID string, answerID string, clusterTag string, parentID string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.cache == nil {
+		return
+	}
+	entry, ok := r.cache[sessionID]
+	if !ok || time.Since(entry.updatedAt) > 5*time.Minute {
+		return
+	}
+	for i, ans := range entry.answers {
+		if ans.ID == answerID {
+			entry.answers[i].ClusterTag = clusterTag
+			entry.answers[i].ParentID = parentID
+			entry.updatedAt = time.Now()
+			break
+		}
+	}
+}
+
 func (r *AnswerRepository) updateVotesInCache(sessionID string, answerID string) int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -173,6 +193,17 @@ func (r *AnswerRepository) UpdateSentiment(ctx context.Context, sessionID string
 	})
 	if err == nil {
 		r.updateSentimentInCache(sessionID, answerID, emotion, color, emoji)
+	}
+	return err
+}
+
+func (r *AnswerRepository) UpdateCluster(ctx context.Context, sessionID string, answerID string, clusterTag string, parentID string) error {
+	_, err := db.Client.Collection("sessions").Doc(sessionID).Collection("answers").Doc(answerID).Update(ctx, []firestore.Update{
+		{Path: "cluster_tag", Value: clusterTag},
+		{Path: "parent_id", Value: parentID},
+	})
+	if err == nil {
+		r.updateClusterInCache(sessionID, answerID, clusterTag, parentID)
 	}
 	return err
 }

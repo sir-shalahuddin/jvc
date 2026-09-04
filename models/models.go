@@ -38,6 +38,8 @@ type Answer struct {
 	SentimentEmoji   string    `json:"sentiment_emoji" firestore:"sentiment_emoji"`
 	AuthorName       string    `json:"author_name" firestore:"author_name"`
 	Votes            int       `json:"votes" firestore:"votes"`
+	ClusterTag       string    `json:"cluster_tag,omitempty" firestore:"cluster_tag,omitempty"`
+	ParentID         string    `json:"parent_id,omitempty" firestore:"parent_id,omitempty"`
 	CreatedAt        time.Time `json:"created_at" firestore:"created_at"`
 }
 

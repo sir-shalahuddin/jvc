@@ -53,6 +53,7 @@ type IAnswerRepository interface {
 	IncrementVotes(ctx context.Context, sessionID string, answerID string) (int, error)
 	GetVoterRecord(ctx context.Context, sessionID string, voterID string) (*models.VoterRecord, error)
 	CastVote(ctx context.Context, sessionID string, answerID string, voterID string, maxVotes int) (int, int, error)
+	UpdateCluster(ctx context.Context, sessionID string, answerID string, clusterTag string, parentID string) error
 }
 
 var AnswerRepo IAnswerRepository

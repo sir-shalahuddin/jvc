@@ -52,6 +52,9 @@ func (m *mockAnswerRepo) GetVoterRecord(ctx context.Context, sid string, vid str
 func (m *mockAnswerRepo) CastVote(ctx context.Context, sid string, aid string, vid string, maxV int) (int, int, error) {
 	return 1, maxV - 1, nil
 }
+func (m *mockAnswerRepo) UpdateCluster(ctx context.Context, sid string, aid string, tag string, pid string) error {
+	return nil
+}
 
 type mockTransactionRepo struct{}
 func (m *mockTransactionRepo) Create(ctx context.Context, t models.Transaction) error { return nil }
