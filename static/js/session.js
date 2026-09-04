@@ -924,9 +924,6 @@
                                         <span>⚙️ Topic</span> <span class="topic-dropdown-caret">▾</span>
                                     </button>
                                     <div class="topic-dropdown-panel hidden" id="topicDropdown-${q.id}" role="menu">
-                                        <button type="button" class="topic-dropdown-item" onclick="revealAllCards(); closeTopicDropdowns();" title="Flip reflections face-up for discussion">
-                                            <span>🪄 Reveal All Cards</span>
-                                        </button>
                                         <button type="button" class="topic-dropdown-item ${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? 'active' : ''}" data-spotlight-topic-id="${q.id}" onclick="toggleSpotlightTopic('${q.id}'); closeTopicDropdowns();" title="Spotlight topic for all participants">
                                             <span>${currentSpotlight && currentSpotlight.active && !currentSpotlight.answer_id && currentSpotlight.question_id === q.id ? '🔦 Unfocus Topic' : '🔦 Focus Topic'}</span>
                                         </button>
@@ -2065,19 +2062,6 @@
             }
         }
 
-        function revealAllCards() {
-            const cards = document.querySelectorAll(`#answers-${activeQuestionId} .answer-card`);
-            if (cards.length === 0) return showToast("No cards to reveal yet!", "info");
-            SoundFX.playRevealCascade(Math.min(cards.length, 8));
-            RetroConfetti.fire({ particleCount: 80, spread: 1.2 });
-            cards.forEach((card, idx) => {
-                setTimeout(() => {
-                    card.classList.add('flipped');
-                }, idx * 90);
-            });
-            showToast("🪄 All cards revealed!", "success");
-        }
-
         async function loadMoreAnswers() {
             if (isLoadingMore) return;
             const page = questionPagination[activeQuestionId];
@@ -2332,13 +2316,6 @@
                 const nextIdx = (modes.indexOf(currentSortMode) + 1) % modes.length;
                 setSortMode(modes[nextIdx]);
                 showToast(`Sort: ${modes[nextIdx].toUpperCase()}`, 'info');
-                return;
-            }
-
-            // R reveals all cards
-            if (e.key === 'r' || e.key === 'R') {
-                e.preventDefault();
-                revealAllCards();
                 return;
             }
 
