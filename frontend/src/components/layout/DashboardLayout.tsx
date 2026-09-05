@@ -121,11 +121,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     onTabChange('sessions');
                     setIsMobileOpen(false);
                   }}
-                  title="My Retrospectives"
+                  title="Activity Logs & Retrospectives"
                 >
                   <KanbanSquare size={18} />
-                  {!isCollapsed && <span>My Sessions</span>}
+                  {!isCollapsed && <span>Activity Logs</span>}
                 </button>
+
               </li>
             </ul>
           </div>

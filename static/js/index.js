@@ -59,16 +59,6 @@ function toggleTheme() {
     updateThemeIcon();
 }
 
-function toggleHistory() {
-    const panel = document.getElementById('historyPanel');
-    if (!panel) return;
-    panel.classList.toggle('hidden');
-    if (!panel.classList.contains('hidden')) {
-        loadHistory();
-        setTimeout(() => panel.scrollIntoView({ behavior: 'smooth' }), 100);
-    }
-}
-
 function escapeHTML(str) {
     if (!str) return '';
     return String(str).replace(/[&<>"']/g, m => ({
@@ -163,34 +153,8 @@ async function createSession() {
     }
 }
 
-async function loadHistory() {
-    try {
-        const res = await fetch('/api/history');
-        const data = await res.json();
-        const container = document.getElementById('history-container');
-        if (!container) return;
-        container.innerHTML = (data.sessions || []).map(s => `
-            <div class="compact-card" style="display: flex; flex-direction: column; gap: 1rem; padding: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div style="flex: 1;">
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">${new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</div>
-                        <h3 style="margin: 0; font-size: 1.2rem; line-height: 1.4; color: var(--text);">${escapeHTML(s.name)}</h3>
-                    </div>
-                    <code style="background: rgba(255, 95, 31, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 0px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color);">${escapeHTML(s.id.substring(0, 8))}</code>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <a href="/session/?id=${encodeURIComponent(s.id)}&role=sm" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.9rem; border-radius: 0px;">Open Board</a>
-                </div>
-            </div>
-        `).join('') || '<div style="grid-column: 1 / -1; text-align:center; padding: 4rem; color: var(--text-muted);">No sessions found in your history. Start a new one to see it here!</div>';
-    } catch (e) {
-        console.error('Error loading history:', e);
-    }
-}
-
 window.toggleTheme = toggleTheme;
 window.updateThemeIcon = updateThemeIcon;
-window.toggleHistory = toggleHistory;
 window.showToast = showToast;
 
 document.addEventListener('DOMContentLoaded', () => {

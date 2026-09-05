@@ -117,16 +117,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         />
       </section>
 
-      {/* Retrospectives Explorer */}
+      {/* Retrospectives & Activity Logs Explorer */}
       <section className="content-card">
         <div className="content-card-header">
           <div>
-            <h2 className="content-card-title">My Retrospectives</h2>
+            <h2 className="content-card-title">Activity Logs & Retrospectives</h2>
             <p className="content-card-desc">
-              Browse, launch, or distribute your sprint retro boards to participants.
+              Riwayat sesi lengkap, log aktivitas, peluncuran board, dan distribusi tautan peserta.
             </p>
           </div>
           <div className="content-card-actions">
+
             <div
               style={{
                 display: 'flex',
