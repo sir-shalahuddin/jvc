@@ -51,17 +51,16 @@ export const ClusterModal: React.FC<ClusterModalProps> = ({
 
         {/* Custom Tag Input */}
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: 'var(--primary)' }}>
+          <div className="input-icon-wrapper" style={{ flex: 1 }}>
+            <span className="input-icon" style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>
               #
             </span>
             <input
               type="text"
-              className="input"
+              className="form-input"
               value={tag}
               onChange={(e) => setTag(e.target.value.replace(/^#/, ''))}
               placeholder="e.g. communication"
-              style={{ paddingLeft: '1.8rem' }}
               autoFocus
             />
           </div>
@@ -79,8 +78,8 @@ export const ClusterModal: React.FC<ClusterModalProps> = ({
         {/* Existing Cluster Tag Suggestions */}
         {existingClusters.length > 0 && (
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-              Existing Themes in this Session:
+            <label className="form-label" style={{ marginBottom: '0.5rem' }}>
+              <span>Existing Themes in this Session:</span>
             </label>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               {existingClusters.map((c) => (
@@ -91,17 +90,9 @@ export const ClusterModal: React.FC<ClusterModalProps> = ({
                     setTag(c);
                     handleSave(c);
                   }}
-                  className={`badge ${c.toLowerCase() === tag.toLowerCase() ? 'badge-primary' : ''}`}
-                  style={{
-                    cursor: 'pointer',
-                    padding: '4px 10px',
-                    fontSize: '0.75rem',
-                    background: c.toLowerCase() === tag.toLowerCase() ? 'var(--primary)' : 'var(--bg-subtle)',
-                    color: c.toLowerCase() === tag.toLowerCase() ? '#fff' : 'var(--text-secondary)',
-                    border: '1px solid var(--border-card)',
-                  }}
+                  className={`quick-chip ${c.toLowerCase() === tag.toLowerCase() ? 'selected' : ''}`}
                 >
-                  #{c}
+                  🏷️ #{c}
                 </button>
               ))}
             </div>

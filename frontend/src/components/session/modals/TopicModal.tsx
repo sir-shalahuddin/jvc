@@ -101,48 +101,51 @@ export const TopicModal: React.FC<TopicModalProps> = ({
       maxWidth="560px"
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem' }}>
-            Topic Prompt or Question *
+        <div className="form-group">
+          <label className="form-label" htmlFor="topic-prompt-input">
+            <span>Topic Prompt or Question</span>
+            <span className="form-label-required">*</span>
           </label>
           <input
+            id="topic-prompt-input"
             type="text"
-            className="input"
+            className="form-input"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="e.g. What went well this sprint?"
+            placeholder="e.g. What went well this sprint? 🎉"
             required
             autoFocus
           />
         </div>
 
         {/* Cover Media Picker */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem' }}>
-            Topic Cover GIF or Image (Optional)
+        <div className="form-group">
+          <label className="form-label">
+            <span>Topic Cover GIF or Image (Optional)</span>
           </label>
 
           {gifUrl ? (
-            <div style={{ position: 'relative', width: '100%', height: '140px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-card)', marginBottom: '0.75rem' }}>
-              <img src={gifUrl} alt="Cover preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="card-attached-preview">
+              <img src={gifUrl} alt="Cover preview" style={{ width: '100%', height: '140px', objectFit: 'contain' }} />
               <button
                 type="button"
                 onClick={() => setGifUrl('')}
-                className="btn btn-ghost btn-sm"
-                style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '4px' }}
+                className="btn btn-danger btn-sm"
+                style={{ position: 'absolute', top: '8px', right: '8px', padding: '4px 8px' }}
                 title="Remove cover media"
               >
                 <X size={14} />
+                <span>Remove</span>
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="form-media-picker">
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {QUICK_TOPIC_GIFS.map((chip) => (
                   <button
                     key={chip.label}
                     type="button"
-                    className="filter-pill"
+                    className={`quick-chip ${gifQuery === chip.query ? 'selected' : ''}`}
                     onClick={() => handleSearchGifs(chip.query)}
                   >
                     <span>{chip.label}</span>
@@ -152,15 +155,16 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
-                  type="text"
-                  className="input"
+                  type="search"
+                  className="form-input"
                   value={gifQuery}
                   onChange={(e) => handleSearchGifs(e.target.value)}
                   placeholder="Search GIPHY for cover reaction..."
-                  style={{ flex: 1, fontSize: '0.85rem' }}
+                  style={{ flex: 1 }}
                 />
-                <label className="btn btn-ghost" style={{ cursor: 'pointer', padding: '0.5rem 0.8rem' }} title="Upload custom file">
-                  <Upload size={16} />
+                <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.5rem 0.85rem' }} title="Upload custom file">
+                  <Upload size={14} />
+                  <span>Upload</span>
                   <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
                 </label>
               </div>
@@ -188,7 +192,7 @@ export const TopicModal: React.FC<TopicModalProps> = ({
 
         {/* Footer Actions */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-          <button type="button" onClick={onClose} className="btn btn-ghost" disabled={isSaving}>
+          <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isSaving}>
             Cancel
           </button>
           <button type="submit" className="btn btn-primary" disabled={isSaving}>

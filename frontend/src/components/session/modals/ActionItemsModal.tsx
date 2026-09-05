@@ -98,50 +98,55 @@ export const ActionItemsModal: React.FC<ActionItemsModalProps> = ({
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* Form to Add New Action Item */}
-        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="text"
-              className="input"
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
-              placeholder="What concrete action will the team take?"
-              required
-              style={{ flex: 1 }}
-            />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isSubmitting || !newText.trim()}
-              style={{ padding: '0 1rem' }}
-            >
-              <Plus size={16} />
-              <span>Add</span>
-            </button>
+        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="action-item-text-input">
+              <span>New Commitment / Action Item</span>
+              <span className="form-label-required">*</span>
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                id="action-item-text-input"
+                type="text"
+                className="form-input"
+                value={newText}
+                onChange={(e) => setNewText(e.target.value)}
+                placeholder="What concrete action will the team take?"
+                required
+                style={{ flex: 1 }}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting || !newText.trim()}
+                style={{ padding: '0 1.25rem' }}
+              >
+                <Plus size={16} />
+                <span>Add</span>
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <div className="input-icon-wrapper" style={{ flex: 1, minWidth: '180px' }}>
+              <UserIcon size={14} className="input-icon" />
               <input
                 type="text"
-                className="input"
+                className="form-input"
                 value={newAssignee}
                 onChange={(e) => setNewAssignee(e.target.value)}
                 placeholder="Assignee (e.g. Alex, QA Team)"
-                style={{ fontSize: '0.8rem', paddingLeft: '2rem' }}
               />
-              <UserIcon size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             </div>
 
-            <div style={{ position: 'relative', width: '160px' }}>
+            <div className="input-icon-wrapper" style={{ width: '180px' }}>
+              <Calendar size={14} className="input-icon" />
               <input
                 type="date"
-                className="input"
+                className="form-input"
                 value={newDueDate}
                 onChange={(e) => setNewDueDate(e.target.value)}
-                style={{ fontSize: '0.8rem', paddingLeft: '2rem' }}
               />
-              <Calendar size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             </div>
           </div>
         </form>

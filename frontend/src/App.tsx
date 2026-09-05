@@ -254,7 +254,8 @@ function DashboardApp() {
         <form onSubmit={handleCreateSessionSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div className="form-group">
             <label className="form-label" htmlFor="session-name-input">
-              Discussion Topic / Sprint Name
+              <span>Discussion Topic / Sprint Name</span>
+              <span className="form-label-required">*</span>
             </label>
             <input
               id="session-name-input"
@@ -268,24 +269,18 @@ function DashboardApp() {
             />
           </div>
 
-          <div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Quick Suggestions
-            </span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <div className="form-group">
+            <label className="form-label">
+              <span>Quick Suggestions</span>
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {['Sprint Sync', 'Q3 Project Review', 'What Went Well / Improve', 'Start / Stop / Continue'].map(
                 (preset) => (
                   <button
                     key={preset}
                     type="button"
                     onClick={() => setSessionTopic(preset)}
-                    className="btn btn-secondary btn-sm"
-                    style={{
-                      fontSize: '0.75rem',
-                      background: sessionTopic === preset ? 'var(--primary-light)' : undefined,
-                      borderColor: sessionTopic === preset ? 'var(--primary)' : undefined,
-                      color: sessionTopic === preset ? 'var(--primary)' : undefined,
-                    }}
+                    className={`quick-chip ${sessionTopic === preset ? 'selected' : ''}`}
                   >
                     {preset}
                   </button>

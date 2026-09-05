@@ -112,7 +112,7 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {/* Anonymous Alias Badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             POSTING ANONYMOUSLY AS:
           </span>
           <span className="badge badge-primary">🎭 {assignedAlias || 'Anonymous Guest'}</span>
@@ -120,7 +120,14 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
 
         {/* Reflection Content Textarea */}
         <div className="form-group">
+          <label className="form-label" htmlFor="reflection-textarea">
+            <span>Your Reflection</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              {text.length} chars
+            </span>
+          </label>
           <textarea
+            id="reflection-textarea"
             className="form-input"
             rows={4}
             placeholder="Share your honest reflection, observations, or ideas for the team..."
@@ -128,21 +135,15 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
             onChange={(e) => setText(e.target.value)}
             autoFocus
             required
-            style={{ resize: 'vertical' }}
           />
+          <div className="form-hint">
+            <span>Be candid and constructive. Your alias keeps your feedback anonymous.</span>
+          </div>
         </div>
 
         {/* Attached GIF / Image Preview */}
         {selectedGif && (
-          <div
-            style={{
-              position: 'relative',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
-              maxHeight: '140px',
-              border: '2px solid var(--primary)',
-            }}
-          >
+          <div className="card-attached-preview">
             <img
               src={selectedGif}
               alt="Selected GIF"
@@ -162,47 +163,36 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
         )}
 
         {/* Reaction GIPHY Picker Container */}
-        <div
-          style={{
-            background: 'var(--bg-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '1rem',
-            border: '1px solid var(--border-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}
-        >
+        <div className="form-media-picker">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Sparkles size={14} color="var(--primary)" />
-              <span>ATTACH REACTION GIF / MEME</span>
+              <span>Attach Reaction GIF / Meme</span>
             </span>
             <label
               style={{
                 fontSize: '0.75rem',
-                fontWeight: 600,
+                fontWeight: 700,
                 color: 'var(--primary)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.25rem',
+                gap: '0.35rem',
               }}
             >
-              <Upload size={12} />
+              <Upload size={13} />
               <span>Upload Image</span>
               <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
             </label>
           </div>
 
           {/* Quick Preset Chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
             {QUICK_GIF_CHIPS.map((chip) => (
               <button
                 key={chip.label}
                 type="button"
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                className={`quick-chip ${gifSearchQuery === chip.query ? 'selected' : ''}`}
                 onClick={() => handleSearchGifs(chip.query)}
               >
                 {chip.label}
@@ -212,9 +202,8 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
 
           {/* Search Input */}
           <input
-            type="text"
+            type="search"
             className="form-input"
-            style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
             placeholder="Search memes & reaction GIFs on Giphy..."
             value={gifSearchQuery}
             onChange={(e) => handleSearchGifs(e.target.value)}
