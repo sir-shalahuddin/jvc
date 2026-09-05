@@ -372,25 +372,27 @@
   border-color: var(--primary);
 }
 
-/* 3D Neo-Brutalist Reflection Card Grid */
+/* 3D Neo-Brutalist Reflection Card Grid (Dynamic Content Masonry) */
 .answers-grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 340px));
-  gap: 1.5rem;
+  column-width: 320px;
+  column-gap: 1.5rem;
   width: 100%;
   margin-top: 1.5rem;
-  justify-content: flex-start;
+  padding-top: 0.5rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .answers-grid-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    column-count: 1 !important;
+    column-width: auto !important;
+    column-gap: 0 !important;
   }
 }
 
 .answer-card {
   break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 1.5rem;
   min-height: 280px;
   width: 100%;
   cursor: pointer;
@@ -398,11 +400,13 @@
   transform-style: preserve-3d;
   perspective: 1000px;
   transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-  display: block;
+  display: inline-block;
+  user-select: none;
 }
 
 .answer-card.flipped {
   transform: rotateY(180deg);
+  z-index: 10;
 }
 
 .answer-card.processing {
@@ -414,12 +418,12 @@
   position: relative;
   width: 100%;
   min-height: 280px;
-  height: 100%;
+  height: auto;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   padding: 1.5rem;
-  border: 1px solid var(--border-card);
-  box-shadow: none;
+  border: 3px solid var(--border-card);
+  box-shadow: 6px 6px 0px var(--mood-color, var(--border-card));
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   display: flex;
@@ -1212,7 +1216,6 @@
 :root:not([data-ui-style='modern']) .answer-card:hover .card-face,
 [data-ui-style='brutalist'] .answer-card:hover .card-face {
   box-shadow: 8px 8px 0px var(--mood-color, var(--border-card)) !important;
-  transform: translate(-2px, -2px);
 }
 
 :root:not([data-ui-style='modern']) .card-vote-btn,
@@ -1303,7 +1306,6 @@
 
 [data-ui-style='modern'] .answer-card:hover .card-face {
   border-color: var(--primary) !important;
-  transform: translateY(-2px);
   box-shadow: none !important;
 }
 

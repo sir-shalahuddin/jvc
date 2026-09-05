@@ -39,6 +39,13 @@ export const StickyCard: React.FC<StickyCardProps> = ({
 
   const moodColor = emoticon.color || answer.sentiment_color || 'var(--border-card)';
 
+  // Automatically flip open when card becomes spotlighted
+  useEffect(() => {
+    if (isSpotlighted) {
+      setIsFlipped(true);
+    }
+  }, [isSpotlighted]);
+
   // Close dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
