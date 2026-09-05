@@ -40,15 +40,18 @@ export const AnswersGrid: React.FC<AnswersGridProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           gap: '1rem',
-          border: '2px dashed var(--border-card)',
+          border: '3px dashed var(--border-card)',
+          borderRadius: 0,
           background: 'var(--bg-subtle)',
+          boxShadow: '4px 4px 0px var(--border-card)',
         }}
       >
         <div
           style={{
             width: '64px',
             height: '64px',
-            borderRadius: 'var(--radius-full)',
+            borderRadius: 0,
+            border: '2px solid var(--border-card)',
             background: 'var(--primary-light)',
             display: 'flex',
             alignItems: 'center',

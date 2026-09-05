@@ -372,168 +372,293 @@
   border-color: var(--primary);
 }
 
-/* 3D Tactile Reflection Card */
+/* 3D Neo-Brutalist Reflection Card Grid */
 .answers-grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 1.5rem;
   width: 100%;
   margin-top: 1.5rem;
 }
 
-.tactile-card-wrapper {
-  perspective: 1000px;
-  height: 280px;
+.answer-card {
+  break-inside: avoid;
+  min-height: 290px;
+  height: 290px;
   width: 100%;
   cursor: pointer;
-}
-
-.tactile-card-inner {
   position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transform-style: preserve-3d;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  perspective: 1000px;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  display: block;
 }
 
-.tactile-card-wrapper.flipped .tactile-card-inner {
+.answer-card.flipped {
   transform: rotateY(180deg);
 }
 
-.tactile-card-front,
-.tactile-card-back {
+.card-face {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--border-card);
-  padding: 1.25rem;
+  border-radius: 0px !important;
+  padding: 1.25rem 1.5rem;
+  border: 3px solid var(--border-card);
+  box-shadow: 5px 5px 0px var(--border-card);
+  background: var(--bg-card);
   display: flex;
   flex-direction: column;
-  background: var(--bg-card);
+  box-sizing: border-box;
   overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-/* Front Face: Kaomoji and Mystery */
-.tactile-card-front {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 1rem;
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-subtle) 100%);
-}
-
-.tactile-card-wrapper.spotlight-active .tactile-card-front,
-.tactile-card-wrapper.spotlight-active .tactile-card-back {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 4px var(--primary-glow), var(--shadow-lg);
-}
-
-.card-kaomoji-face {
-  font-family: var(--font-mono);
-  font-size: 2.25rem;
-  font-weight: 800;
+.card-front {
+  transform: rotateY(0deg) translateZ(1px);
+  background: var(--bg-card);
   color: var(--text-primary);
-  line-height: 1;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: absolute;
+  inset: 0;
 }
 
-.card-emotion-label {
-  font-size: 0.75rem;
-  font-weight: 700;
+.card-back {
+  transform: rotateY(180deg) translateZ(1px);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  justify-content: space-between;
+  text-align: left;
+  position: absolute;
+  inset: 0;
+}
+
+.answer-card.spotlight-active .card-face {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 4px var(--primary-glow), 6px 6px 0px var(--primary) !important;
+}
+
+/* Front Face Elements */
+.top-voted-badge {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #ff5f1f;
+  color: #fff;
+  padding: 3px 8px;
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: 0px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-cluster-badge {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--bg-subtle);
+  color: var(--primary);
+  padding: 3px 8px;
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: 0px !important;
+  cursor: pointer;
+}
+
+.card-cluster-badge:hover {
+  background: var(--primary-light);
+}
+
+.emoji-main {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin: 0.5rem 0;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.answer-card:hover .emoji-main {
+  transform: scale(1.1);
+}
+
+.emoji-sub {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 2px solid var(--border-card);
+  padding: 3px 10px;
+  border-radius: 0px !important;
+  box-shadow: 2px 2px 0px var(--border-card);
+}
+
+.card-front-bottom {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .card-reveal-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
   font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
-/* Back Face: Revealed Content */
-.tactile-card-back {
-  transform: rotateY(180deg);
-  justify-content: space-between;
-  text-align: left;
+/* Card Vote Button */
+.card-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0px !important;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  border: 2px solid var(--border-card) !important;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  box-shadow: 2px 2px 0px var(--border-card);
+  cursor: pointer;
+  transition: all 0.1s ease;
 }
 
+.card-vote-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-card);
+}
+
+.card-vote-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border-card);
+}
+
+.card-vote-btn.has-voted {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Back Face Elements */
 .card-back-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-card);
   margin-bottom: 0.5rem;
 }
 
 .card-author-alias {
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.back-cluster-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1.5px solid var(--border-card);
+  border-radius: 0px !important;
+  cursor: pointer;
+}
+
+.back-emot-pill {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .card-content-body {
   flex: 1;
   overflow-y: auto;
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 0.95rem;
+  line-height: 1.5;
   color: var(--text-primary);
-  padding-right: 0.25rem;
+  padding-right: 0.35rem;
+  word-break: break-word;
+  scrollbar-width: thin;
+}
+
+.card-media-wrapper {
+  width: 100%;
+  max-height: 110px;
+  border: 2px solid var(--border-card);
+  border-radius: 0px !important;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  background: #000;
 }
 
 .card-attached-media {
   width: 100%;
-  height: 100px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  margin-top: 0.5rem;
-  border: 1px solid var(--border-subtle);
+  height: 110px;
+  object-fit: contain;
+  display: block;
 }
 
 .card-back-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.75rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 2px solid var(--border-card);
+  margin-top: 0.5rem;
+  gap: 0.4rem;
 }
 
-.card-vote-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 800;
-  border: 1px solid var(--border-card);
-  background: var(--bg-subtle);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.15s ease;
+.card-action-btn {
+  border-radius: 0px !important;
+  border: 2px solid var(--border-card) !important;
+  box-shadow: 2px 2px 0px var(--border-card) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 800 !important;
+  font-size: 0.75rem !important;
+  padding: 3px 8px !important;
+  gap: 0.25rem !important;
 }
 
-.card-vote-btn:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary);
+.card-action-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-card) !important;
 }
 
-.card-vote-btn.voted {
+.card-action-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border-card) !important;
+}
+
+.card-action-btn.active-spotlight {
   background: var(--primary);
   color: #fff;
-  border-color: var(--primary);
-  box-shadow: 0 2px 6px var(--primary-glow);
 }
 
 /* Topic Dock / Pagination */
@@ -648,10 +773,12 @@
 
 /* ==========================================================================
    Neo-Brutalist Session Board Overrides (Default Theme)
+   Sharp 0px Corners, 3px Contrast Borders, 5px Flat Solid Shadows
    ========================================================================== */
 :root:not([data-ui-style='modern']) .session-topbar,
 [data-ui-style='brutalist'] .session-topbar {
-  border-bottom: 2.5px solid var(--border-card);
+  border-bottom: 3px solid var(--border-card);
+  border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .session-name-title,
@@ -664,15 +791,16 @@
 
 :root:not([data-ui-style='modern']) .timer-widget,
 [data-ui-style='brutalist'] .timer-widget {
-  border: 2px solid var(--border-card);
-  box-shadow: 2px 2px 0px var(--border-card);
-  border-radius: var(--radius-sm);
+  border: 3px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .vote-budget-badge,
 [data-ui-style='brutalist'] .vote-budget-badge {
-  border: 2px solid var(--border-card);
-  box-shadow: 2px 2px 0px var(--border-card);
+  border: 3px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: 0px !important;
   font-family: var(--font-mono);
 }
 
@@ -682,64 +810,76 @@
 [data-ui-style='brutalist'] .presence-btn {
   border: 2px solid var(--border-card);
   box-shadow: 2px 2px 0px var(--border-card);
-  border-radius: var(--radius-sm);
+  border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .board-filters-bar,
 [data-ui-style='brutalist'] .board-filters-bar {
-  border: 2px solid var(--border-card);
-  box-shadow: 3px 3px 0px var(--border-card);
-  border-radius: var(--radius-md);
+  border: 3px solid var(--border-card);
+  box-shadow: 4px 4px 0px var(--border-card);
+  border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .filter-pill,
 [data-ui-style='brutalist'] .filter-pill {
-  border: 1.5px solid var(--border-card);
+  border: 2px solid var(--border-card);
+  border-radius: 0px !important;
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
 }
 
-:root:not([data-ui-style='modern']) .tactile-card-front,
-[data-ui-style='brutalist'] .tactile-card-front,
-:root:not([data-ui-style='modern']) .tactile-card-back,
-[data-ui-style='brutalist'] .tactile-card-back {
-  border: 2.5px solid var(--border-card);
-  box-shadow: 4px 4px 0px var(--border-card);
-  border-radius: var(--radius-md);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+:root:not([data-ui-style='modern']) .card-face,
+[data-ui-style='brutalist'] .card-face {
+  border: 3px solid var(--border-card);
+  box-shadow: 5px 5px 0px var(--border-card);
+  border-radius: 0px !important;
 }
 
-:root:not([data-ui-style='modern']) .tactile-card-wrapper:hover .tactile-card-front,
-[data-ui-style='brutalist'] .tactile-card-wrapper:hover .tactile-card-front,
-:root:not([data-ui-style='modern']) .tactile-card-wrapper:hover .tactile-card-back,
-[data-ui-style='brutalist'] .tactile-card-wrapper:hover .tactile-card-back {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px var(--border-card);
+:root:not([data-ui-style='modern']) .answer-card:hover .card-face,
+[data-ui-style='brutalist'] .answer-card:hover .card-face {
+  box-shadow: 7px 7px 0px var(--border-card);
 }
 
 :root:not([data-ui-style='modern']) .card-vote-btn,
 [data-ui-style='brutalist'] .card-vote-btn {
-  border: 2px solid var(--border-card);
+  border: 2px solid var(--border-card) !important;
   box-shadow: 2px 2px 0px var(--border-card);
-  border-radius: var(--radius-sm);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-:root:not([data-ui-style='modern']) .card-vote-btn:active,
-[data-ui-style='brutalist'] .card-vote-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px var(--border-card);
+  border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .topic-dock-wrapper,
 [data-ui-style='brutalist'] .topic-dock-wrapper {
-  border: 2.5px solid var(--border-card);
-  box-shadow: 4px 4px 0px var(--border-card);
+  border: 3px solid var(--border-card);
+  box-shadow: 5px 5px 0px var(--border-card);
+  border-radius: 0px !important;
+}
+
+:root:not([data-ui-style='modern']) .dock-arrow-btn,
+[data-ui-style='brutalist'] .dock-arrow-btn,
+:root:not([data-ui-style='modern']) .dock-dot,
+[data-ui-style='brutalist'] .dock-dot {
+  border-radius: 0px !important;
+  border: 2px solid var(--border-card);
 }
 
 :root:not([data-ui-style='modern']) .action-item-row,
 [data-ui-style='brutalist'] .action-item-row {
-  border: 2px solid var(--border-card);
-  box-shadow: 2px 2px 0px var(--border-card);
-  border-radius: var(--radius-sm);
+  border: 2.5px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: 0px !important;
+}
+
+:root:not([data-ui-style='modern']) .role-pill,
+[data-ui-style='brutalist'] .role-pill,
+:root:not([data-ui-style='modern']) .presence-dropdown-menu,
+[data-ui-style='brutalist'] .presence-dropdown-menu,
+:root:not([data-ui-style='modern']) .topbar-invite-btn,
+[data-ui-style='brutalist'] .topbar-invite-btn,
+:root:not([data-ui-style='modern']) .btn,
+[data-ui-style='brutalist'] .btn,
+:root:not([data-ui-style='modern']) .modal-card,
+[data-ui-style='brutalist'] .modal-card,
+:root:not([data-ui-style='modern']) .form-input,
+[data-ui-style='brutalist'] .form-input {
+  border-radius: 0px !important;
 }
