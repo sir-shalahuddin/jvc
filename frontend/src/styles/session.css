@@ -417,10 +417,9 @@
   height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  border-radius: 0px !important;
   padding: 1.5rem;
-  border: 3px solid var(--border-card);
-  box-shadow: 6px 6px 0px var(--mood-color, var(--border-card));
+  border: 1px solid var(--border-card);
+  box-shadow: none;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   display: flex;
@@ -1205,27 +1204,28 @@
 
 :root:not([data-ui-style='modern']) .card-face,
 [data-ui-style='brutalist'] .card-face {
-  border: 3px solid var(--border-card);
-  box-shadow: 6px 6px 0px var(--mood-color, var(--border-card));
+  border: 3px solid var(--border-card) !important;
+  box-shadow: 6px 6px 0px var(--mood-color, var(--border-card)) !important;
   border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .answer-card:hover .card-face,
 [data-ui-style='brutalist'] .answer-card:hover .card-face {
-  box-shadow: 8px 8px 0px var(--mood-color, var(--border-card));
+  box-shadow: 8px 8px 0px var(--mood-color, var(--border-card)) !important;
+  transform: translate(-2px, -2px);
 }
 
 :root:not([data-ui-style='modern']) .card-vote-btn,
 [data-ui-style='brutalist'] .card-vote-btn {
   border: 2px solid var(--border-card) !important;
-  box-shadow: 2px 2px 0px var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card) !important;
   border-radius: 0px !important;
 }
 
 :root:not([data-ui-style='modern']) .topic-dock-wrapper,
 [data-ui-style='brutalist'] .topic-dock-wrapper {
-  border: 3px solid var(--border-card);
-  box-shadow: 5px 5px 0px var(--border-card);
+  border: 3px solid var(--border-card) !important;
+  box-shadow: 5px 5px 0px var(--border-card) !important;
   border-radius: 0px !important;
 }
 
@@ -1257,4 +1257,111 @@
 :root:not([data-ui-style='modern']) .form-input,
 [data-ui-style='brutalist'] .form-input {
   border-radius: 0px !important;
+}
+
+/* ==========================================
+   Modern SaaS Theme (100% Shadow-Free, Flat, Clean & Rounded)
+   ========================================== */
+[data-ui-style='modern'] .session-topbar,
+[data-ui-style='modern'] .board-filters-bar,
+[data-ui-style='modern'] .topic-dock-wrapper,
+[data-ui-style='modern'] .card-face,
+[data-ui-style='modern'] .answer-card,
+[data-ui-style='modern'] .timer-widget,
+[data-ui-style='modern'] .vote-budget-badge,
+[data-ui-style='modern'] .card-vote-btn,
+[data-ui-style='modern'] .emoji-sub,
+[data-ui-style='modern'] .topbar-exit-btn,
+[data-ui-style='modern'] .presence-btn,
+[data-ui-style='modern'] .topbar-invite-btn,
+[data-ui-style='modern'] .card-cluster-badge,
+[data-ui-style='modern'] .card-dropdown-toggle,
+[data-ui-style='modern'] .top-voted-badge,
+[data-ui-style='modern'] .top-voted-pill,
+[data-ui-style='modern'] .back-emot-pill,
+[data-ui-style='modern'] .warning-overlay,
+[data-ui-style='modern'] .filter-pill,
+[data-ui-style='modern'] .btn,
+[data-ui-style='modern'] .form-input,
+[data-ui-style='modern'] .input,
+[data-ui-style='modern'] .quick-chip,
+[data-ui-style='modern'] .action-item-row,
+[data-ui-style='modern'] .card-media-wrapper {
+  box-shadow: none !important;
+}
+
+[data-ui-style='modern'] .card-face {
+  border: 1px solid var(--border-card) !important;
+  border-radius: 14px !important;
+  background: var(--bg-card);
+}
+
+[data-ui-style='modern'] .card-front,
+[data-ui-style='modern'] .card-back {
+  border-radius: 14px !important;
+}
+
+[data-ui-style='modern'] .answer-card:hover .card-face {
+  border-color: var(--primary) !important;
+  transform: translateY(-2px);
+  box-shadow: none !important;
+}
+
+[data-ui-style='modern'] .session-topbar {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-header);
+  backdrop-filter: blur(12px);
+}
+
+[data-ui-style='modern'] .board-filters-bar {
+  border: 1px solid var(--border-card) !important;
+  border-radius: 12px !important;
+}
+
+[data-ui-style='modern'] .filter-pill {
+  border: 1px solid var(--border-card) !important;
+  border-radius: 9999px !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+}
+
+[data-ui-style='modern'] .timer-widget,
+[data-ui-style='modern'] .vote-budget-badge,
+[data-ui-style='modern'] .topbar-exit-btn,
+[data-ui-style='modern'] .presence-btn,
+[data-ui-style='modern'] .topbar-invite-btn,
+[data-ui-style='modern'] .card-dropdown-toggle,
+[data-ui-style='modern'] .card-media-wrapper {
+  border: 1px solid var(--border-card) !important;
+  border-radius: 8px !important;
+}
+
+[data-ui-style='modern'] .card-vote-btn,
+[data-ui-style='modern'] .emoji-sub,
+[data-ui-style='modern'] .back-emot-pill,
+[data-ui-style='modern'] .card-cluster-badge,
+[data-ui-style='modern'] .back-cluster-pill,
+[data-ui-style='modern'] .top-voted-badge,
+[data-ui-style='modern'] .top-voted-pill,
+[data-ui-style='modern'] .warning-overlay {
+  border-radius: 9999px !important;
+  font-family: var(--font-sans) !important;
+  border: 1px solid var(--border-card) !important;
+}
+
+[data-ui-style='modern'] .topic-dock-wrapper {
+  border: 1px solid var(--border-card) !important;
+  border-radius: 9999px !important;
+}
+
+[data-ui-style='modern'] .dock-arrow-btn,
+[data-ui-style='modern'] .dock-dot {
+  border-radius: 9999px !important;
+  border: 1px solid var(--border-card) !important;
+}
+
+[data-ui-style='modern'] .session-name-title,
+[data-ui-style='modern'] .topic-title-text {
+  font-family: var(--font-sans) !important;
+  font-weight: 700 !important;
 }
