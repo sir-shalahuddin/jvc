@@ -13,6 +13,7 @@ import {
   Menu,
   Zap,
   MessageCircle,
+  Palette,
 } from 'lucide-react';
 import type { User } from '../../services/api';
 
@@ -39,6 +40,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [uiStyle, setUiStyle] = useState<'brutalist' | 'modern'>('brutalist');
 
   useEffect(() => {
     const saved =
@@ -46,6 +48,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
+
+    const savedStyle =
+      (localStorage.getItem('ui_theme_style') as 'brutalist' | 'modern') || 'brutalist';
+    setUiStyle(savedStyle);
+    document.documentElement.setAttribute('data-ui-style', savedStyle);
   }, []);
 
   const toggleTheme = () => {
@@ -53,6 +60,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setTheme(next);
     localStorage.setItem('theme', next);
     document.documentElement.setAttribute('data-theme', next);
+  };
+
+  const toggleUiStyle = () => {
+    const next = uiStyle === 'brutalist' ? 'modern' : 'brutalist';
+    setUiStyle(next);
+    localStorage.setItem('ui_theme_style', next);
+    document.documentElement.setAttribute('data-ui-style', next);
   };
 
   const getWhatsAppLink = () => {
@@ -264,6 +278,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
 
           <div className="header-right">
+            {/* UI Style Selector (Neo-Brutalist Default vs Modern SaaS) */}
+            <button
+              type="button"
+              onClick={toggleUiStyle}
+              className="btn btn-secondary btn-sm"
+              title={`Switch Design Theme: Neo-Brutalist or Modern SaaS (Current: ${
+                uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'
+              })`}
+              style={{ gap: '0.45rem', fontSize: '0.78rem' }}
+            >
+              <Palette size={14} />
+              <span>{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+            </button>
+
             <button
               onClick={toggleTheme}
               className="btn btn-ghost btn-icon"

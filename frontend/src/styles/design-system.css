@@ -1,10 +1,95 @@
 /* ==========================================================================
-   Modern SaaS Dashboard Design System (Retro)
-   Supports High-Readability Dark & Light Modes, Responsive Layouts, Micro-Interactions
+   Design System: Neo-Brutalist (Default) & Modern SaaS Themes
+   Supports Dual Theme Styles (Neo-Brutalist & Modern) x Dual Color Modes (Light & Dark)
    ========================================================================== */
 
-:root {
-  /* Light Theme Tokens */
+/* 1. Neo-Brutalist Light (Default Theme) */
+:root,
+[data-ui-style='brutalist'] {
+  --bg-app: #fdfaf6;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(253, 250, 246, 0.95);
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf5ee;
+  --bg-subtle: #f4ede4;
+  --bg-active: #ffede6;
+
+  --border-subtle: #1a1a1a;
+  --border-card: #1a1a1a;
+  --border-focus: #ff5f1f;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4540;
+  --text-muted: #7d756d;
+  --text-inverse: #ffffff;
+
+  --primary: #ff5f1f;
+  --primary-hover: #e54e12;
+  --primary-light: rgba(255, 95, 31, 0.15);
+  --primary-glow: rgba(255, 95, 31, 0.3);
+
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --info: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.15);
+
+  --shadow-sm: 2px 2px 0px #1a1a1a;
+  --shadow-md: 4px 4px 0px #1a1a1a;
+  --shadow-lg: 6px 6px 0px #1a1a1a;
+  --shadow-dropdown: 6px 6px 0px #1a1a1a;
+
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-full: 9999px;
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 74px;
+  --header-height: 68px;
+}
+
+/* 2. Neo-Brutalist Dark (Default Dark) */
+[data-theme='dark'],
+[data-ui-style='brutalist'][data-theme='dark'] {
+  --bg-app: #1c1917;
+  --bg-sidebar: #24201d;
+  --bg-header: rgba(36, 32, 29, 0.95);
+  --bg-card: #272421;
+  --bg-card-hover: #322e2a;
+  --bg-subtle: #36322d;
+  --bg-active: rgba(255, 115, 50, 0.25);
+
+  --border-subtle: #fdfaf6;
+  --border-card: #fdfaf6;
+  --border-focus: #ff7332;
+
+  --text-primary: #fdfaf6;
+  --text-secondary: #e5dec9;
+  --text-muted: #a69c8a;
+  --text-inverse: #1c1917;
+
+  --primary: #ff7332;
+  --primary-hover: #ff8c52;
+  --primary-light: rgba(255, 115, 50, 0.2);
+  --primary-glow: rgba(255, 115, 50, 0.35);
+
+  --shadow-sm: 2px 2px 0px #fdfaf6;
+  --shadow-md: 4px 4px 0px #fdfaf6;
+  --shadow-lg: 6px 6px 0px #fdfaf6;
+  --shadow-dropdown: 6px 6px 0px #fdfaf6;
+}
+
+/* 3. Modern SaaS Light Theme */
+[data-ui-style='modern'] {
   --bg-app: #f8f9fa;
   --bg-sidebar: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.85);
@@ -12,11 +97,11 @@
   --bg-card-hover: #fcfcfc;
   --bg-subtle: #f1f3f5;
   --bg-active: #fff1eb;
-  
+
   --border-subtle: #e9ecef;
   --border-card: #dee2e6;
   --border-focus: #ff5f1f;
-  
+
   --text-primary: #1a1a1a;
   --text-secondary: #495057;
   --text-muted: #868e96;
@@ -26,15 +111,6 @@
   --primary-hover: #e54e12;
   --primary-light: rgba(255, 95, 31, 0.1);
   --primary-glow: rgba(255, 95, 31, 0.25);
-
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.1);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.1);
-  --info: #3b82f6;
-  --info-bg: rgba(59, 130, 246, 0.1);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
@@ -46,17 +122,10 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-full: 9999px;
-
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 74px;
-  --header-height: 68px;
 }
 
-[data-theme='dark'] {
-  /* Dark Theme Tokens (Deep Obsidian & Warm Charcoal) */
+/* 4. Modern SaaS Dark Theme */
+[data-ui-style='modern'][data-theme='dark'] {
   --bg-app: #0e0f12;
   --bg-sidebar: #14151a;
   --bg-header: rgba(20, 21, 26, 0.85);
@@ -79,19 +148,16 @@
   --primary-light: rgba(255, 110, 48, 0.15);
   --primary-glow: rgba(255, 110, 48, 0.3);
 
-  --success: #34d399;
-  --success-bg: rgba(52, 211, 153, 0.15);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.15);
-  --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.15);
-  --info: #60a5fa;
-  --info-bg: rgba(96, 165, 250, 0.15);
-
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
   --shadow-dropdown: 0 12px 30px rgba(0, 0, 0, 0.6);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
 }
 
 /* Reset & Base Setup */
@@ -1053,3 +1119,159 @@ body {
     padding: 1.25rem;
   }
 }
+
+/* ==========================================================================
+   Neo-Brutalist Style Overrides (Default Theme)
+   Tactile, Solid Shadows, Playfair Serif Titles, JetBrains Mono Code/Numbers
+   ========================================================================== */
+:root:not([data-ui-style='modern']) .welcome-banner,
+[data-ui-style='brutalist'] .welcome-banner {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 4px 4px 0px var(--border-card);
+  border-radius: var(--radius-md);
+}
+
+:root:not([data-ui-style='modern']) .welcome-text h1,
+[data-ui-style='brutalist'] .welcome-text h1,
+:root:not([data-ui-style='modern']) .content-card-title,
+[data-ui-style='brutalist'] .content-card-title,
+:root:not([data-ui-style='modern']) .topic-title-text,
+[data-ui-style='brutalist'] .topic-title-text,
+:root:not([data-ui-style='modern']) .brand-text,
+[data-ui-style='brutalist'] .brand-text {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+:root:not([data-ui-style='modern']) .metric-card,
+[data-ui-style='brutalist'] .metric-card {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: var(--radius-md);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+:root:not([data-ui-style='modern']) .metric-card:hover,
+[data-ui-style='brutalist'] .metric-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .metric-value,
+[data-ui-style='brutalist'] .metric-value,
+:root:not([data-ui-style='modern']) .modern-table,
+[data-ui-style='brutalist'] .modern-table,
+:root:not([data-ui-style='modern']) .modern-table th,
+[data-ui-style='brutalist'] .modern-table th,
+:root:not([data-ui-style='modern']) .modern-table td,
+[data-ui-style='brutalist'] .modern-table td,
+:root:not([data-ui-style='modern']) .session-id-pill,
+[data-ui-style='brutalist'] .session-id-pill,
+:root:not([data-ui-style='modern']) .nav-badge,
+[data-ui-style='brutalist'] .nav-badge,
+:root:not([data-ui-style='modern']) .user-quota-badge,
+[data-ui-style='brutalist'] .user-quota-badge {
+  font-family: var(--font-mono);
+}
+
+:root:not([data-ui-style='modern']) .content-card,
+[data-ui-style='brutalist'] .content-card {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 4px 4px 0px var(--border-card);
+  border-radius: var(--radius-md);
+}
+
+:root:not([data-ui-style='modern']) .session-box,
+[data-ui-style='brutalist'] .session-box {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: var(--radius-md);
+}
+
+:root:not([data-ui-style='modern']) .session-box:hover,
+[data-ui-style='brutalist'] .session-box:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .btn-primary,
+[data-ui-style='brutalist'] .btn-primary {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  font-weight: 800;
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+:root:not([data-ui-style='modern']) .btn-primary:hover,
+[data-ui-style='brutalist'] .btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .btn-primary:active,
+[data-ui-style='brutalist'] .btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .btn-secondary,
+[data-ui-style='brutalist'] .btn-secondary {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+:root:not([data-ui-style='modern']) .btn-secondary:hover,
+[data-ui-style='brutalist'] .btn-secondary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .btn-secondary:active,
+[data-ui-style='brutalist'] .btn-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .session-id-pill,
+[data-ui-style='brutalist'] .session-id-pill {
+  border: 1.5px solid var(--border-card);
+  box-shadow: 1.5px 1.5px 0px var(--border-card);
+  border-radius: var(--radius-sm);
+}
+
+:root:not([data-ui-style='modern']) .badge,
+[data-ui-style='brutalist'] .badge {
+  border: 1.5px solid var(--border-card);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+:root:not([data-ui-style='modern']) .sidebar,
+[data-ui-style='brutalist'] .sidebar {
+  border-right: 2.5px solid var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .top-header,
+[data-ui-style='brutalist'] .top-header {
+  border-bottom: 2.5px solid var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .modern-table th,
+[data-ui-style='brutalist'] .modern-table th {
+  border-bottom: 2px solid var(--border-card);
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+:root:not([data-ui-style='modern']) .modern-table td,
+[data-ui-style='brutalist'] .modern-table td {
+  border-bottom: 1.5px solid var(--border-card);
+}
+
