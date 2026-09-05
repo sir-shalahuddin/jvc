@@ -363,7 +363,7 @@ export const SessionBoardPage: React.FC = () => {
   // Handlers for Questions CRUD
   const handleSaveTopic = async (text: string, gifUrl: string) => {
     if (editingQuestion) {
-      await updateQuestion(editingQuestion.id, text, gifUrl);
+      await updateQuestion(sessionId, editingQuestion.id, text, gifUrl);
       const qList = await fetchQuestions(sessionId);
       setQuestions(qList);
       setEditingQuestion(null);
@@ -382,7 +382,7 @@ export const SessionBoardPage: React.FC = () => {
       return;
     }
     try {
-      await deleteQuestion(activeQuestion.id);
+      await deleteQuestion(sessionId, activeQuestion.id);
       showToast('Topic deleted', 'info');
       const qList = await fetchQuestions(sessionId);
       setQuestions(qList);

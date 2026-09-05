@@ -46,49 +46,162 @@ export async function fetchSessionDetails(id: string, role = 'guest'): Promise<S
   throw new Error('Session not found');
 }
 
+let mockQuestionsList: Question[] = [
+  { id: 'q-1', session_id: 'demo-session', text: 'What went well this sprint? 🎉', created_at: new Date().toISOString(), answer_count: 5 },
+  { id: 'q-2', session_id: 'demo-session', text: 'What challenges did we encounter? 🚧', created_at: new Date().toISOString(), answer_count: 0 },
+  { id: 'q-3', session_id: 'demo-session', text: 'Innovations & Ideas for next sprint 🚀', created_at: new Date().toISOString(), answer_count: 0 },
+];
+
 export async function fetchQuestions(sessionId: string): Promise<Question[]> {
   try {
     const res = await fetch(`/api/session/questions?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
   } catch (_) {}
 
   if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return [
-      { id: 'q-1', session_id: sessionId, text: 'What went well this sprint? 🎉', created_at: new Date().toISOString(), answer_count: 5 },
-      { id: 'q-2', session_id: sessionId, text: 'What challenges did we encounter? 🚧', created_at: new Date().toISOString(), answer_count: 0 },
-      { id: 'q-3', session_id: sessionId, text: 'Innovations & Ideas for next sprint 🚀', created_at: new Date().toISOString(), answer_count: 0 },
-    ];
+    return [...mockQuestionsList];
   }
   throw new Error('Failed to fetch questions');
 }
 
 export async function addQuestion(sessionId: string, text: string, gifUrl = ''): Promise<{ id: string }> {
-  const res = await fetch('/api/question/add', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_id: sessionId, text, gif_url: gifUrl }),
-  });
-  if (!res.ok) throw new Error('Failed to add topic');
-  return res.json();
+  try {
+    const res = await fetch('/api/question/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, text, gif_url: gifUrl }),
+    });
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    const newId = 'q-' + Date.now();
+    const newQ: Question = {
+      id: newId,
+      session_id: sessionId,
+      text,
+      gif_url: gifUrl,
+      created_at: new Date().toISOString(),
+      answer_count: 0,
+    };
+    mockQuestionsList.push(newQ);
+    return { id: newId };
+  }
+  throw new Error('Failed to add topic');
 }
 
-export async function updateQuestion(questionId: string, text: string, gifUrl = ''): Promise<void> {
-  const res = await fetch('/api/question/update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question_id: questionId, text, gif_url: gifUrl }),
-  });
-  if (!res.ok) throw new Error('Failed to update topic');
+export async function updateQuestion(
+  sessionId: string,
+  questionId: string,
+  text: string,
+  gifUrl = ''
+): Promise<void> {
+  try {
+    const res = await fetch('/api/question/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, id: questionId, text, gif_url: gifUrl }),
+    });
+    if (res.ok) return;
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    const idx = mockQuestionsList.findIndex((q) => q.id === questionId);
+    if (idx !== -1) {
+      mockQuestionsList[idx] = { ...mockQuestionsList[idx], text, gif_url: gifUrl };
+    }
+    return;
+  }
+  throw new Error('Failed to update topic');
 }
 
-export async function deleteQuestion(questionId: string): Promise<void> {
-  const res = await fetch('/api/question/delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question_id: questionId }),
-  });
-  if (!res.ok) throw new Error('Failed to delete topic');
+export async function deleteQuestion(sessionId: string, questionId: string): Promise<void> {
+  try {
+    const res = await fetch('/api/question/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, id: questionId }),
+    });
+    if (res.ok) return;
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    mockQuestionsList = mockQuestionsList.filter((q) => q.id !== questionId);
+    return;
+  }
+  throw new Error('Failed to delete topic');
 }
+
+let mockAnswersList: Answer[] = [
+  {
+    id: 'ans-1',
+    session_id: 'demo-session',
+    question_id: 'q-1',
+    text: 'Deploy ke Cloud Run sangat mulus dan zero-downtime! Pipeline CI/CD berjalan dalam 2 menit.',
+    sentiment_emoji: '🎉',
+    sentiment_emotion: 'Celebration',
+    sentiment_color: '#10b981',
+    votes: 7,
+    cluster_tag: 'devops',
+    author_name: 'Swift Falcon',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'ans-2',
+    session_id: 'demo-session',
+    question_id: 'q-1',
+    text: 'Kolaborasi dan komunikasi tim lintas divisi jauh lebih responsif dan transparan minggu ini.',
+    sentiment_emoji: '💪',
+    sentiment_emotion: 'Motivated',
+    sentiment_color: '#3b82f6',
+    votes: 5,
+    cluster_tag: 'culture',
+    author_name: 'Clever Otter',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'ans-3',
+    session_id: 'demo-session',
+    question_id: 'q-1',
+    text: 'Dokumentasi API Swagger sudah sinkron dengan backend, mempermudah integrasi frontend.',
+    sentiment_emoji: '✨',
+    sentiment_emotion: 'Delight',
+    sentiment_color: '#10b981',
+    votes: 3,
+    cluster_tag: 'docs',
+    author_name: 'Cosmic Fox',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'ans-4',
+    session_id: 'demo-session',
+    question_id: 'q-1',
+    text: 'Kopi di pantry sering habis sebelum makan siang :( butuh restock terjadwal!',
+    sentiment_emoji: '☕',
+    sentiment_emotion: 'Tired',
+    sentiment_color: '#f59e0b',
+    votes: 9,
+    cluster_tag: 'office',
+    author_name: 'Hyper Panda',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'ans-5',
+    session_id: 'demo-session',
+    question_id: 'q-1',
+    text: 'Review PR sering tertunda lebih dari 48 jam, perlu notifikasi pengingat harian.',
+    sentiment_emoji: '⏳',
+    sentiment_emotion: 'Waiting',
+    sentiment_color: '#ef4444',
+    votes: 4,
+    cluster_tag: 'process',
+    author_name: 'Quiet Bear',
+    created_at: new Date().toISOString(),
+  },
+];
 
 export async function fetchAnswers(
   sessionId: string,
@@ -107,78 +220,15 @@ export async function fetchAnswers(
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data)) return data;
     }
   } catch (_) {}
 
   if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return [
-      {
-        id: 'ans-1',
-        session_id: sessionId,
-        question_id: questionId || 'q-1',
-        text: 'Deploy ke Cloud Run sangat mulus dan zero-downtime! Pipeline CI/CD berjalan dalam 2 menit.',
-        sentiment_emoji: '🎉',
-        sentiment_emotion: 'Celebration',
-        sentiment_color: '#10b981',
-        votes: 7,
-        cluster_tag: 'devops',
-        author_name: 'Swift Falcon',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'ans-2',
-        session_id: sessionId,
-        question_id: questionId || 'q-1',
-        text: 'Kolaborasi dan komunikasi tim lintas divisi jauh lebih responsif dan transparan minggu ini.',
-        sentiment_emoji: '💪',
-        sentiment_emotion: 'Motivated',
-        sentiment_color: '#3b82f6',
-        votes: 5,
-        cluster_tag: 'culture',
-        author_name: 'Clever Otter',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'ans-3',
-        session_id: sessionId,
-        question_id: questionId || 'q-1',
-        text: 'Dokumentasi API Swagger sudah sinkron dengan backend, mempermudah integrasi frontend.',
-        sentiment_emoji: '✨',
-        sentiment_emotion: 'Delight',
-        sentiment_color: '#10b981',
-        votes: 3,
-        cluster_tag: 'docs',
-        author_name: 'Cosmic Fox',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'ans-4',
-        session_id: sessionId,
-        question_id: questionId || 'q-1',
-        text: 'Kopi di pantry sering habis sebelum makan siang :( butuh restock terjadwal!',
-        sentiment_emoji: '☕',
-        sentiment_emotion: 'Tired',
-        sentiment_color: '#f59e0b',
-        votes: 9,
-        cluster_tag: 'office',
-        author_name: 'Hyper Panda',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'ans-5',
-        session_id: sessionId,
-        question_id: questionId || 'q-1',
-        text: 'Review PR sering tertunda lebih dari 48 jam, perlu notifikasi pengingat harian.',
-        sentiment_emoji: '⏳',
-        sentiment_emotion: 'Waiting',
-        sentiment_color: '#ef4444',
-        votes: 4,
-        cluster_tag: 'process',
-        author_name: 'Quiet Bear',
-        created_at: new Date().toISOString(),
-      },
-    ];
+    if (questionId) {
+      return mockAnswersList.filter((a) => a.question_id === questionId);
+    }
+    return [...mockAnswersList];
   }
   return [];
 }
@@ -190,25 +240,42 @@ export async function submitAnswer(params: {
   gifUrl?: string;
 }): Promise<{ id: string; author_name?: string }> {
   const fp = getDeviceFingerprint();
-  const res = await fetch('/api/answer/submit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Device-Fingerprint': fp,
-    },
-    body: JSON.stringify({
+  try {
+    const res = await fetch('/api/answer/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Device-Fingerprint': fp,
+      },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        question_id: params.questionId,
+        text: params.text,
+        gif_url: params.gifUrl || '',
+        device_fingerprint: fp,
+      }),
+    });
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
+    const newAnswer: Answer = {
+      id: 'ans-' + Date.now(),
       session_id: params.sessionId,
       question_id: params.questionId,
       text: params.text,
-      gif_url: params.gifUrl || '',
-      device_fingerprint: fp,
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || 'Failed to submit reflection card');
+      gif_url: params.gifUrl,
+      sentiment_emoji: '💡',
+      sentiment_emotion: 'Idea',
+      sentiment_color: '#3b82f6',
+      votes: 0,
+      author_name: 'Clever Explorer',
+      created_at: new Date().toISOString(),
+    };
+    mockAnswersList.push(newAnswer);
+    return { id: newAnswer.id, author_name: newAnswer.author_name };
   }
-  return res.json();
+  throw new Error('Failed to submit reflection card');
 }
 
 export async function voteAnswer(params: {
@@ -217,33 +284,47 @@ export async function voteAnswer(params: {
   action: 'vote' | 'unvote';
 }): Promise<{ ok: boolean; remaining_votes?: number; message?: string }> {
   const fp = getDeviceFingerprint();
-  const res = await fetch('/api/answer/vote', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Device-Fingerprint': fp,
-    },
-    body: JSON.stringify({
-      session_id: params.sessionId,
-      answer_id: params.answerId,
-      device_fingerprint: fp,
-    }),
-  });
-  return res.json();
+  try {
+    const res = await fetch('/api/answer/vote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Device-Fingerprint': fp,
+      },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        answer_id: params.answerId,
+        device_fingerprint: fp,
+      }),
+    });
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
+    const ans = mockAnswersList.find((a) => a.id === params.answerId);
+    if (ans) {
+      ans.votes = Math.max(0, ans.votes + (params.action === 'vote' ? 1 : -1));
+    }
+    return { ok: true };
+  }
+  return { ok: false, message: 'Vote failed' };
 }
 
 export async function fetchVoterStatus(sessionId: string): Promise<VoterStatus> {
   const fp = getDeviceFingerprint();
-  const res = await fetch(
-    `/api/session/voter-status?session_id=${encodeURIComponent(sessionId)}&device_fingerprint=${encodeURIComponent(fp)}`,
-    {
-      headers: {
-        'X-Device-Fingerprint': fp,
-      },
-    }
-  );
-  if (!res.ok) return { voter_id: fp, total_votes: 0, remaining_votes: 5, voted_answers: [] };
-  return res.json();
+  try {
+    const res = await fetch(
+      `/api/session/voter-status?session_id=${encodeURIComponent(sessionId)}&device_fingerprint=${encodeURIComponent(fp)}`,
+      {
+        headers: {
+          'X-Device-Fingerprint': fp,
+        },
+      }
+    );
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  return { voter_id: fp, total_votes: 0, remaining_votes: 5, voted_answers: [] };
 }
 
 let mockTimerState: TimerState = { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
