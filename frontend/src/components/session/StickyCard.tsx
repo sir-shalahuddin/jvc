@@ -40,12 +40,19 @@ export const StickyCard: React.FC<StickyCardProps> = ({
   );
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // If text was selected (e.g. copying reflection text), do not flip
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      return;
+    }
+
     // Prevent flipping if clicked on buttons, links, inputs, or badges
     const target = e.target as HTMLElement;
     if (
       target.closest('button') ||
       target.closest('a') ||
       target.closest('input') ||
+      target.closest('textarea') ||
       target.closest('.card-cluster-badge') ||
       target.closest('.card-vote-btn') ||
       target.closest('.back-cluster-pill') ||
@@ -82,6 +89,10 @@ export const StickyCard: React.FC<StickyCardProps> = ({
       aria-label={`Reflection card by ${answer.author_name || 'Anonymous'}. Click to flip.`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.tagName === 'INPUT') {
+            return;
+          }
           e.preventDefault();
           SoundFX.playFlip();
           setIsFlipped((prev) => !prev);
@@ -169,7 +180,6 @@ export const StickyCard: React.FC<StickyCardProps> = ({
         <div
           className="card-content-body"
           dangerouslySetInnerHTML={{ __html: answer.text }}
-          onClick={(e) => e.stopPropagation()}
         />
 
         {/* Attached Reaction GIF / Image */}
@@ -185,7 +195,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
         )}
 
         {/* Back Footer Action Toolbar */}
-        <div className="card-back-footer" onClick={(e) => e.stopPropagation()}>
+        <div className="card-back-footer">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             {onConvertToAction && (
               <button
@@ -225,10 +235,10 @@ export const StickyCard: React.FC<StickyCardProps> = ({
                   e.stopPropagation();
                   if (onSpotlight) onSpotlight(answer.id);
                 }}
-                title="Spotlight focus this card for all participants"
+                title={isSpotlighted ? 'Remove spotlight focus' : 'Spotlight focus this card for all participants'}
               >
                 <Focus size={13} />
-                <span>Focus</span>
+                <span>{isSpotlighted ? 'Unfocus' : 'Focus'}</span>
               </button>
             )}
           </div>

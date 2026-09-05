@@ -246,24 +246,50 @@ export async function fetchVoterStatus(sessionId: string): Promise<VoterStatus> 
   return res.json();
 }
 
+let mockTimerState: TimerState = { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
+
 export async function fetchTimer(sessionId: string): Promise<TimerState> {
-  const res = await fetch(`/api/session/timer?session_id=${encodeURIComponent(sessionId)}`);
-  if (!res.ok) return { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
-  return res.json();
+  try {
+    const res = await fetch(`/api/session/timer?session_id=${encodeURIComponent(sessionId)}`);
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    return mockTimerState;
+  }
+  return { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
 }
 
 export async function timerAction(sessionId: string, action: 'start' | 'reset', seconds = 300): Promise<void> {
-  await fetch('/api/session/timer/action', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_id: sessionId, action, seconds }),
-  });
+  try {
+    await fetch('/api/session/timer/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, action, seconds }),
+    });
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    if (action === 'start') {
+      mockTimerState = { running: true, end_time_unix_ms: Date.now() + seconds * 1000, remaining_seconds: seconds };
+    } else {
+      mockTimerState = { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
+    }
+  }
 }
 
+let mockSpotlightState: SpotlightState = { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
+
 export async function fetchSpotlight(sessionId: string): Promise<SpotlightState> {
-  const res = await fetch(`/api/session/spotlight?session_id=${encodeURIComponent(sessionId)}`);
-  if (!res.ok) return { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
-  return res.json();
+  try {
+    const res = await fetch(`/api/session/spotlight?session_id=${encodeURIComponent(sessionId)}`);
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
+    return mockSpotlightState;
+  }
+  return { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
 }
 
 export async function spotlightAction(params: {
@@ -272,18 +298,36 @@ export async function spotlightAction(params: {
   questionId?: string;
   answerId?: string;
 }): Promise<SpotlightState> {
-  const res = await fetch('/api/session/spotlight/action', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      session_id: params.sessionId,
-      action: params.action,
-      question_id: params.questionId || '',
-      answer_id: params.answerId || '',
-    }),
-  });
-  return res.json();
+  try {
+    const res = await fetch('/api/session/spotlight/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        action: params.action,
+        question_id: params.questionId || '',
+        answer_id: params.answerId || '',
+      }),
+    });
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
+    if (params.action === 'clear') {
+      mockSpotlightState = { active: false, question_id: '', answer_id: '', updated_at_ms: Date.now() };
+    } else {
+      mockSpotlightState = {
+        active: true,
+        question_id: params.questionId || '',
+        answer_id: params.answerId || '',
+        updated_at_ms: Date.now(),
+      };
+    }
+    return mockSpotlightState;
+  }
+  return { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
 }
+
 
 export async function syncPresenceApi(params: {
   sessionId: string;

@@ -452,16 +452,27 @@ export const SessionBoardPage: React.FC = () => {
     if (!isModerator || !activeQuestion) return;
     try {
       SoundFX.playClick();
-      const updated = await spotlightAction({
-        sessionId,
-        action: 'focus',
-        questionId: activeQuestion.id,
-        answerId,
-      });
-      setSpotlight(updated);
-      showToast('Facilitator spotlight broadcasted to all participants!', 'info');
+      if (spotlight.active && spotlight.answer_id === answerId) {
+        // Toggle OFF spotlight
+        const updated = await spotlightAction({
+          sessionId,
+          action: 'clear',
+        });
+        setSpotlight(updated || { active: false, question_id: '', answer_id: '', updated_at_ms: Date.now() });
+        showToast('Facilitator spotlight removed', 'info');
+      } else {
+        // Toggle ON spotlight for this card
+        const updated = await spotlightAction({
+          sessionId,
+          action: 'focus',
+          questionId: activeQuestion.id,
+          answerId,
+        });
+        setSpotlight(updated || { active: true, question_id: activeQuestion.id, answer_id: answerId, updated_at_ms: Date.now() });
+        showToast('Facilitator spotlight broadcasted to all participants!', 'info');
+      }
     } catch (err: any) {
-      showToast(err.message || 'Failed to spotlight card', 'error');
+      showToast(err.message || 'Failed to update spotlight', 'error');
     }
   };
 
@@ -680,7 +691,7 @@ export const SessionBoardPage: React.FC = () => {
           <AnswersGrid
             answers={filteredAndSortedAnswers}
             isModerator={isModerator}
-            spotlightedAnswerId={spotlight.answer_id}
+            spotlightedAnswerId={spotlight.active ? spotlight.answer_id : undefined}
             votedAnswerIds={votedAnswerSet}
             onVote={handleVote}
             onSpotlight={isModerator ? handleSpotlight : undefined}
