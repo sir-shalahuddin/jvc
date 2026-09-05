@@ -81,9 +81,18 @@ export const SessionBoardPage: React.FC = () => {
   const { showToast } = useToast();
 
   // URL Parameters
-  const queryParams = useMemo(() => new URLSearchParams(window.location.search), []);
-  const sessionId = queryParams.get('id') || '';
-  const urlRole = queryParams.get('role') || 'guest';
+  const { sessionId, urlRole } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    let id = params.get('id') || params.get('session_id') || '';
+    if (!id) {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      if (parts.length >= 2 && parts[0] === 'session' && parts[1] !== 'index.html') {
+        id = parts[1];
+      }
+    }
+    const role = params.get('role') || 'guest';
+    return { sessionId: id, urlRole: role };
+  }, []);
 
   // Client Identity
   const clientId = useMemo(() => getOrCreateClientId(), []);
@@ -183,7 +192,7 @@ export const SessionBoardPage: React.FC = () => {
         setClusters(clusterList);
 
         if (qList.length > 0) {
-          const ans = await fetchAnswers(qList[0].id);
+          const ans = await fetchAnswers(sessionId, qList[0].id);
           if (isMounted) setAnswers(ans);
         }
 
@@ -221,7 +230,7 @@ export const SessionBoardPage: React.FC = () => {
     }
 
     let isMounted = true;
-    fetchAnswers(activeQuestion.id).then((ans) => {
+    fetchAnswers(sessionId, activeQuestion.id).then((ans) => {
       if (isMounted) setAnswers(ans);
     });
 
@@ -282,7 +291,7 @@ export const SessionBoardPage: React.FC = () => {
 
         // Poll Answers for Active Question
         if (activeQuestion) {
-          const freshAnswers = await fetchAnswers(activeQuestion.id);
+          const freshAnswers = await fetchAnswers(sessionId, activeQuestion.id);
           setAnswers(freshAnswers);
         }
 
@@ -551,15 +560,17 @@ export const SessionBoardPage: React.FC = () => {
 
     // Sort
     result.sort((a, b) => {
+      const timeB = new Date(b.created_at || 0).getTime() || 0;
+      const timeA = new Date(a.created_at || 0).getTime() || 0;
       if (sortMode === 'votes') {
         if (b.votes !== a.votes) return b.votes - a.votes;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return timeB - timeA;
       }
       if (sortMode === 'newest') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return timeB - timeA;
       }
       if (sortMode === 'oldest') {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return timeA - timeB;
       }
       return 0;
     });
@@ -590,13 +601,13 @@ export const SessionBoardPage: React.FC = () => {
 
   if (error || !session) {
     return (
-      <div className="session-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ maxWidth: '480px', textAlign: 'center', padding: '2.5rem' }}>
-          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Unable to Open Session</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+      <div className="session-page" style={{ alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div className="content-card" style={{ maxWidth: '480px', width: '100%', textAlign: 'center', padding: '2.5rem 2rem' }}>
+          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem', fontSize: '1.35rem' }}>Unable to Open Session</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
             {error || 'This retrospective board could not be found or has expired.'}
           </p>
-          <a href="/dashboard" className="btn btn-primary" style={{ display: 'inline-flex' }}>
+          <a href="/dashboard" className="btn btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
             Return to Dashboard
           </a>
         </div>

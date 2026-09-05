@@ -8,6 +8,7 @@ import { UserDashboard } from './pages/UserDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { SessionBoardPage } from './pages/SessionBoardPage';
 import { Modal } from './components/common/Modal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Plus, Sparkles, LogIn, ExternalLink } from 'lucide-react';
 
 function DashboardApp() {
@@ -325,8 +326,10 @@ export default function App() {
       !window.location.pathname.includes('/admin'));
 
   return (
-    <ToastProvider>
-      {isSessionRoute ? <SessionBoardPage /> : <DashboardApp />}
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        {isSessionRoute ? <SessionBoardPage /> : <DashboardApp />}
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

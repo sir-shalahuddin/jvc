@@ -358,6 +358,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
   position: relative;
 }
@@ -437,11 +439,12 @@ body {
 /* Page Scrollable Body */
 .page-container {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 2rem 2.25rem;
+  padding: 1.75rem 2.25rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 /* Welcome Hero Banner */
@@ -449,13 +452,16 @@ body {
   background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-subtle) 100%);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
-  padding: 1.75rem 2rem;
+  padding: 1.5rem 1.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1.5rem;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  min-height: fit-content;
 }
 
 .welcome-banner::after {
@@ -469,24 +475,54 @@ body {
   pointer-events: none;
 }
 
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .welcome-text h1 {
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.35rem;
+  margin: 0;
   letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .welcome-text p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  margin: 0;
+  line-height: 1.45;
 }
 
 /* KPI Metrics Grid */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
+  width: 100%;
+}
+
+.metrics-grid.cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .metrics-grid.cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .metrics-grid,
+  .metrics-grid.cols-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .metric-card {

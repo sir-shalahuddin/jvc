@@ -61,15 +61,22 @@ export async function deleteQuestion(questionId: string): Promise<void> {
 }
 
 export async function fetchAnswers(
-  questionId: string,
+  sessionId: string,
+  questionId?: string,
   limit = 50,
   offset = 0
 ): Promise<Answer[]> {
-  const res = await fetch(
-    `/api/session/answers?question_id=${encodeURIComponent(questionId)}&limit=${limit}&offset=${offset}`
-  );
+  if (!sessionId) return [];
+  let url = `/api/session/answers?session_id=${encodeURIComponent(sessionId)}`;
+  if (questionId) {
+    url += `&question_id=${encodeURIComponent(questionId)}`;
+  }
+  if (limit) url += `&limit=${limit}`;
+  if (offset) url += `&offset=${offset}`;
+  const res = await fetch(url);
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export async function submitAnswer(params: {
@@ -108,12 +115,14 @@ export async function voteAnswer(params: {
   const fp = getDeviceFingerprint();
   const res = await fetch('/api/answer/vote', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Device-Fingerprint': fp,
+    },
     body: JSON.stringify({
       session_id: params.sessionId,
       answer_id: params.answerId,
-      voter_id: fp,
-      action: params.action,
+      device_fingerprint: fp,
     }),
   });
   return res.json();
@@ -122,7 +131,12 @@ export async function voteAnswer(params: {
 export async function fetchVoterStatus(sessionId: string): Promise<VoterStatus> {
   const fp = getDeviceFingerprint();
   const res = await fetch(
-    `/api/session/voter-status?session_id=${encodeURIComponent(sessionId)}&voter_id=${encodeURIComponent(fp)}`
+    `/api/session/voter-status?session_id=${encodeURIComponent(sessionId)}&device_fingerprint=${encodeURIComponent(fp)}`,
+    {
+      headers: {
+        'X-Device-Fingerprint': fp,
+      },
+    }
   );
   if (!res.ok) return { voter_id: fp, total_votes: 0, remaining_votes: 5, voted_answers: [] };
   return res.json();
@@ -247,9 +261,14 @@ export async function clusterCardApi(sessionId: string, answerId: string, tag: s
 }
 
 export async function fetchSessionClusters(sessionId: string): Promise<string[]> {
+  if (!sessionId) return [];
   const res = await fetch(`/api/session/clusters?session_id=${encodeURIComponent(sessionId)}`);
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item: any) => (typeof item === 'string' ? item : item?.tag || ''))
+    .filter(Boolean);
 }
 
 export async function searchGiphy(query: string): Promise<Array<{ id: string; url: string; previewUrl: string }>> {

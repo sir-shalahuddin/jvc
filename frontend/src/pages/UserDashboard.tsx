@@ -91,7 +91,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       </section>
 
       {/* KPI Metric Widgets */}
-      <section className="metrics-grid">
+      <section className="metrics-grid cols-3">
         <MetricCard
           label="Total Hosted Sessions"
           value={sessions.length}
