@@ -83,6 +83,8 @@ export const AnswersGrid: React.FC<AnswersGridProps> = ({
     );
   }
 
+  const maxVotes = Math.max(0, ...answers.map((a) => a.votes || 0));
+
   return (
     <section
       className="answers-grid-container"
@@ -94,6 +96,7 @@ export const AnswersGrid: React.FC<AnswersGridProps> = ({
           answer={answer}
           isModerator={isModerator}
           isSpotlighted={spotlightedAnswerId === answer.id}
+          isTopVoted={maxVotes > 0 && answer.votes === maxVotes}
           hasVoted={votedAnswerIds.has(answer.id)}
           onVote={onVote}
           onSpotlight={onSpotlight}

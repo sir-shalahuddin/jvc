@@ -1,10 +1,4 @@
-import React, { useState } from 'react';
-import {
-  Tag,
-  Focus,
-  RotateCcw,
-  CheckSquare,
-} from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Answer } from '../../types/session';
 import { getRetroEmoticonData } from '../../services/sentimentEngine';
 import { SoundFX } from '../../services/soundEngine';
@@ -14,6 +8,7 @@ interface StickyCardProps {
   answer: Answer;
   isModerator: boolean;
   isSpotlighted: boolean;
+  isTopVoted?: boolean;
   hasVoted: boolean;
   onVote: (answerId: string) => void;
   onSpotlight?: (answerId: string) => void;
@@ -25,6 +20,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
   answer,
   isModerator,
   isSpotlighted,
+  isTopVoted = false,
   hasVoted,
   onVote,
   onSpotlight,
@@ -32,12 +28,31 @@ export const StickyCard: React.FC<StickyCardProps> = ({
   onConvertToAction,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const emoticon = getRetroEmoticonData(
     answer.sentiment_emoji,
     answer.sentiment_emotion,
     answer.id
   );
+
+  const moodColor = emoticon.color || answer.sentiment_color || 'var(--border-card)';
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener('click', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [isDropdownOpen]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     // If text was selected (e.g. copying reflection text), do not flip
@@ -56,7 +71,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
       target.closest('.card-cluster-badge') ||
       target.closest('.card-vote-btn') ||
       target.closest('.back-cluster-pill') ||
-      target.closest('.card-action-btn')
+      target.closest('.card-actions-dropdown')
     ) {
       return;
     }
@@ -99,10 +114,11 @@ export const StickyCard: React.FC<StickyCardProps> = ({
         }
       }}
       title="Click or press Space to flip reflection card"
+      style={{ '--mood-color': moodColor } as React.CSSProperties}
     >
-      {/* Front Face: Kaomoji and Mystery Sentiment */}
+      {/* Front Face: Kaomoji and Sentiment */}
       <div className="card-face card-front">
-        {answer.votes >= 5 && (
+        {isTopVoted && (
           <div className="top-voted-badge">🔥 TOP VOTED</div>
         )}
 
@@ -119,6 +135,12 @@ export const StickyCard: React.FC<StickyCardProps> = ({
           </div>
         )}
 
+        {answer.sentiment_color === '#ef4444' && (
+          <div className="warning-overlay">
+            <span>⚠️ Critical</span>
+          </div>
+        )}
+
         <div className={`emoji-main emot-${emoticon.type}`} style={{ color: emoticon.color }}>
           {emoticon.text}
         </div>
@@ -127,8 +149,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
           {answer.sentiment_emotion || emoticon.type}
         </div>
 
-        <div className="card-front-bottom">
-          <span className="card-reveal-hint">Flip to reveal ↵</span>
+        <div style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}>
           <button
             type="button"
             className={`card-vote-btn ${hasVoted ? 'has-voted' : ''}`}
@@ -143,10 +164,11 @@ export const StickyCard: React.FC<StickyCardProps> = ({
       {/* Back Face: Revealed Content and Actions */}
       <div className="card-face card-back">
         <div className="card-back-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span className="card-author-alias">
               🎭 {answer.author_name || 'Anonymous'}
             </span>
+            {isTopVoted && <span className="top-voted-pill">🔥 Top</span>}
             {answer.cluster_tag && (
               <span
                 className="back-cluster-pill"
@@ -161,7 +183,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
               className={`card-vote-btn ${hasVoted ? 'has-voted' : ''}`}
@@ -173,6 +195,14 @@ export const StickyCard: React.FC<StickyCardProps> = ({
             <span className="back-emot-pill" style={{ color: emoticon.color }}>
               {emoticon.text}
             </span>
+            <div
+              style={{
+                background: moodColor,
+                width: '10px',
+                height: '10px',
+                border: '1.5px solid var(--border-card)',
+              }}
+            />
           </div>
         </div>
 
@@ -194,70 +224,66 @@ export const StickyCard: React.FC<StickyCardProps> = ({
           </div>
         )}
 
-        {/* Back Footer Action Toolbar */}
-        <div className="card-back-footer">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            {onConvertToAction && (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm card-action-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onConvertToAction(answer);
-                }}
-                title="Turn this reflection into a commitment/action item"
-              >
-                <CheckSquare size={13} />
-                <span>Action</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm card-action-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenClusterModal(answer.id);
-              }}
-              title="Tag / group this card"
-            >
-              <Tag size={13} />
-              <span>Tag</span>
-            </button>
-
-            {isModerator && (
-              <button
-                type="button"
-                className={`btn btn-secondary btn-sm card-action-btn ${
-                  isSpotlighted ? 'active-spotlight' : ''
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onSpotlight) onSpotlight(answer.id);
-                }}
-                title={isSpotlighted ? 'Remove spotlight focus' : 'Spotlight focus this card for all participants'}
-              >
-                <Focus size={13} />
-                <span>{isSpotlighted ? 'Unfocus' : 'Focus'}</span>
-              </button>
-            )}
-          </div>
-
+        {/* Back Actions Dropdown */}
+        <div className="card-actions-dropdown" ref={dropdownRef}>
           <button
             type="button"
-            className="btn btn-ghost btn-sm card-action-btn"
+            className={`card-dropdown-toggle ${isDropdownOpen ? 'active' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
-              SoundFX.playFlip();
-              setIsFlipped(false);
+              setIsDropdownOpen((prev) => !prev);
             }}
-            title="Flip back to front"
+            title="Actions menu"
           >
-            <RotateCcw size={13} />
-            <span>Flip</span>
+            <span>⚡ Actions</span> <span className="dropdown-arrow">{isDropdownOpen ? '▴' : '▾'}</span>
           </button>
+
+          {isDropdownOpen && (
+            <div className="card-dropdown-menu show" onClick={(e) => e.stopPropagation()}>
+              {onConvertToAction && (
+                <button
+                  type="button"
+                  className="card-dropdown-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onConvertToAction(answer);
+                  }}
+                  title="Turn this reflection into an action item"
+                >
+                  <span>⚡ Action Item</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="card-dropdown-item"
+                onClick={() => {
+                  setIsDropdownOpen(false);
+                  onOpenClusterModal(answer.id);
+                }}
+                title="Categorize or cluster this reflection"
+              >
+                <span>🏷️ {answer.cluster_tag ? `#${answer.cluster_tag}` : 'Cluster'}</span>
+              </button>
+
+              {isModerator && onSpotlight && (
+                <button
+                  type="button"
+                  className={`card-dropdown-item ${isSpotlighted ? 'active' : ''}`}
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onSpotlight(answer.id);
+                  }}
+                  title={isSpotlighted ? 'Remove spotlight focus' : 'Spotlight focus this card for all participants'}
+                >
+                  <span>{isSpotlighted ? '🔦 Remove Focus' : '🔦 Spotlight Focus'}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
