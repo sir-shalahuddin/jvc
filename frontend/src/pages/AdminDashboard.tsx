@@ -250,13 +250,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   const host = session.owner_email || session.creator_email || 'System';
                   return (
                     <tr key={session.id}>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 600 }}>{host}</span>
-                        </div>
+                      <td style={{ maxWidth: '240px' }}>
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            display: 'block',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={host}
+                        >
+                          {host}
+                        </span>
                       </td>
-                      <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {session.name}
+                      <td style={{ maxWidth: '280px' }}>
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                            display: 'block',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={session.name}
+                        >
+                          {session.name}
+                        </span>
                       </td>
                       <td>
                         <span

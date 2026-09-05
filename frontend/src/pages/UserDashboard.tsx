@@ -274,7 +274,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <tbody>
                 {filteredSessions.map((session) => (
                   <tr key={session.id}>
-                    <td style={{ fontWeight: 600 }}>{session.name}</td>
+                    <td style={{ maxWidth: '320px' }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          display: 'block',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={session.name}
+                      >
+                        {session.name}
+                      </span>
+                    </td>
                     <td>
                       <span
                         className="session-id-pill"
