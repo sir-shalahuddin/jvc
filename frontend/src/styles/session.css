@@ -1367,3 +1367,277 @@
   font-family: var(--font-sans) !important;
   font-weight: 700 !important;
 }
+
+/* ==========================================================================
+   Mobile Responsiveness & Layout Transformations
+   Transforms desktop rows into mobile carousels, bottom sheets, and touch grids
+   ========================================================================== */
+
+/* Base helper states */
+.dock-mobile-counter {
+  display: none;
+}
+
+.topbar-text-desktop {
+  display: inline;
+}
+
+.topbar-desktop-only {
+  display: inline-flex;
+}
+
+.board-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.filter-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+@media (max-width: 768px) {
+  /* Topbar Layout: Slim height, icon-first buttons, safe truncate */
+  .session-topbar {
+    height: 56px;
+    padding: 0 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .session-topbar-left {
+    gap: 0.45rem;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .session-topbar-right {
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .session-name-title {
+    max-width: 120px;
+    font-size: 0.92rem;
+  }
+
+  .topbar-text-desktop,
+  .topbar-desktop-only {
+    display: none !important;
+  }
+
+  .topbar-exit-btn {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+  }
+
+  .presence-btn {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+    gap: 0.3rem;
+    min-height: 36px;
+  }
+
+  .vote-budget-badge {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+  }
+
+  .timer-widget {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+
+  .timer-input {
+    width: 22px;
+    font-size: 0.85rem;
+  }
+
+  .presence-dropdown-menu {
+    position: fixed;
+    top: 60px;
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    max-width: calc(100vw - 1.5rem);
+    z-index: 60;
+  }
+
+  /* Filters Layout Transformation: Horizontal swipeable chips + 2-col dropdowns */
+  .board-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.65rem 0.75rem;
+    gap: 0.55rem;
+    margin-top: 0.5rem;
+  }
+
+  .filter-pills-group {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.45rem;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-pills-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-pill {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .board-filter-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .filter-select-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-select-input {
+    width: 100%;
+    height: 38px !important;
+    font-size: 0.78rem !important;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: var(--radius-md) !important;
+    background: var(--bg-subtle);
+  }
+
+  /* Board Area & Cards Layout */
+  .session-content-area {
+    padding: 1.25rem 0.85rem 6.5rem 0.85rem;
+  }
+
+  .answers-grid-container {
+    column-count: 1 !important;
+    column-width: auto !important;
+    column-gap: 0 !important;
+    margin-top: 1rem;
+  }
+
+  .answer-card {
+    margin-bottom: 1.15rem;
+    min-height: 240px;
+  }
+
+  .card-face {
+    min-height: 240px;
+    padding: 1.15rem 1rem !important;
+  }
+
+  .card-action-btn {
+    min-height: 38px;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .card-vote-btn {
+    min-height: 38px;
+    padding: 0.4rem 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Topic Section Layout Transformation */
+  .topic-media-cover {
+    height: 160px;
+    max-width: 100%;
+  }
+
+  .topic-title-text {
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .topic-action-toolbar {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .topic-action-toolbar .btn-primary {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: 0.95rem !important;
+  }
+
+  .spotlight-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .spotlight-banner-left {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Topic Dock Layout Transformation: Switch from dots to compact mobile stepper */
+  .topic-dock-wrapper {
+    bottom: max(0.85rem, env(safe-area-inset-bottom, 0.85rem));
+    padding: 0.35rem 0.65rem;
+    gap: 0.4rem;
+  }
+
+  .dock-dots-container {
+    display: none !important;
+  }
+
+  .dock-mobile-counter {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 0 0.5rem;
+    min-width: 85px;
+    text-align: center;
+    color: var(--text-primary);
+  }
+
+  .dock-arrow-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 440px) {
+  /* Extra compact phone width */
+  .session-topbar {
+    padding: 0 0.5rem;
+  }
+
+  .session-name-title {
+    max-width: 80px;
+    font-size: 0.85rem;
+  }
+
+  .role-pill {
+    display: none;
+  }
+
+  .board-filter-controls {
+    grid-template-columns: 1fr;
+  }
+}

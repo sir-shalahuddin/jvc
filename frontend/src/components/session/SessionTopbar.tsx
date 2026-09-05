@@ -124,7 +124,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
       <div className="session-topbar-left">
         <a href="/dashboard" className="topbar-exit-btn" title="Return to Dashboard">
           <ArrowLeft size={14} />
-          <span>Exit</span>
+          <span className="topbar-text-desktop">Exit</span>
         </a>
 
         <div className="topbar-title-box">
@@ -146,7 +146,8 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
           >
             <span className="pulse-dot" />
             <Users size={14} />
-            <span>{presenceCount} Online</span>
+            <span className="presence-count-text">{presenceCount}</span>
+            <span className="topbar-text-desktop">Online</span>
             <ChevronDown size={12} />
           </button>
 
@@ -240,7 +241,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
         <div className="vote-budget-badge" title="Remaining dot-voting budget for this session">
           <span>🎯</span>
           <span>
-            {remainingVotes}/5 <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>Votes</span>
+            {remainingVotes}/5<span className="topbar-text-desktop"> Votes</span>
           </span>
         </div>
 
@@ -253,7 +254,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
             title="Session Tools & Utilities"
           >
             <Wrench size={14} />
-            <span>Tools</span>
+            <span className="topbar-text-desktop">Tools</span>
             <ChevronDown size={12} />
           </button>
 
@@ -317,11 +318,11 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
           )}
         </div>
 
-        {/* UI Style Selector (Neo-Brutalist Default vs Modern SaaS) */}
+        {/* UI Style Selector (Desktop only, mobile users can access via Tools menu) */}
         <button
           type="button"
           onClick={toggleUiStyle}
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-sm topbar-desktop-only"
           title={`Switch Design Theme: Neo-Brutalist or Modern SaaS (Current: ${
             uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'
           })`}
@@ -343,7 +344,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
         {/* Copy Invite Link */}
         <button onClick={handleCopyInvite} className="btn btn-primary btn-sm" title="Share invite link with your team">
           <Share2 size={14} />
-          <span>Invite</span>
+          <span className="topbar-text-desktop">Invite</span>
         </button>
       </div>
     </header>

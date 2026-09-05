@@ -84,6 +84,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <div className="dashboard-layout">
+      {/* Mobile Drawer Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileOpen(false)}
+          aria-label="Close mobile sidebar menu"
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <aside
         className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${
@@ -236,8 +245,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
               className="btn btn-ghost btn-icon"
-              style={{ display: 'none' }}
               id="mobile-menu-btn"
+              aria-label="Open navigation menu"
             >
               <Menu size={20} />
             </button>
@@ -274,7 +283,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               style={{ gap: '0.45rem', fontSize: '0.78rem' }}
             >
               <Palette size={14} />
-              <span>{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+              <span className="btn-text-desktop">{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
             </button>
 
             <button
@@ -290,9 +299,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               onClick={onOpenNewSessionModal}
               className="btn btn-primary"
               id="header-create-session-btn"
+              title="Start New Retrospective"
             >
               <Plus size={16} />
-              <span>New Session</span>
+              <span className="btn-text-desktop">New Session</span>
             </button>
           </div>
         </header>

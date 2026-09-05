@@ -48,6 +48,7 @@ export const TopicNavigation: React.FC<TopicNavigationProps> = ({
         <ChevronLeft size={18} />
       </button>
 
+      {/* Desktop Dots Indicator */}
       <div className="dock-dots-container">
         {questions.map((q, idx) => (
           <button
@@ -58,6 +59,13 @@ export const TopicNavigation: React.FC<TopicNavigationProps> = ({
             aria-label={`Go to topic ${idx + 1}`}
           />
         ))}
+      </div>
+
+      {/* Mobile Stepper Counter (Replaces overcrowded dots on small screens) */}
+      <div className="dock-mobile-counter">
+        <span className="dock-mobile-step">
+          Topic {activeIndex + 1}/{questions.length}
+        </span>
       </div>
 
       <button

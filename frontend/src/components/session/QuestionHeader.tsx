@@ -155,19 +155,12 @@ export const QuestionHeader: React.FC<QuestionHeaderProps> = ({
         </div>
 
         {/* Sorting & Cluster Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+        <div className="board-filter-controls">
           {clusters.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Tag size={14} style={{ color: 'var(--text-muted)' }} />
+            <div className="filter-select-wrapper">
+              <Tag size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <select
-                className="input"
-                style={{
-                  padding: '0.35rem 0.65rem',
-                  fontSize: '0.75rem',
-                  height: 'auto',
-                  borderRadius: 'var(--radius-full)',
-                  background: 'var(--bg-subtle)',
-                }}
+                className="input filter-select-input"
                 value={selectedCluster}
                 onChange={(e) => onSelectCluster(e.target.value)}
                 aria-label="Filter by cluster tag"
@@ -183,17 +176,10 @@ export const QuestionHeader: React.FC<QuestionHeaderProps> = ({
           )}
 
           {/* Sort Mode Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <ArrowUpDown size={14} style={{ color: 'var(--text-muted)' }} />
+          <div className="filter-select-wrapper">
+            <ArrowUpDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
             <select
-              className="input"
-              style={{
-                padding: '0.35rem 0.65rem',
-                fontSize: '0.75rem',
-                height: 'auto',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-subtle)',
-              }}
+              className="input filter-select-input"
               value={sortMode}
               onChange={(e) => onChangeSortMode(e.target.value as SortMode)}
               aria-label="Sort reflections"
