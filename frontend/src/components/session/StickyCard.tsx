@@ -4,6 +4,7 @@ import {
   Tag,
   Focus,
   RotateCcw,
+  CheckSquare,
 } from 'lucide-react';
 import type { Answer } from '../../types/session';
 import { getRetroEmoticonData } from '../../services/sentimentEngine';
@@ -18,6 +19,7 @@ interface StickyCardProps {
   onVote: (answerId: string) => void;
   onSpotlight?: (answerId: string) => void;
   onOpenClusterModal: (answerId: string) => void;
+  onConvertToAction?: (answer: Answer) => void;
 }
 
 export const StickyCard: React.FC<StickyCardProps> = ({
@@ -28,6 +30,7 @@ export const StickyCard: React.FC<StickyCardProps> = ({
   onVote,
   onSpotlight,
   onOpenClusterModal,
+  onConvertToAction,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -172,6 +175,21 @@ export const StickyCard: React.FC<StickyCardProps> = ({
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              {onConvertToAction && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  style={{ padding: '4px', color: 'var(--success)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConvertToAction(answer);
+                  }}
+                  title="Create Action Item from this reflection"
+                >
+                  <CheckSquare size={13} />
+                </button>
+              )}
+
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"

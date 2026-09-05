@@ -14,6 +14,7 @@ import {
   Moon,
   ChevronDown,
   Wrench,
+  Palette,
 } from 'lucide-react';
 import type { PresenceUser } from '../../types/session';
 import { SoundFX } from '../../services/soundEngine';
@@ -55,6 +56,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSoundMuted, setIsSoundMuted] = useState(SoundFX.muted);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [uiStyle, setUiStyle] = useState<'brutalist' | 'modern'>('brutalist');
 
   // Input fields for MM:SS
   const [minutesInput, setMinutesInput] = useState('05');
@@ -65,6 +67,10 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
       (localStorage.getItem('theme') as 'light' | 'dark') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setTheme(saved);
+
+    const savedStyle =
+      (localStorage.getItem('ui_theme_style') as 'brutalist' | 'modern') || 'brutalist';
+    setUiStyle(savedStyle);
   }, []);
 
   useEffect(() => {
@@ -81,6 +87,14 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
     setTheme(next);
     localStorage.setItem('theme', next);
     document.documentElement.setAttribute('data-theme', next);
+  };
+
+  const toggleUiStyle = () => {
+    const next = uiStyle === 'brutalist' ? 'modern' : 'brutalist';
+    setUiStyle(next);
+    localStorage.setItem('ui_theme_style', next);
+    document.documentElement.setAttribute('data-ui-style', next);
+    showToast(`Switched theme to ${next === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}`, 'info');
   };
 
   const handleCopyInvite = () => {
@@ -273,6 +287,17 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
                 type="button"
                 className="btn btn-ghost btn-sm"
                 style={{ justifyContent: 'flex-start', width: '100%', gap: '0.6rem' }}
+                onClick={toggleUiStyle}
+                title="Toggle between Neo-Brutalist and Modern SaaS design"
+              >
+                <Palette size={16} color="var(--primary)" />
+                <span>Theme: {uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ justifyContent: 'flex-start', width: '100%', gap: '0.6rem' }}
                 onClick={handleSoundToggle}
               >
                 {isSoundMuted ? <VolumeX size={16} color="var(--danger)" /> : <Volume2 size={16} color="var(--success)" />}
@@ -291,6 +316,20 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
             </div>
           )}
         </div>
+
+        {/* UI Style Selector (Neo-Brutalist Default vs Modern SaaS) */}
+        <button
+          type="button"
+          onClick={toggleUiStyle}
+          className="btn btn-secondary btn-sm"
+          title={`Switch Design Theme: Neo-Brutalist or Modern SaaS (Current: ${
+            uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'
+          })`}
+          style={{ gap: '0.45rem', fontSize: '0.78rem' }}
+        >
+          <Palette size={14} />
+          <span>{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+        </button>
 
         {/* Theme Switcher Button */}
         <button

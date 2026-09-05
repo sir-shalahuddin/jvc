@@ -12,6 +12,7 @@ interface AnswersGridProps {
   onSpotlight?: (answerId: string) => void;
   onOpenClusterModal: (answerId: string) => void;
   onOpenSubmitModal: () => void;
+  onConvertToAction?: (answer: Answer) => void;
 }
 
 export const AnswersGrid: React.FC<AnswersGridProps> = ({
@@ -23,6 +24,7 @@ export const AnswersGrid: React.FC<AnswersGridProps> = ({
   onSpotlight,
   onOpenClusterModal,
   onOpenSubmitModal,
+  onConvertToAction,
 }) => {
   if (answers.length === 0) {
     return (
@@ -93,6 +95,7 @@ export const AnswersGrid: React.FC<AnswersGridProps> = ({
           onVote={onVote}
           onSpotlight={onSpotlight}
           onOpenClusterModal={onOpenClusterModal}
+          onConvertToAction={onConvertToAction}
         />
       ))}
     </section>

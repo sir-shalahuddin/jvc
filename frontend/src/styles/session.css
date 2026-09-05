@@ -645,3 +645,101 @@
   background: var(--bg-subtle);
   text-decoration: line-through;
 }
+
+/* ==========================================================================
+   Neo-Brutalist Session Board Overrides (Default Theme)
+   ========================================================================== */
+:root:not([data-ui-style='modern']) .session-topbar,
+[data-ui-style='brutalist'] .session-topbar {
+  border-bottom: 2.5px solid var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .session-name-title,
+[data-ui-style='brutalist'] .session-name-title,
+:root:not([data-ui-style='modern']) .topic-title-text,
+[data-ui-style='brutalist'] .topic-title-text {
+  font-family: var(--font-serif);
+  font-weight: 900;
+}
+
+:root:not([data-ui-style='modern']) .timer-widget,
+[data-ui-style='brutalist'] .timer-widget {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: var(--radius-sm);
+}
+
+:root:not([data-ui-style='modern']) .vote-budget-badge,
+[data-ui-style='brutalist'] .vote-budget-badge {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  font-family: var(--font-mono);
+}
+
+:root:not([data-ui-style='modern']) .topbar-exit-btn,
+[data-ui-style='brutalist'] .topbar-exit-btn,
+:root:not([data-ui-style='modern']) .presence-btn,
+[data-ui-style='brutalist'] .presence-btn {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: var(--radius-sm);
+}
+
+:root:not([data-ui-style='modern']) .board-filters-bar,
+[data-ui-style='brutalist'] .board-filters-bar {
+  border: 2px solid var(--border-card);
+  box-shadow: 3px 3px 0px var(--border-card);
+  border-radius: var(--radius-md);
+}
+
+:root:not([data-ui-style='modern']) .filter-pill,
+[data-ui-style='brutalist'] .filter-pill {
+  border: 1.5px solid var(--border-card);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+:root:not([data-ui-style='modern']) .tactile-card-front,
+[data-ui-style='brutalist'] .tactile-card-front,
+:root:not([data-ui-style='modern']) .tactile-card-back,
+[data-ui-style='brutalist'] .tactile-card-back {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 4px 4px 0px var(--border-card);
+  border-radius: var(--radius-md);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+:root:not([data-ui-style='modern']) .tactile-card-wrapper:hover .tactile-card-front,
+[data-ui-style='brutalist'] .tactile-card-wrapper:hover .tactile-card-front,
+:root:not([data-ui-style='modern']) .tactile-card-wrapper:hover .tactile-card-back,
+[data-ui-style='brutalist'] .tactile-card-wrapper:hover .tactile-card-back {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .card-vote-btn,
+[data-ui-style='brutalist'] .card-vote-btn {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: var(--radius-sm);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+:root:not([data-ui-style='modern']) .card-vote-btn:active,
+[data-ui-style='brutalist'] .card-vote-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .topic-dock-wrapper,
+[data-ui-style='brutalist'] .topic-dock-wrapper {
+  border: 2.5px solid var(--border-card);
+  box-shadow: 4px 4px 0px var(--border-card);
+}
+
+:root:not([data-ui-style='modern']) .action-item-row,
+[data-ui-style='brutalist'] .action-item-row {
+  border: 2px solid var(--border-card);
+  box-shadow: 2px 2px 0px var(--border-card);
+  border-radius: var(--radius-sm);
+}

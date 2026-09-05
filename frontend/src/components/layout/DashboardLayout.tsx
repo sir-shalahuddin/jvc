@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
-  KanbanSquare,
   ShieldAlert,
   Plus,
   Search,
@@ -127,20 +126,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   <LayoutDashboard size={18} />
                   {!isCollapsed && <span>Overview</span>}
                 </button>
-              </li>
-              <li>
-                <button
-                  className={`nav-item-btn ${activeTab === 'sessions' ? 'active' : ''}`}
-                  onClick={() => {
-                    onTabChange('sessions');
-                    setIsMobileOpen(false);
-                  }}
-                  title="Activity Logs & Retrospectives"
-                >
-                  <KanbanSquare size={18} />
-                  {!isCollapsed && <span>Activity Logs</span>}
-                </button>
-
               </li>
             </ul>
           </div>

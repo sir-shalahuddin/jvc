@@ -19,6 +19,7 @@ interface ActionItemsModalProps {
   onAddActionItem: (text: string, assignee?: string, dueDate?: string) => Promise<void>;
   onToggleActionItem: (id: string, completed: boolean) => Promise<void>;
   onDeleteActionItem: (id: string) => Promise<void>;
+  initialText?: string;
 }
 
 export const ActionItemsModal: React.FC<ActionItemsModalProps> = ({
@@ -28,13 +29,20 @@ export const ActionItemsModal: React.FC<ActionItemsModalProps> = ({
   onAddActionItem,
   onToggleActionItem,
   onDeleteActionItem,
+  initialText = '',
 }) => {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
-  const [newText, setNewText] = useState('');
+  const [newText, setNewText] = useState(initialText);
   const [newAssignee, setNewAssignee] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (initialText) {
+      setNewText(initialText);
+    }
+  }, [initialText]);
 
   const filteredItems = actionItems.filter((item) => {
     if (filter === 'pending') return !item.completed;

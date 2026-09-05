@@ -128,6 +128,7 @@ export const SessionBoardPage: React.FC = () => {
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isActionItemsModalOpen, setIsActionItemsModalOpen] = useState(false);
+  const [actionItemInitialText, setActionItemInitialText] = useState('');
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isClusterModalOpen, setIsClusterModalOpen] = useState(false);
   const [clusteringAnswerId, setClusteringAnswerId] = useState<string | null>(null);
@@ -524,6 +525,16 @@ export const SessionBoardPage: React.FC = () => {
     setActionItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleConvertCardToAction = (answer: Answer) => {
+    // Strip any HTML tags from answer text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = answer.text;
+    const plainText = tempDiv.textContent || tempDiv.innerText || answer.text;
+    setActionItemInitialText(plainText.trim());
+    setIsActionItemsModalOpen(true);
+    SoundFX.playPop();
+  };
+
   // Handlers for Card Clustering
   const handleOpenClusterModal = (answerId: string) => {
     setClusteringAnswerId(answerId);
@@ -675,6 +686,7 @@ export const SessionBoardPage: React.FC = () => {
             onSpotlight={isModerator ? handleSpotlight : undefined}
             onOpenClusterModal={handleOpenClusterModal}
             onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+            onConvertToAction={handleConvertCardToAction}
           />
         </div>
       </main>
@@ -712,11 +724,15 @@ export const SessionBoardPage: React.FC = () => {
 
       <ActionItemsModal
         isOpen={isActionItemsModalOpen}
-        onClose={() => setIsActionItemsModalOpen(false)}
+        onClose={() => {
+          setIsActionItemsModalOpen(false);
+          setActionItemInitialText('');
+        }}
         actionItems={actionItems}
         onAddActionItem={handleAddActionItem}
         onToggleActionItem={handleToggleActionItem}
         onDeleteActionItem={handleDeleteActionItem}
+        initialText={actionItemInitialText}
       />
 
       <ShortcutsModal
