@@ -98,9 +98,14 @@ async function checkAuth() {
                     <div style="font-weight: 700; font-size: 0.9rem;">${escapeHTML(data.email.split('@')[0])}</div>
                     <span class="badge badge-success">${data.quota} Units</span>
                 </div>
-                <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <input type="text" id="sessionName" placeholder="Discussion Topic" value="Sprint Sync" style="padding: 0.75rem 1rem; flex-grow: 1;">
                     <button id="createSessionBtn" class="btn btn-primary" style="padding: 0 1.25rem;">Start</button>
+                </div>
+                <div style="margin-bottom: 1.25rem;">
+                    <a href="/dashboard" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.85rem; padding: 0.6rem; text-decoration: none;">
+                        Open Workspace Dashboard &rarr;
+                    </a>
                 </div>
                 <div style="display: flex; gap: 1.5rem; font-size: 0.8rem; font-weight: 700;">
                     <a href="${waUrl}" target="_blank" style="color: var(--primary); text-decoration:none;">Tambah Kuota (WA)</a>
@@ -110,21 +115,22 @@ async function checkAuth() {
             const createBtn = document.getElementById('createSessionBtn');
             if (createBtn) createBtn.onclick = createSession;
             
-            // Inject Activity Logs link ONLY if logged in and not already present
-            if (nav && !document.getElementById('activityLogsLink')) {
-                const activityLink = document.createElement('a');
-                activityLink.id = 'activityLogsLink';
-                activityLink.href = 'javascript:void(0)';
-                activityLink.onclick = toggleHistory;
-                activityLink.innerText = 'Activity Logs';
-                nav.appendChild(activityLink);
+            // Inject Dashboard link ONLY if logged in and not already present
+            if (nav && !document.getElementById('dashboardNavLink')) {
+                const dashLink = document.createElement('a');
+                dashLink.id = 'dashboardNavLink';
+                dashLink.href = '/dashboard';
+                dashLink.innerText = 'Dashboard';
+                dashLink.style.color = 'var(--primary)';
+                dashLink.style.fontWeight = '700';
+                nav.appendChild(dashLink);
 
                 if (data.is_admin && !document.getElementById('adminDashboardLink')) { 
                     const adminLink = document.createElement('a');
                     adminLink.id = 'adminDashboardLink';
                     adminLink.href = '/admin';
-                    adminLink.innerText = 'Dashboard';
-                    adminLink.style.color = 'var(--primary)';
+                    adminLink.innerText = 'Admin Center';
+                    adminLink.style.color = 'var(--accent)';
                     nav.appendChild(adminLink);
                 }
             }

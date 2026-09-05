@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"retro-gcp/config"
 	"sync"
@@ -44,13 +45,30 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "index", config.AppConfig)
 }
 
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	spaIndex := filepath.Join("frontend", "dist", "index.html")
+	if _, err := os.Stat(spaIndex); err == nil {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		http.ServeFile(w, r, spaIndex)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+}
+
 func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "session", config.AppConfig)
 }
 
 func AdminUIHandler(w http.ResponseWriter, r *http.Request) {
+	spaIndex := filepath.Join("frontend", "dist", "index.html")
+	if _, err := os.Stat(spaIndex); err == nil {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		http.ServeFile(w, r, spaIndex)
+		return
+	}
 	renderTemplate(w, "admin", config.AppConfig)
 }
+
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "about", config.AppConfig)

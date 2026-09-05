@@ -1,0 +1,10 @@
+.git
+.github
+*.exe
+retro-gcp
+frontend/node_modules
+frontend/dist
+.env
+.env.*
+*.log
+k6.exe

@@ -4,6 +4,8 @@ import (
 	"compress/gzip"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"retro-gcp/config"
 	"retro-gcp/db"
 	"retro-gcp/handlers"
@@ -67,6 +69,16 @@ func main() {
 	})
 	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
+	// Vite React SPA Assets
+	assetsDir := filepath.Join("frontend", "dist", "assets")
+	if _, err := os.Stat(assetsDir); err == nil {
+		assetsFs := http.FileServer(http.Dir(assetsDir))
+		mux.Handle("/assets/", http.StripPrefix("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			assetsFs.ServeHTTP(w, r)
+		})))
+	}
+
 	// API Routes
 	mux.HandleFunc("/api/session/create", handlers.CreateSessionHandler)
 	mux.HandleFunc("/api/session/get", handlers.GetSessionHandler)
@@ -109,11 +121,14 @@ func main() {
 
 	// Frontend Routes
 	mux.HandleFunc("/", handlers.HomeHandler)
+	mux.HandleFunc("/dashboard", handlers.DashboardHandler)
+	mux.HandleFunc("/dashboard/", handlers.DashboardHandler)
 	mux.HandleFunc("/session/", handlers.SessionHandler)
 	mux.HandleFunc("/admin", handlers.AdminUIHandler)
 	mux.HandleFunc("/about", handlers.AboutHandler)
 	mux.HandleFunc("/contact", handlers.ContactHandler)
 	mux.HandleFunc("/checkout", handlers.CheckoutHandler)
+
 
 	port := config.AppConfig.Port
 	log.Printf("Server starting on :%s...", port)

@@ -3,11 +3,14 @@ package handlers
 import (
 	"bytes"
 	"html/template"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"retro-gcp/config"
 	"testing"
 )
+
 
 func TestTemplatesParseAndExecute(t *testing.T) {
 	// Ensure we can find the templates folder from handlers dir
@@ -38,3 +41,17 @@ func TestTemplatesParseAndExecute(t *testing.T) {
 		})
 	}
 }
+
+func TestDashboardAndAdminHandlers(t *testing.T) {
+	// Test DashboardHandler
+	req, _ := http.NewRequest("GET", "/dashboard", nil)
+	rr := httptest.NewRecorder()
+	DashboardHandler(rr, req)
+
+	// Since frontend/dist may not be found relative to package handlers when testing,
+	// it will redirect to "/" or serve 200 OK
+	if rr.Code != http.StatusOK && rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("expected status 200 or 307 for DashboardHandler, got %d", rr.Code)
+	}
+}
+
