@@ -123,6 +123,7 @@ func main() {
 	mux.HandleFunc("/", handlers.HomeHandler)
 	mux.HandleFunc("/dashboard", handlers.DashboardHandler)
 	mux.HandleFunc("/dashboard/", handlers.DashboardHandler)
+	mux.HandleFunc("/session", handlers.SessionHandler)
 	mux.HandleFunc("/session/", handlers.SessionHandler)
 	mux.HandleFunc("/admin", handlers.AdminUIHandler)
 	mux.HandleFunc("/about", handlers.AboutHandler)

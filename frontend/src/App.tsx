@@ -6,6 +6,7 @@ import { ToastProvider, useToast } from './components/common/Toast';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { UserDashboard } from './pages/UserDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { SessionBoardPage } from './pages/SessionBoardPage';
 import { Modal } from './components/common/Modal';
 import { Plus, Sparkles, LogIn, ExternalLink } from 'lucide-react';
 
@@ -317,9 +318,15 @@ function DashboardApp() {
 }
 
 export default function App() {
+  const isSessionRoute =
+    window.location.pathname.startsWith('/session') ||
+    (new URLSearchParams(window.location.search).has('id') &&
+      !window.location.pathname.includes('/dashboard') &&
+      !window.location.pathname.includes('/admin'));
+
   return (
     <ToastProvider>
-      <DashboardApp />
+      {isSessionRoute ? <SessionBoardPage /> : <DashboardApp />}
     </ToastProvider>
   );
 }

@@ -1,4 +1,5 @@
 @import './styles/design-system.css';
+@import './styles/session.css';
 
 #root {
   width: 100%;

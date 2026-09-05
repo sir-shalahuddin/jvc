@@ -53,5 +53,13 @@ func TestDashboardAndAdminHandlers(t *testing.T) {
 	if rr.Code != http.StatusOK && rr.Code != http.StatusTemporaryRedirect {
 		t.Errorf("expected status 200 or 307 for DashboardHandler, got %d", rr.Code)
 	}
+
+	// Test SessionHandler
+	reqSession, _ := http.NewRequest("GET", "/session?id=test", nil)
+	rrSession := httptest.NewRecorder()
+	SessionHandler(rrSession, reqSession)
+	if rrSession.Code != http.StatusOK {
+		t.Errorf("expected status 200 for SessionHandler, got %d", rrSession.Code)
+	}
 }
 
