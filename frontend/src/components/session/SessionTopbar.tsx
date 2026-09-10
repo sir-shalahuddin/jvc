@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   Users,
@@ -57,6 +57,7 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
   const [isSoundMuted, setIsSoundMuted] = useState(SoundFX.muted);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [uiStyle, setUiStyle] = useState<'brutalist' | 'modern'>('brutalist');
+  const cachedShortUrlRef = useRef<string | null>(null);
 
   // Input fields for MM:SS
   const [minutesInput, setMinutesInput] = useState('05');
@@ -97,9 +98,32 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
     showToast(`Switched theme to ${next === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}`, 'info');
   };
 
-  const handleCopyInvite = () => {
-    const url = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
-    navigator.clipboard.writeText(url);
+  const handleCopyInvite = async () => {
+    const rawUrl = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
+    if (cachedShortUrlRef.current) {
+      try {
+        await navigator.clipboard.writeText(cachedShortUrlRef.current);
+        showToast('Link Hanya.Click tersalin ke clipboard! 🚀', 'success');
+        return;
+      } catch (e) {}
+    }
+    try {
+      const res = await fetch(`/api/session/share-link?id=${encodeURIComponent(sessionId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.short_url) {
+          cachedShortUrlRef.current = data.short_url;
+          await navigator.clipboard.writeText(data.short_url);
+          showToast(data.is_shortened ? 'Link Hanya.Click tersalin! 🚀' : 'Participant invite link copied!', 'success');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Share link failed, falling back to raw:', e);
+    }
+    try {
+      await navigator.clipboard.writeText(rawUrl);
+    } catch (e) {}
     showToast('Participant invite link copied to clipboard!', 'success');
   };
 

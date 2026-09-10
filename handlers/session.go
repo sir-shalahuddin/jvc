@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"retro-gcp/config"
 	"retro-gcp/dto"
 	"retro-gcp/services"
+	"strings"
+	"sync"
+	"time"
 )
 
 var SessionServ *services.SessionService
@@ -109,4 +114,75 @@ func GiphyProxyHandler(w http.ResponseWriter, r *http.Request) {
 	var data interface{}
 	json.NewDecoder(resp.Body).Decode(&data)
 	json.NewEncoder(w).Encode(data)
+}
+
+var shortLinkCache sync.Map // sessionID -> shortURL
+
+type ShareLinkResponse struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+	IsShortened bool   `json:"is_shortened"`
+}
+
+func SessionShareLinkHandler(w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("id")
+	if sessionID == "" {
+		http.Error(w, "Session ID required", http.StatusBadRequest)
+		return
+	}
+
+	// Tentukan URL asli sesi Retro
+	scheme := "https"
+	if r.TLS == nil && r.Header.Get("X-Forwarded-Proto") != "https" {
+		host := r.Host
+		if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
+			scheme = "http"
+		}
+	}
+	originalURL := fmt.Sprintf("%s://%s/session/?id=%s", scheme, r.Host, url.QueryEscape(sessionID))
+
+	// Periksa cache in-memory agar efisien (0ms response)
+	if cached, ok := shortLinkCache.Load(sessionID); ok {
+		if shortURL, ok := cached.(string); ok && shortURL != "" {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(ShareLinkResponse{
+				ShortURL:    shortURL,
+				OriginalURL: originalURL,
+				IsShortened: true,
+			})
+			return
+		}
+	}
+
+	// Panggil API Hanya.Click /shorten dengan timeout 2.5 detik
+	shortenServiceURL := strings.TrimRight(config.AppConfig.ShortenLinkURL, "/") + "/shorten"
+	reqPayload, _ := json.Marshal(map[string]string{"url": originalURL})
+
+	client := &http.Client{Timeout: 2500 * time.Millisecond}
+	resp, err := client.Post(shortenServiceURL, "application/json", bytes.NewBuffer(reqPayload))
+
+	if err == nil && (resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated) {
+		defer resp.Body.Close()
+		var resData struct {
+			ShortURL string `json:"short_url"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&resData); err == nil && resData.ShortURL != "" {
+			shortLinkCache.Store(sessionID, resData.ShortURL)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(ShareLinkResponse{
+				ShortURL:    resData.ShortURL,
+				OriginalURL: originalURL,
+				IsShortened: true,
+			})
+			return
+		}
+	}
+
+	// Fallback ke tautan asli jika layanan Hanya.Click sedang offline atau lambat
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ShareLinkResponse{
+		ShortURL:    originalURL,
+		OriginalURL: originalURL,
+		IsShortened: false,
+	})
 }

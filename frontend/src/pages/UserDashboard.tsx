@@ -43,10 +43,24 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     );
   });
 
-  const handleCopyLink = (sessionId: string, e?: React.MouseEvent) => {
+  const handleCopyLink = async (sessionId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const url = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
-    navigator.clipboard.writeText(url);
+    const rawUrl = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
+    let targetUrl = rawUrl;
+    try {
+      const res = await fetch(`/api/session/share-link?id=${encodeURIComponent(sessionId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.short_url) {
+          targetUrl = data.short_url;
+        }
+      }
+    } catch (err) {
+      console.warn('Share link failed, fallback to raw:', err);
+    }
+    try {
+      await navigator.clipboard.writeText(targetUrl);
+    } catch (err) {}
     setCopiedId(sessionId);
     showToast('Participant join link copied to clipboard!', 'success');
     setTimeout(() => setCopiedId(null), 2500);

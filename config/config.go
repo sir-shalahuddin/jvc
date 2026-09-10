@@ -20,6 +20,7 @@ type Config struct {
 	ContactEmail       string
 	ContactPhone       string
 	ContactAddress     string
+	ShortenLinkURL     string
 }
 
 var AppConfig Config
@@ -41,6 +42,7 @@ func LoadConfig() {
 		ContactEmail:       getEnv("CONTACT_EMAIL", "support@hanya.click"),
 		ContactPhone:       getEnv("CONTACT_PHONE", "+62 812-3456-7890"),
 		ContactAddress:     getEnv("CONTACT_ADDRESS", "Jl. Jenderal Sudirman Kav. 52-53, Jakarta Selatan, 12190, Indonesia"),
+		ShortenLinkURL:     getEnv("SHORTEN_LINK_URL", "https://hanya.click"),
 	}
 }
 

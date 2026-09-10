@@ -2240,7 +2240,35 @@
             } finally {} 
         };
         function downloadReport() { window.open(`/api/session/report?session_id=${sessionId}`, '_blank'); }
-        function copyInvite() { navigator.clipboard.writeText(window.location.origin + "/session/?id=" + sessionId); showToast("Copied!", "success"); }
+        let _cachedShortInviteUrl = null;
+        async function copyInvite() {
+            const rawUrl = window.location.origin + "/session/?id=" + sessionId;
+            if (_cachedShortInviteUrl) {
+                try {
+                    await navigator.clipboard.writeText(_cachedShortInviteUrl);
+                    showToast("Link Hanya.Click tersalin! 🚀", "success");
+                    return;
+                } catch(e) {}
+            }
+            try {
+                const res = await fetch("/api/session/share-link?id=" + encodeURIComponent(sessionId));
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.short_url) {
+                        _cachedShortInviteUrl = data.short_url;
+                        await navigator.clipboard.writeText(data.short_url);
+                        showToast(data.is_shortened ? "Link Hanya.Click tersalin! 🚀" : "Link sesi tersalin!", "success");
+                        return;
+                    }
+                }
+            } catch(e) {
+                console.warn("Share link fetch failed, using direct url:", e);
+            }
+            try {
+                await navigator.clipboard.writeText(rawUrl);
+            } catch(e) {}
+            showToast("Link sesi tersalin!", "success");
+        }
         function showToast(m, t) { const c = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.style.cssText = `background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 0px; border: 3px solid var(--border-color); margin-bottom: 0.75rem; animation: fadeUp 0.4s; box-shadow: var(--glass-shadow); font-weight: 800; font-family: 'JetBrains Mono', monospace;`; toast.innerHTML = `<span>${m}</span>`; c.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500); }
 
         // ==========================================

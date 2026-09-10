@@ -82,6 +82,7 @@ func main() {
 	// API Routes
 	mux.HandleFunc("/api/session/create", handlers.CreateSessionHandler)
 	mux.HandleFunc("/api/session/get", handlers.GetSessionHandler)
+	mux.HandleFunc("/api/session/share-link", handlers.SessionShareLinkHandler)
 	mux.HandleFunc("/api/session/update", handlers.UpdateSessionHandler)
 	mux.HandleFunc("/api/session/questions", handlers.GetQuestionsHandler)
 	mux.HandleFunc("/api/gifs/search", handlers.GiphyProxyHandler)

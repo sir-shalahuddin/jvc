@@ -108,9 +108,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   });
 
-  const handleCopyLink = (sessionId: string) => {
-    const url = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
-    navigator.clipboard.writeText(url);
+  const handleCopyLink = async (sessionId: string) => {
+    const rawUrl = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
+    let targetUrl = rawUrl;
+    try {
+      const res = await fetch(`/api/session/share-link?id=${encodeURIComponent(sessionId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.short_url) {
+          targetUrl = data.short_url;
+        }
+      }
+    } catch (err) {
+      console.warn('Share link failed, fallback to raw:', err);
+    }
+    try {
+      await navigator.clipboard.writeText(targetUrl);
+    } catch (err) {}
     showToast('Participant join link copied!', 'success');
   };
 
