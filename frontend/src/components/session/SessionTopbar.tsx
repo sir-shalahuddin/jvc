@@ -342,18 +342,17 @@ export const SessionTopbar: React.FC<SessionTopbarProps> = ({
           )}
         </div>
 
-        {/* UI Style Selector (Desktop only, mobile users can access via Tools menu) */}
+        {/* UI Style Selector (Desktop only icon toggle; full options also available in Tools menu) */}
         <button
           type="button"
           onClick={toggleUiStyle}
-          className="btn btn-secondary btn-sm topbar-desktop-only"
+          className="btn btn-ghost btn-icon btn-sm topbar-desktop-only"
           title={`Switch Design Theme: Neo-Brutalist or Modern SaaS (Current: ${
             uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'
           })`}
-          style={{ gap: '0.45rem', fontSize: '0.78rem' }}
+          aria-label="Toggle UI Theme Style"
         >
-          <Palette size={14} />
-          <span>{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+          <Palette size={16} />
         </button>
 
         {/* Theme Switcher Button */}

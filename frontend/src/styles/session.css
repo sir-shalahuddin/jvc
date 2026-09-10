@@ -16,7 +16,8 @@
 
 /* App Topbar */
 .session-topbar {
-  height: 64px;
+  min-height: 68px;
+  height: 68px;
   background: var(--bg-header);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -27,28 +28,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
+  gap: 1.25rem;
 }
 
 .session-topbar-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .topbar-exit-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
+  gap: 0.45rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 0.45rem 0.8rem;
+  padding: 0.5rem 0.95rem;
+  min-height: 38px;
   border-radius: var(--radius-sm);
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .topbar-exit-btn:hover {
@@ -60,15 +66,17 @@
 .topbar-title-box {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .session-name-title {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
-  max-width: 280px;
+  letter-spacing: -0.015em;
+  max-width: min(440px, 35vw);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -100,16 +108,24 @@
 .presence-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
+  gap: 0.45rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.9rem;
+  min-height: 38px;
   border-radius: var(--radius-md);
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
   cursor: pointer;
   position: relative;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.presence-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--border-focus);
 }
 
 .pulse-dot {
@@ -159,18 +175,20 @@
 .session-topbar-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
+  flex-shrink: 0;
 }
 
 /* Timer Widget */
 .timer-widget {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
-  padding: 0.35rem 0.65rem;
+  padding: 0.45rem 0.85rem;
+  min-height: 38px;
   font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 800;
@@ -216,13 +234,14 @@
 .vote-budget-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.85rem;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  min-height: 38px;
   border-radius: var(--radius-full);
   background: var(--bg-subtle);
   border: 1px solid var(--border-card);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -1399,12 +1418,42 @@
   gap: 0.4rem;
 }
 
-@media (max-width: 768px) {
-  /* Topbar Layout: Slim height, icon-first buttons, safe truncate */
+@media (max-width: 1280px) {
   .session-topbar {
-    height: 56px;
-    padding: 0 0.75rem;
-    gap: 0.4rem;
+    padding: 0 1.25rem;
+    gap: 0.85rem;
+  }
+  .session-topbar-left {
+    gap: 0.85rem;
+  }
+  .session-name-title {
+    max-width: min(320px, 30vw);
+  }
+  .session-topbar-right {
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .session-name-title {
+    max-width: min(220px, 24vw);
+    font-size: 1.1rem;
+  }
+  .topbar-text-desktop {
+    display: none !important;
+  }
+  .session-topbar-left {
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Topbar Layout: Compact height, icon-first buttons, safe truncate */
+  .session-topbar {
+    min-height: 60px;
+    height: 60px;
+    padding: 0 0.85rem;
+    gap: 0.5rem;
   }
 
   .session-topbar-left {
