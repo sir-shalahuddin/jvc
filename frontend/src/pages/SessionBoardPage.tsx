@@ -1,69 +1,57 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type {
-  SessionDetail,
-  Question,
-  Answer,
-  ActionItem,
-  PresenceUser,
-  TimerState,
-  SpotlightState,
-  VoterStatus,
-  SortMode,
-  MoodFilter,
-} from '../types/session';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  fetchSessionDetails,
-  fetchQuestions,
-  fetchAnswers,
-  submitAnswer,
-  voteAnswer,
-  fetchVoterStatus,
-  fetchTimer,
-  timerAction,
-  fetchSpotlight,
-  spotlightAction,
-  syncPresenceApi,
-  leavePresenceApi,
-  fetchActionItems,
   addActionItemApi,
-  toggleActionItemApi,
-  deleteActionItemApi,
-  clusterCardApi,
-  fetchSessionClusters,
   addQuestion,
-  updateQuestion,
+  clusterCardApi,
+  deleteActionItemApi,
   deleteQuestion,
+  fetchActionItems,
+  fetchPreviousActions,
+  getVoterId,
+  setPhaseApi,
+  spotlightAction,
+  submitAnswer,
+  timerAction,
+  toggleActionItemApi,
+  updateQuestion,
+  voteAnswer,
 } from '../services/sessionApi';
-import { SoundFX } from '../services/soundEngine';
-import { getRetroEmoticonData } from '../services/sentimentEngine';
+import { fetchCurrentUser } from '../services/api';
+import { copyText, resolveInviteUrl } from '../services/links';
 import { useToast } from '../components/common/Toast';
-import { SessionTopbar } from '../components/session/SessionTopbar';
+import { Modal } from '../components/common/Modal';
+import { useBoardState } from '../components/session/useBoardState';
+import { PresenceList, SessionHeader } from '../components/session/SessionHeader';
+import { useTimerSeconds } from '../components/session/SessionTimer';
+import { Board } from '../components/session/Board';
 import { SpotlightBanner } from '../components/session/SpotlightBanner';
-import { QuestionHeader } from '../components/session/QuestionHeader';
-import { AnswersGrid } from '../components/session/AnswersGrid';
-import { TopicNavigation } from '../components/session/TopicNavigation';
+import { PreviousActions } from '../components/session/PreviousActions';
+import { ActionPanel, type ActionDraft } from '../components/session/ActionPanel';
 import { SubmitCardModal } from '../components/session/modals/SubmitCardModal';
 import { TopicModal } from '../components/session/modals/TopicModal';
-import { ActionItemsModal } from '../components/session/modals/ActionItemsModal';
 import { ShortcutsModal } from '../components/session/modals/ShortcutsModal';
-import { ClusterModal } from '../components/session/modals/ClusterModal';
+import {
+  PHASE_LABEL,
+  isHidden,
+  type ActionItem,
+  type Answer,
+  type Phase,
+  type PreviousActions as Prev,
+  type Question,
+} from '../types/session';
 
-const ALIAS_ANIMALS = [
-  'Panda', 'Koala', 'Falcon', 'Cheetah', 'Otter', 'Badger',
-  'Fox', 'Wolf', 'Owl', 'Dolphin', 'Tiger', 'Bear', 'Eagle'
-];
-const ALIAS_ADJECTIVES = [
-  'Swift', 'Clever', 'Brave', 'Quiet', 'Cosmic', 'Hyper',
-  'Gentle', 'Wired', 'Noble', 'Retro', 'Epic', 'Zen'
-];
+// ---------- identity helpers ----------
+
+const ALIAS_ANIMALS = ['Panda', 'Koala', 'Elang', 'Cheetah', 'Berang', 'Rubah', 'Serigala', 'Burung Hantu', 'Lumba', 'Harimau', 'Beruang', 'Kancil', 'Merak'];
+const ALIAS_ADJ = ['Cepat', 'Cerdik', 'Berani', 'Tenang', 'Ceria', 'Jeli', 'Lembut', 'Sigap', 'Santai', 'Teliti', 'Riang', 'Tekun'];
 
 function getOrCreateUserAlias(): string {
-  let alias = sessionStorage.getItem('retro_user_alias');
+  let alias = sessionStorage.getItem('retro_user_alias_id');
   if (!alias) {
-    const adj = ALIAS_ADJECTIVES[Math.floor(Math.random() * ALIAS_ADJECTIVES.length)];
-    const animal = ALIAS_ANIMALS[Math.floor(Math.random() * ALIAS_ANIMALS.length)];
-    alias = `${adj} ${animal}`;
-    sessionStorage.setItem('retro_user_alias', alias);
+    const a = ALIAS_ANIMALS[Math.floor(Math.random() * ALIAS_ANIMALS.length)];
+    const b = ALIAS_ADJ[Math.floor(Math.random() * ALIAS_ADJ.length)];
+    alias = `${a} ${b}`;
+    sessionStorage.setItem('retro_user_alias_id', alias);
   }
   return alias;
 }
@@ -77,691 +65,584 @@ function getOrCreateClientId(): string {
   return cid;
 }
 
+function readSessionId(): string {
+  const params = new URLSearchParams(window.location.search);
+  let id = params.get('id') || params.get('session_id') || '';
+  if (!id) {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    if (parts.length >= 2 && parts[0] === 'session' && parts[1] !== 'index.html' && parts[1] !== 'summary') id = parts[1];
+  }
+  // ?role=... is ignored on purpose: owner status comes only from the server (is_owner).
+  return id;
+}
+
+function useMediaQuery(q: string): boolean {
+  const [m, setM] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const on = () => setM(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, [q]);
+  return m;
+}
+
+function plainText(html: string) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return (d.textContent || '').trim();
+}
+
+const msg = (e: unknown, fallback: string) => (e instanceof Error && e.message) || fallback;
+
+// ---------- page ----------
+
 export const SessionBoardPage: React.FC = () => {
   const { showToast } = useToast();
+  const sessionId = useMemo(readSessionId, []);
+  const clientId = useMemo(getOrCreateClientId, []);
+  const localAlias = useMemo(getOrCreateUserAlias, []);
+  const isMobile = useMediaQuery('(max-width: 600px)');
 
-  // URL Parameters
-  const { sessionId, urlRole } = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    let id = params.get('id') || params.get('session_id') || '';
-    if (!id) {
-      const parts = window.location.pathname.split('/').filter(Boolean);
-      if (parts.length >= 2 && parts[0] === 'session' && parts[1] !== 'index.html') {
-        id = parts[1];
-      }
-    }
-    const role = params.get('role') || 'guest';
-    return { sessionId: id, urlRole: role };
+  const [guestName, setGuestName] = useState('');
+  const alias = guestName || localAlias;
+  const { data, error, offline, clockOffset, refresh } = useBoardState(sessionId, clientId, alias);
+
+  const [myVoterId, setMyVoterId] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [clusterFilter, setClusterFilter] = useState('');
+  const [phaseBusy, setPhaseBusy] = useState(false);
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [actionsLoaded, setActionsLoaded] = useState(false);
+  const [actionDraft, setActionDraft] = useState<ActionDraft | null>(null);
+  const [prev, setPrev] = useState<Prev | null>(null);
+
+  const [submitTopic, setSubmitTopic] = useState<Question | null>(null);
+  const [topicModal, setTopicModal] = useState<{ open: boolean; edit: Question | null }>({ open: false, edit: null });
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [presenceOpen, setPresenceOpen] = useState(false);
+  const shareUrlRef = useRef<string | null>(null);
+
+  const session = data?.session;
+  const phase: Phase = session?.phase || 'discuss';
+  const isOwner = session?.is_owner === true;
+  const questions = useMemo(() => data?.questions || [], [data]);
+  const answers = useMemo(() => data?.answers || [], [data]);
+  const timer = data?.timer || { running: false, remaining_seconds: 300, end_time_unix_ms: 0 };
+  const timerSeconds = useTimerSeconds(timer, clockOffset);
+  const voter = data?.voter_status;
+  const budget = data?.vote_budget || voter?.max_votes || 0;
+  const votesLeft = voter ? voter.remaining_votes : 0;
+  const votedIds = useMemo(() => new Set(voter?.voted_answers || []), [voter?.voted_answers]);
+  const clusterNames = useMemo(() => (data?.clusters || []).map((c) => c.tag).filter(Boolean), [data?.clusters]);
+
+  // One-time lookups: own voter id (to recognise own cards), login (upload), previous promises.
+  useEffect(() => {
+    void getVoterId().then(setMyVoterId);
+    fetchCurrentUser()
+      .then((u) => setLoggedIn(!!u.authenticated))
+      .catch(() => setLoggedIn(false));
   }, []);
 
-  // Client Identity
-  const clientId = useMemo(() => getOrCreateClientId(), []);
-  const userAlias = useMemo(() => getOrCreateUserAlias(), []);
-
-  // Core Data State
-  const [session, setSession] = useState<SessionDetail | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [activeTopicIndex, setActiveTopicIndex] = useState(0);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [clusters, setClusters] = useState<string[]>([]);
-  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
-  const [voterStatus, setVoterStatus] = useState<VoterStatus>({
-    voter_id: clientId,
-    total_votes: 0,
-    remaining_votes: 5,
-    voted_answers: [],
-  });
-
-  // Real-time Presence & Sync State
-  const [participants, setParticipants] = useState<PresenceUser[]>([]);
-  const [presenceCount, setPresenceCount] = useState(1);
-  const [timer, setTimer] = useState<TimerState>({ running: false, end_time_unix_ms: 0, remaining_seconds: 300 });
-  const [spotlight, setSpotlight] = useState<SpotlightState>({ active: false, question_id: '', answer_id: '', updated_at_ms: 0 });
-
-  // View Filtering & Sorting State
-  const [sortMode, setSortMode] = useState<SortMode>('votes');
-  const [moodFilter, setMoodFilter] = useState<MoodFilter>('all');
-  const [selectedCluster, setSelectedCluster] = useState('all');
-
-  // Modals Visibility
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [isActionItemsModalOpen, setIsActionItemsModalOpen] = useState(false);
-  const [actionItemInitialText, setActionItemInitialText] = useState('');
-  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
-  const [isClusterModalOpen, setIsClusterModalOpen] = useState(false);
-  const [clusteringAnswerId, setClusteringAnswerId] = useState<string | null>(null);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Determine Moderator Role
-  const isModerator = useMemo(() => {
-    return urlRole === 'sm' || session?.is_owner === true;
-  }, [urlRole, session]);
-
-  const activeQuestion = questions[activeTopicIndex] || null;
-
-  // Jump to focus helper
-  const handleJumpToFocus = useCallback(() => {
-    if (!spotlight.active) return;
-    if (spotlight.question_id && activeQuestion && spotlight.question_id !== activeQuestion.id) {
-      const qIndex = questions.findIndex((q) => q.id === spotlight.question_id);
-      if (qIndex !== -1) setActiveTopicIndex(qIndex);
-    }
-    if (spotlight.answer_id) {
-      setTimeout(() => {
-        const el = document.getElementById(`card-${spotlight.answer_id}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add('spotlight-pulse');
-          setTimeout(() => el.classList.remove('spotlight-pulse'), 2500);
-        }
-      }, 200);
-    }
-  }, [spotlight, activeQuestion, questions]);
-
-  // Initial Data Load
   useEffect(() => {
-    if (!sessionId) {
-      setError('Invalid session link: Missing session ID');
-      setIsLoading(false);
-      return;
+    if (voter?.guest_name && voter.guest_name !== guestName) setGuestName(voter.guest_name);
+  }, [voter?.guest_name, guestName]);
+
+  const sessionLoaded = !!session;
+  useEffect(() => {
+    if (!sessionLoaded) return;
+    fetchPreviousActions(sessionId)
+      .then(setPrev)
+      .catch(() => setPrev(null)); // optional section: no toast if it fails
+  }, [sessionLoaded, sessionId]);
+
+  // Keep the active topic in range when topics change.
+  useEffect(() => {
+    if (activeIndex > 0 && activeIndex >= questions.length) setActiveIndex(Math.max(0, questions.length - 1));
+  }, [questions.length, activeIndex]);
+
+  // Drop a cluster filter that no longer exists.
+  useEffect(() => {
+    if (clusterFilter && !clusterNames.includes(clusterFilter)) setClusterFilter('');
+  }, [clusterNames, clusterFilter]);
+
+  // Action items are not in the state response; load them while they matter.
+  const showActions = phase === 'act' || phase === 'done';
+  const loadActions = useCallback(async () => {
+    try {
+      setActionItems(await fetchActionItems(sessionId));
+      setActionsLoaded(true);
+    } catch (e) {
+      setActionsLoaded(true);
+      throw e;
     }
+  }, [sessionId]);
 
-    let isMounted = true;
-
-    async function initSession() {
+  useEffect(() => {
+    if (!sessionLoaded || !showActions) return;
+    let stop = false;
+    let failedOnce = false;
+    const tick = async () => {
       try {
-        setIsLoading(true);
-        const [sessionData, qList, voterData, timerData, spotData, clusterList] = await Promise.all([
-          fetchSessionDetails(sessionId, urlRole),
-          fetchQuestions(sessionId),
-          fetchVoterStatus(sessionId),
-          fetchTimer(sessionId),
-          fetchSpotlight(sessionId),
-          fetchSessionClusters(sessionId),
-        ]);
-
-        if (!isMounted) return;
-        setSession(sessionData);
-        setQuestions(qList);
-        setVoterStatus(voterData);
-        setTimer(timerData);
-        setSpotlight(spotData);
-        setClusters(clusterList);
-
-        if (qList.length > 0) {
-          const ans = await fetchAnswers(sessionId, qList[0].id);
-          if (isMounted) setAnswers(ans);
-        }
-
-        // Sync initial presence
-        const pres = await syncPresenceApi({
-          sessionId,
-          clientId,
-          name: userAlias,
-          role: urlRole === 'sm' || sessionData.is_owner ? 'moderator' : 'participant',
-        });
-        if (isMounted) {
-          setParticipants(pres.participants || []);
-          setPresenceCount(pres.count || 1);
-        }
-      } catch (err: any) {
-        if (isMounted) setError(err.message || 'Failed to load session');
-      } finally {
-        if (isMounted) setIsLoading(false);
+        await loadActions();
+        failedOnce = false;
+      } catch (e) {
+        if (!failedOnce) showToast(msg(e, 'Gagal memuat aksi'), 'error');
+        failedOnce = true;
       }
-    }
-
-    initSession();
-
-    return () => {
-      isMounted = false;
-      leavePresenceApi(sessionId, clientId);
     };
-  }, [sessionId, urlRole, clientId, userAlias]);
+    void tick();
+    // Participants follow along read-only; owners edit and refresh on each change.
+    const id = window.setInterval(() => !stop && !document.hidden && void tick(), isOwner ? 15000 : 5000);
+    return () => {
+      stop = true;
+      window.clearInterval(id);
+    };
+  }, [sessionLoaded, showActions, isOwner, loadActions, showToast]);
 
-  // When active topic changes, load its answers
-  useEffect(() => {
-    if (!activeQuestion) {
-      setAnswers([]);
-      return;
-    }
-
-    let isMounted = true;
-    fetchAnswers(sessionId, activeQuestion.id).then((ans) => {
-      if (isMounted) setAnswers(ans);
+  const markBusy = (id: string, on: boolean) =>
+    setBusyIds((s) => {
+      const n = new Set(s);
+      if (on) n.add(id);
+      else n.delete(id);
+      return n;
     });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [activeQuestion?.id]);
+  // ---------- handlers (no optimistic changes: act, then re-read the server) ----------
 
-  // Local Timer Countdown Interval (Every 1000ms)
-  useEffect(() => {
-    if (!timer.running) return;
-
-    const interval = setInterval(() => {
-      setTimer((prev) => {
-        if (!prev.running) return prev;
-        const nextSec = prev.remaining_seconds - 1;
-
-        if (nextSec <= 0) {
-          SoundFX.playAlarm();
-          showToast('⏰ Time is up for this retrospective topic!', 'info');
-          return { ...prev, running: false, remaining_seconds: 0 };
-        }
-
-        if (nextSec <= 10) {
-          SoundFX.playTick();
-        }
-
-        return { ...prev, remaining_seconds: nextSec };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timer.running, showToast]);
-
-  // Periodic Background Polling (Every 3 seconds)
-  useEffect(() => {
-    if (!sessionId || !session) return;
-
-    const interval = setInterval(async () => {
-      try {
-        // Poll Presence
-        const pres = await syncPresenceApi({
-          sessionId,
-          clientId,
-          name: userAlias,
-          role: isModerator ? 'moderator' : 'participant',
-        });
-        setParticipants(pres.participants || []);
-        setPresenceCount(pres.count || 1);
-
-        // Poll Timer
-        const serverTimer = await fetchTimer(sessionId);
-        setTimer(serverTimer);
-
-        // Poll Spotlight
-        const spot = await fetchSpotlight(sessionId);
-        setSpotlight(spot);
-
-        // Poll Answers for Active Question
-        if (activeQuestion) {
-          const freshAnswers = await fetchAnswers(sessionId, activeQuestion.id);
-          setAnswers(freshAnswers);
-        }
-
-        // Poll Clusters
-        const freshClusters = await fetchSessionClusters(sessionId);
-        setClusters(freshClusters);
-      } catch (_) {
-        // Silent recovery on temporary connection blips
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [sessionId, session, clientId, userAlias, isModerator, activeQuestion]);
-
-  // Global Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in form controls
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
-        return;
-      }
-
-      if (e.key === 'c' || e.key === 'C') {
-        e.preventDefault();
-        setIsSubmitModalOpen(true);
-      } else if (e.key === 'a' || e.key === 'A') {
-        e.preventDefault();
-        setIsActionItemsModalOpen((prev) => !prev);
-      } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        handleJumpToFocus();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (activeTopicIndex > 0) setActiveTopicIndex((i) => i - 1);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        if (activeTopicIndex < questions.length - 1) setActiveTopicIndex((i) => i + 1);
-      } else if (e.key === 't' || e.key === 'T') {
-        if (isModerator) {
-          e.preventDefault();
-          if (timer.running) {
-            timerAction(sessionId, 'reset');
-          } else {
-            timerAction(sessionId, 'start', timer.remaining_seconds || 300);
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    activeTopicIndex,
-    questions.length,
-    isModerator,
-    timer.running,
-    timer.remaining_seconds,
-    sessionId,
-    handleJumpToFocus,
-  ]);
-
-  // Handlers for Questions CRUD
-  const handleSaveTopic = async (text: string, gifUrl: string) => {
-    if (editingQuestion) {
-      await updateQuestion(sessionId, editingQuestion.id, text, gifUrl);
-      const qList = await fetchQuestions(sessionId);
-      setQuestions(qList);
-      setEditingQuestion(null);
-    } else {
-      const { id } = await addQuestion(sessionId, text, gifUrl);
-      const qList = await fetchQuestions(sessionId);
-      setQuestions(qList);
-      const newIdx = qList.findIndex((q) => q.id === id);
-      if (newIdx !== -1) setActiveTopicIndex(newIdx);
+  const changePhase = async (p: Phase) => {
+    if (!isOwner || p === phase) return;
+    setPhaseBusy(true);
+    try {
+      await setPhaseApi(sessionId, p);
+      await refresh();
+      showToast(`Fase sekarang: ${PHASE_LABEL[p]}`, 'success');
+    } catch (e) {
+      showToast(msg(e, 'Gagal mengganti fase'), 'error');
+    } finally {
+      setPhaseBusy(false);
     }
   };
 
-  const handleDeleteTopic = async () => {
-    if (!activeQuestion) return;
-    if (!window.confirm(`Are you sure you want to delete topic "${activeQuestion.text}"? All reflections in it will be lost.`)) {
+  const startTimer = async (seconds: number) => {
+    try {
+      await timerAction(sessionId, 'start', seconds);
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal memulai timer'), 'error');
+    }
+  };
+  const stopTimer = async () => {
+    try {
+      await timerAction(sessionId, 'reset');
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal menghentikan timer'), 'error');
+    }
+  };
+
+  const invite = async () => {
+    let url = shareUrlRef.current;
+    if (!url) {
+      url = await resolveInviteUrl(sessionId);
+      shareUrlRef.current = url;
+    }
+    if (await copyText(url)) showToast(`Link undangan tersalin: ${url}`, 'success');
+    else showToast('Gagal menyalin link. Salin dari address bar.', 'error');
+  };
+
+  const summaryUrl = `${window.location.origin}/session/summary?id=${encodeURIComponent(sessionId)}`;
+  const shareSummary = async () => {
+    if (await copyText(summaryUrl)) showToast('Link ringkasan tersalin', 'success');
+    else showToast('Gagal menyalin link ringkasan', 'error');
+  };
+
+  const exportPdf = () => {
+    window.open(`/api/session/report?session_id=${encodeURIComponent(sessionId)}`, '_blank', 'noopener');
+  };
+
+  const submitCard = async (text: string, gifUrl: string): Promise<boolean> => {
+    if (!submitTopic) return false;
+    try {
+      await submitAnswer({ sessionId, questionId: submitTopic.id, text, gifUrl });
+    } catch (e) {
+      showToast(msg(e, 'Gagal mengirim kartu'), 'error');
+      return false;
+    }
+    showToast('Kartu terkirim', 'success');
+    void refresh();
+    return true;
+  };
+
+  const vote = async (a: Answer) => {
+    if (votesLeft <= 0) {
+      showToast('Vote kamu sudah habis', 'error');
       return;
     }
+    markBusy(a.id, true);
     try {
-      await deleteQuestion(sessionId, activeQuestion.id);
-      showToast('Topic deleted', 'info');
-      const qList = await fetchQuestions(sessionId);
-      setQuestions(qList);
-      setActiveTopicIndex((prev) => Math.max(0, Math.min(prev, qList.length - 1)));
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete topic', 'error');
+      await voteAnswer(sessionId, a.id);
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal memberi vote'), 'error');
+      void refresh();
+    } finally {
+      markBusy(a.id, false);
     }
   };
 
-  // Handler for Submitting Reflection Card
-  const handleSubmitCard = async (text: string, gifUrl?: string) => {
-    if (!activeQuestion) return;
-    await submitAnswer({
-      sessionId,
-      questionId: activeQuestion.id,
-      text,
-      gifUrl,
-    });
-    SoundFX.playSuccess();
-    const [freshAnswers, status] = await Promise.all([
-      fetchAnswers(activeQuestion.id),
-      fetchVoterStatus(sessionId),
-    ]);
-    setAnswers(freshAnswers);
-    setVoterStatus(status);
+  const setCluster = async (a: Answer, tag: string): Promise<boolean> => {
+    markBusy(a.id, true);
+    try {
+      await clusterCardApi(sessionId, a.id, tag);
+      await refresh();
+      return true;
+    } catch (e) {
+      showToast(msg(e, 'Gagal menyimpan kelompok'), 'error');
+      return false;
+    } finally {
+      markBusy(a.id, false);
+    }
   };
 
-  // Handler for Voting
-  const handleVote = async (answerId: string) => {
-    const hasVoted = voterStatus.voted_answers.includes(answerId);
-    const action = hasVoted ? 'unvote' : 'vote';
-
-    if (action === 'vote' && voterStatus.remaining_votes <= 0) {
-      showToast('You have used all 5 of your voting budget for this session!', 'error');
-      return;
-    }
-
-    // Optimistic UI update
-    setAnswers((prev) =>
-      prev.map((a) => (a.id === answerId ? { ...a, votes: Math.max(0, a.votes + (action === 'vote' ? 1 : -1)) } : a))
-    );
-    setVoterStatus((prev) => ({
-      ...prev,
-      remaining_votes: prev.remaining_votes + (action === 'vote' ? -1 : 1),
-      voted_answers: action === 'vote'
-        ? [...prev.voted_answers, answerId]
-        : prev.voted_answers.filter((id) => id !== answerId),
-    }));
-
+  const spotlight = data?.spotlight;
+  const spotlightId = spotlight?.active ? spotlight.answer_id : '';
+  const toggleSpotlight = async (a: Answer) => {
+    markBusy(a.id, true);
     try {
-      const res = await voteAnswer({ sessionId, answerId, action });
-      if (!res.ok && res.message) {
-        showToast(res.message, 'error');
-        // Rollback
-        const freshAnswers = await fetchAnswers(activeQuestion!.id);
-        const freshStatus = await fetchVoterStatus(sessionId);
-        setAnswers(freshAnswers);
-        setVoterStatus(freshStatus);
+      if (spotlightId === a.id) await spotlightAction({ sessionId, action: 'clear' });
+      else await spotlightAction({ sessionId, action: 'focus', questionId: a.question_id, answerId: a.id });
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal mengubah sorotan'), 'error');
+    } finally {
+      markBusy(a.id, false);
+    }
+  };
+  const clearSpotlight = async () => {
+    try {
+      await spotlightAction({ sessionId, action: 'clear' });
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal melepas sorotan'), 'error');
+    }
+  };
+
+  const spotCard = useMemo(() => {
+    if (!spotlightId) return null;
+    const a = answers.find((x) => x.id === spotlightId);
+    return a && !isHidden(a) ? a : null;
+  }, [answers, spotlightId]);
+  const spotTopic = spotCard ? questions.find((q) => q.id === spotCard.question_id) || null : null;
+
+  const jumpToSpotlight = useCallback(() => {
+    if (!spotCard) return;
+    const qi = questions.findIndex((q) => q.id === spotCard.question_id);
+    if (qi >= 0) setActiveIndex(qi);
+    if (clusterFilter && spotCard.cluster_tag !== clusterFilter) setClusterFilter('');
+    window.setTimeout(() => {
+      const el = document.getElementById(`card-${spotCard.id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        el.focus?.();
       }
-    } catch (err: any) {
-      showToast(err.message || 'Vote failed', 'error');
-    }
-  };
+    }, 60);
+  }, [spotCard, questions, clusterFilter]);
 
-  // Handler for Facilitator Spotlight Focus
-  const handleSpotlight = async (answerId: string) => {
-    if (!isModerator || !activeQuestion) return;
+  const saveTopic = async (text: string): Promise<boolean> => {
+    const edit = topicModal.edit;
     try {
-      SoundFX.playClick();
-      if (spotlight.active && spotlight.answer_id === answerId) {
-        // Toggle OFF spotlight
-        const updated = await spotlightAction({
-          sessionId,
-          action: 'clear',
-        });
-        setSpotlight(updated || { active: false, question_id: '', answer_id: '', updated_at_ms: Date.now() });
-        showToast('Facilitator spotlight removed', 'info');
+      if (edit) {
+        await updateQuestion(sessionId, edit.id, text, edit.gif_url || '');
       } else {
-        // Toggle ON spotlight for this card
-        const updated = await spotlightAction({
-          sessionId,
-          action: 'focus',
-          questionId: activeQuestion.id,
-          answerId,
-        });
-        setSpotlight(updated || { active: true, question_id: activeQuestion.id, answer_id: answerId, updated_at_ms: Date.now() });
-        showToast('Facilitator spotlight broadcasted to all participants!', 'info');
+        await addQuestion(sessionId, text);
       }
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update spotlight', 'error');
+    } catch (e) {
+      showToast(msg(e, 'Gagal menyimpan topik'), 'error');
+      return false;
     }
+    showToast(edit ? 'Topik diubah' : 'Topik ditambah', 'success');
+    await refresh();
+    if (!edit) setActiveIndex(questions.length); // the new topic is appended
+    return true;
   };
 
-  const handleClearSpotlight = async () => {
-    if (!isModerator) return;
+  const removeTopic = async (q: Question) => {
+    const n = q.answer_count || 0;
+    const warn = n > 0 ? ` ${n} kartu di dalamnya ikut terhapus.` : '';
+    if (!window.confirm(`Hapus topik "${q.text}"?${warn}`)) return;
     try {
-      const updated = await spotlightAction({ sessionId, action: 'clear' });
-      setSpotlight(updated);
-      showToast('Facilitator spotlight cleared', 'info');
-    } catch (err: any) {
-      showToast(err.message || 'Failed to clear spotlight', 'error');
+      await deleteQuestion(sessionId, q.id);
+      showToast('Topik dihapus', 'success');
+      await refresh();
+    } catch (e) {
+      showToast(msg(e, 'Gagal menghapus topik'), 'error');
     }
   };
 
-  // Handlers for Timer Controls
-  const handleStartTimer = async (seconds: number) => {
-    if (!isModerator) return;
-    await timerAction(sessionId, 'start', seconds);
-    setTimer({ running: true, end_time_unix_ms: Date.now() + seconds * 1000, remaining_seconds: seconds });
-    SoundFX.playSuccess();
-    showToast(`Timer started: ${Math.floor(seconds / 60)} minutes`, 'success');
-  };
-
-  const handleResetTimer = async () => {
-    if (!isModerator) return;
-    await timerAction(sessionId, 'reset');
-    setTimer({ running: false, end_time_unix_ms: 0, remaining_seconds: 300 });
-    SoundFX.playClick();
-    showToast('Timer reset', 'info');
-  };
-
-  // Handler for Exporting PDF
-  const handleExportPdf = () => {
-    showToast('Generating PDF retrospective summary report...', 'info');
-    window.open(`/api/session/report?session_id=${encodeURIComponent(sessionId)}`, '_blank');
-  };
-
-  // Handlers for Action Items Modal
-  const handleOpenActionItems = async () => {
+  const addAction = async (text: string, assignee: string, due: string, answerId?: string): Promise<boolean> => {
     try {
-      const items = await fetchActionItems(sessionId);
-      setActionItems(items);
-      setIsActionItemsModalOpen(true);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to load action items', 'error');
+      await addActionItemApi({ sessionId, text, assignee, dueDate: due, answerId });
+    } catch (e) {
+      showToast(msg(e, 'Gagal menambah aksi'), 'error');
+      return false;
+    }
+    try {
+      await loadActions();
+    } catch (_) {
+      showToast('Aksi tersimpan, tetapi daftar gagal dimuat ulang', 'error');
+    }
+    return true;
+  };
+  const toggleAction = async (item: ActionItem, completed: boolean) => {
+    try {
+      await toggleActionItemApi(sessionId, item.id, completed);
+    } catch (e) {
+      showToast(msg(e, 'Gagal memperbarui aksi'), 'error');
+    }
+    await loadActions().catch(() => {});
+  };
+  const removeAction = async (item: ActionItem) => {
+    try {
+      await deleteActionItemApi(sessionId, item.id);
+    } catch (e) {
+      showToast(msg(e, 'Gagal menghapus aksi'), 'error');
+    }
+    await loadActions().catch(() => {});
+  };
+  const makeAction = (a: Answer) => setActionDraft({ text: plainText(a.text), answerId: a.id, nonce: Date.now() });
+
+  // Ticking a promise from last time updates the OLD session's item.
+  const togglePrev = async (item: ActionItem, completed: boolean): Promise<boolean> => {
+    try {
+      await toggleActionItemApi(item.session_id || prev?.session?.id || '', item.id, completed);
+      return true;
+    } catch (e) {
+      showToast(msg(e, 'Gagal memperbarui janji'), 'error');
+      return false;
     }
   };
 
-  const handleAddActionItem = async (text: string, assignee?: string, dueDate?: string) => {
-    const newItem = await addActionItemApi({ sessionId, text, assignee, dueDate });
-    setActionItems((prev) => [newItem, ...prev]);
-  };
+  // ---------- keyboard ----------
+  const keyState = useRef({ phase, isOwner, questions, activeIndex, timerRunning: timer.running, jumpToSpotlight });
+  keyState.current = { phase, isOwner, questions, activeIndex, timerRunning: timer.running, jumpToSpotlight };
 
-  const handleToggleActionItem = async (id: string, completed: boolean) => {
-    await toggleActionItemApi(id, completed);
-    setActionItems((prev) => prev.map((item) => (item.id === id ? { ...item, completed } : item)));
-  };
-
-  const handleDeleteActionItem = async (id: string) => {
-    await deleteActionItemApi(id);
-    setActionItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleConvertCardToAction = (answer: Answer) => {
-    // Strip any HTML tags from answer text
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = answer.text;
-    const plainText = tempDiv.textContent || tempDiv.innerText || answer.text;
-    setActionItemInitialText(plainText.trim());
-    setIsActionItemsModalOpen(true);
-    SoundFX.playPop();
-  };
-
-  // Handlers for Card Clustering
-  const handleOpenClusterModal = (answerId: string) => {
-    setClusteringAnswerId(answerId);
-    setIsClusterModalOpen(true);
-  };
-
-  const handleSaveCluster = async (answerId: string, tag: string) => {
-    await clusterCardApi(sessionId, answerId, tag);
-    setAnswers((prev) => prev.map((a) => (a.id === answerId ? { ...a, cluster_tag: tag } : a)));
-    const freshClusters = await fetchSessionClusters(sessionId);
-    setClusters(freshClusters);
-  };
-
-  // In-Memory Filter & Sort Logic
-  const filteredAndSortedAnswers = useMemo(() => {
-    let result = [...answers];
-
-    // Filter by Cluster
-    if (selectedCluster !== 'all') {
-      result = result.filter((a) => (a.cluster_tag || '').toLowerCase() === selectedCluster.toLowerCase());
-    }
-
-    // Filter by Mood
-    if (moodFilter !== 'all') {
-      result = result.filter((a) => {
-        const emo = getRetroEmoticonData(a.sentiment_emoji, a.sentiment_emotion, a.id);
-        if (moodFilter === 'positive') return ['fight', 'party', 'love', 'joy'].includes(emo.type);
-        if (moodFilter === 'negative') return ['panic', 'exhausted', 'crying'].includes(emo.type);
-        if (moodFilter === 'ideas') return emo.type === 'mindblown';
-        if (moodFilter === 'action') return emo.type === 'fight' || emo.type === 'party';
-        return true;
-      });
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      const timeB = new Date(b.created_at || 0).getTime() || 0;
-      const timeA = new Date(a.created_at || 0).getTime() || 0;
-      if (sortMode === 'votes') {
-        if (b.votes !== a.votes) return b.votes - a.votes;
-        return timeB - timeA;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      // A dialog or menu is open: it owns the keyboard (Esc closes it).
+      if (document.querySelector('.modal, .menu')) return;
+      const s = keyState.current;
+      const k = e.key;
+      if (k === '?') {
+        e.preventDefault();
+        setShortcutsOpen(true);
+      } else if ((k === 'c' || k === 'C') && s.phase === 'write' && s.questions[s.activeIndex]) {
+        e.preventDefault();
+        setSubmitTopic(s.questions[s.activeIndex]);
+      } else if (k === 'ArrowLeft' && s.activeIndex > 0) {
+        e.preventDefault();
+        setActiveIndex(s.activeIndex - 1);
+      } else if (k === 'ArrowRight' && s.activeIndex < s.questions.length - 1) {
+        e.preventDefault();
+        setActiveIndex(s.activeIndex + 1);
+      } else if (k === 'f' || k === 'F') {
+        e.preventDefault();
+        s.jumpToSpotlight();
+      } else if ((k === 't' || k === 'T') && s.isOwner) {
+        e.preventDefault();
+        void (s.timerRunning ? stopTimer() : startTimer(300));
       }
-      if (sortMode === 'newest') {
-        return timeB - timeA;
-      }
-      if (sortMode === 'oldest') {
-        return timeA - timeB;
-      }
-      return 0;
-    });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    return result;
-  }, [answers, selectedCluster, moodFilter, sortMode]);
+  useEffect(() => {
+    if (session?.name) document.title = `${session.name} | Retro`;
+  }, [session?.name]);
 
-  const votedAnswerSet = useMemo(() => {
-    return new Set(voterStatus.voted_answers || []);
-  }, [voterStatus.voted_answers]);
+  // ---------- render ----------
 
-  const currentCardForCluster = useMemo(() => {
-    if (!clusteringAnswerId) return null;
-    return answers.find((a) => a.id === clusteringAnswerId) || null;
-  }, [answers, clusteringAnswerId]);
-
-  if (isLoading) {
+  if (error && (!data || error.status === 404)) {
+    const notFound = error.status === 404;
     return (
-      <div className="session-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div className="pulse-dot" style={{ width: '20px', height: '20px', background: 'var(--primary)' }} />
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Connecting to Retrospective Room...</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Setting up audio synthesizer, voting budget, and live sync.</p>
-        </div>
-      </div>
+      <main className="state-screen">
+        <img src="/static/images/logo.svg" alt="" width={28} height={28} />
+        <h1>{notFound ? 'Sesi tidak ditemukan' : 'Sesi gagal dimuat'}</h1>
+        <p className="muted">
+          {notFound ? 'Link mungkin salah, atau sesi sudah dihapus.' : error.message}
+        </p>
+        <p className="state-links">
+          {!notFound && (
+            <button type="button" className="link-btn" onClick={() => window.location.reload()}>
+              Coba lagi
+            </button>
+          )}
+          <a href="/dashboard">Ke dashboard</a>
+        </p>
+      </main>
     );
   }
 
-  if (error || !session) {
+  if (!data || !session) {
     return (
-      <div className="session-page" style={{ alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div className="content-card" style={{ maxWidth: '480px', width: '100%', textAlign: 'center', padding: '2.5rem 2rem' }}>
-          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem', fontSize: '1.35rem' }}>Unable to Open Session</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
-            {error || 'This retrospective board could not be found or has expired.'}
-          </p>
-          <a href="/dashboard" className="btn btn-primary" style={{ display: 'inline-flex', margin: '0 auto' }}>
-            Return to Dashboard
-          </a>
-        </div>
-      </div>
+      <main className="state-screen" aria-busy="true">
+        <p className="muted">Memuat sesi…</p>
+      </main>
     );
   }
+
+  const hint = phaseHint(phase, isOwner);
+  const showClusterFilter = phase !== 'write' && clusterNames.length > 0;
 
   return (
-    <div className="session-page">
-      {/* Topbar: Title, Timer, Presence, Budget, Tools, Invite */}
-      <SessionTopbar
-        sessionName={session.name}
-        isModerator={isModerator}
-        participants={participants}
-        presenceCount={presenceCount}
-        timerSeconds={timer.remaining_seconds}
-        timerRunning={timer.running}
-        onStartTimer={handleStartTimer}
-        onResetTimer={handleResetTimer}
-        remainingVotes={voterStatus.remaining_votes}
-        onOpenActionItems={handleOpenActionItems}
-        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
-        onExportPdf={handleExportPdf}
-        sessionId={sessionId}
+    <div className="sb">
+      <SessionHeader
+        isMobile={isMobile}
+        title={session.name || 'Sesi tanpa nama'}
+        phase={phase}
+        isOwner={isOwner}
+        phaseBusy={phaseBusy}
+        onPhase={changePhase}
+        timer={timer}
+        timerSeconds={timerSeconds}
+        onTimerStart={startTimer}
+        onTimerStop={stopTimer}
+        presence={data.presence || { count: 1, participants: [] }}
+        onOpenPresence={() => setPresenceOpen(true)}
+        onInvite={invite}
+        canExport={isOwner && phase !== 'write'}
+        onExport={exportPdf}
+        summaryHref={phase !== 'write' ? `/session/summary?id=${encodeURIComponent(sessionId)}` : null}
+        onShortcuts={() => setShortcutsOpen(true)}
+        offline={offline}
       />
 
-      {/* Facilitator Spotlight Beacon Broadcast */}
-      <SpotlightBanner
-        spotlight={spotlight}
-        isModerator={isModerator}
-        onJumpToFocus={handleJumpToFocus}
-        onClearSpotlight={handleClearSpotlight}
-      />
+      <main className="sb-main">
+        {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} />}
 
-      {/* Main Board Content Area */}
-      <main className="session-content-area">
-        <QuestionHeader
-          question={activeQuestion}
-          topicIndex={activeTopicIndex}
-          totalTopics={questions.length}
-          answersCount={answers.length}
-          isModerator={isModerator}
-          sortMode={sortMode}
-          onChangeSortMode={setSortMode}
-          moodFilter={moodFilter}
-          onChangeMoodFilter={setMoodFilter}
-          clusters={clusters}
-          selectedCluster={selectedCluster}
-          onSelectCluster={setSelectedCluster}
-          onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
-          onEditTopic={() => {
-            setEditingQuestion(activeQuestion);
-            setIsTopicModalOpen(true);
-          }}
-          onDeleteTopic={handleDeleteTopic}
-        />
+        <SpotlightBanner card={spotCard} topic={spotTopic} isOwner={isOwner} onJump={jumpToSpotlight} onClear={clearSpotlight} />
 
-        <div style={{ width: '100%', marginTop: '1.5rem', marginBottom: '6rem' }}>
-          <AnswersGrid
-            answers={filteredAndSortedAnswers}
-            isModerator={isModerator}
-            spotlightedAnswerId={spotlight.active ? spotlight.answer_id : undefined}
-            votedAnswerIds={votedAnswerSet}
-            onVote={handleVote}
-            onSpotlight={isModerator ? handleSpotlight : undefined}
-            onOpenClusterModal={handleOpenClusterModal}
-            onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
-            onConvertToAction={handleConvertCardToAction}
-          />
+        <div className="bar">
+          <p className="bar-hint">{hint}</p>
+          {phase === 'vote' && (
+            <p className="bar-votes" aria-live="polite">
+              Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
+            </p>
+          )}
+          {phase === 'done' && (
+            <p className="bar-done">
+              <a href={`/session/summary?id=${encodeURIComponent(sessionId)}`} target="_blank" rel="noopener">
+                Lihat ringkasan
+              </a>
+              {isOwner && (
+                <button type="button" className="btn sm" onClick={shareSummary}>
+                  Bagikan ringkasan
+                </button>
+              )}
+            </p>
+          )}
+          {isOwner && phase !== 'done' && (
+            <button type="button" className="link-btn bar-add" onClick={() => setTopicModal({ open: true, edit: null })}>
+              + Topik
+            </button>
+          )}
         </div>
+
+        {showClusterFilter && (
+          <div className="filter" role="group" aria-label="Filter kelompok">
+            <span className="muted">Kelompok:</span>
+            <button type="button" aria-pressed={!clusterFilter} onClick={() => setClusterFilter('')}>
+              Semua
+            </button>
+            {(data.clusters || []).map((c) => (
+              <button key={c.tag} type="button" aria-pressed={clusterFilter === c.tag} onClick={() => setClusterFilter(c.tag)}>
+                {c.tag} <span className="num muted">{c.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {showActions && (
+          <ActionPanel
+            items={actionItems}
+            loaded={actionsLoaded}
+            canEdit={isOwner && phase === 'act'}
+            draft={actionDraft}
+            onAdd={addAction}
+            onToggle={toggleAction}
+            onDelete={removeAction}
+          />
+        )}
+
+        <Board
+          isMobile={isMobile}
+          questions={questions}
+          answers={answers}
+          phase={phase}
+          isOwner={isOwner}
+          myVoterId={myVoterId}
+          activeIndex={Math.min(activeIndex, Math.max(0, questions.length - 1))}
+          setActiveIndex={setActiveIndex}
+          clusterFilter={clusterFilter}
+          clusters={clusterNames}
+          votedIds={votedIds}
+          votesLeft={votesLeft}
+          spotlightId={spotlightId}
+          busyIds={busyIds}
+          onAddCard={(q) => setSubmitTopic(q)}
+          onAddTopic={() => setTopicModal({ open: true, edit: null })}
+          onEditTopic={(q) => setTopicModal({ open: true, edit: q })}
+          onDeleteTopic={removeTopic}
+          onVote={vote}
+          onSetCluster={setCluster}
+          onSpotlight={toggleSpotlight}
+          onMakeAction={makeAction}
+        />
       </main>
 
-      {/* Floating Bottom Topic Navigation Dock */}
-      <TopicNavigation
-        questions={questions}
-        activeIndex={activeTopicIndex}
-        onSelectTopic={setActiveTopicIndex}
-        isModerator={isModerator}
-        onAddNewTopic={() => {
-          setEditingQuestion(null);
-          setIsTopicModalOpen(true);
-        }}
-      />
-
-      {/* Modals */}
       <SubmitCardModal
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
-        topicTitle={activeQuestion?.text || 'Current Topic'}
-        onSubmit={handleSubmitCard}
-        assignedAlias={userAlias}
+        isOpen={!!submitTopic}
+        onClose={() => setSubmitTopic(null)}
+        topicTitle={submitTopic?.text || ''}
+        alias={alias}
+        canUpload={loggedIn}
+        onSubmit={submitCard}
       />
-
       <TopicModal
-        isOpen={isTopicModalOpen}
-        onClose={() => {
-          setIsTopicModalOpen(false);
-          setEditingQuestion(null);
-        }}
-        questionToEdit={editingQuestion}
-        onSave={handleSaveTopic}
+        isOpen={topicModal.open}
+        onClose={() => setTopicModal({ open: false, edit: null })}
+        questionToEdit={topicModal.edit}
+        onSave={saveTopic}
       />
-
-      <ActionItemsModal
-        isOpen={isActionItemsModalOpen}
-        onClose={() => {
-          setIsActionItemsModalOpen(false);
-          setActionItemInitialText('');
-        }}
-        actionItems={actionItems}
-        onAddActionItem={handleAddActionItem}
-        onToggleActionItem={handleToggleActionItem}
-        onDeleteActionItem={handleDeleteActionItem}
-        initialText={actionItemInitialText}
-      />
-
-      <ShortcutsModal
-        isOpen={isShortcutsModalOpen}
-        onClose={() => setIsShortcutsModalOpen(false)}
-      />
-
-      <ClusterModal
-        isOpen={isClusterModalOpen}
-        onClose={() => {
-          setIsClusterModalOpen(false);
-          setClusteringAnswerId(null);
-        }}
-        answerId={clusteringAnswerId}
-        currentTag={currentCardForCluster?.cluster_tag || ''}
-        existingClusters={clusters}
-        onSaveCluster={handleSaveCluster}
-      />
+      <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} isOwner={isOwner} />
+      <Modal isOpen={presenceOpen} onClose={() => setPresenceOpen(false)} title="Peserta" maxWidth="400px">
+        <PresenceList presence={data.presence || { count: 1, participants: [] }} />
+      </Modal>
     </div>
   );
 };
+
+function phaseHint(phase: Phase, owner: boolean): string {
+  switch (phase) {
+    case 'write':
+      return 'Tulis kartu. Kartu orang lain baru terlihat di fase berikutnya.';
+    case 'group':
+      return owner ? 'Beri kelompok pada kartu yang mirip.' : 'Fasilitator sedang mengelompokkan kartu.';
+    case 'vote':
+      return 'Vote kartu yang paling perlu dibahas.';
+    case 'discuss':
+      return owner ? 'Sorot kartu yang sedang dibahas. Urutan: vote terbanyak.' : 'Kartu dibahas mulai dari vote terbanyak.';
+    case 'act':
+      return owner ? 'Catat aksi: apa, siapa, kapan.' : 'Fasilitator mencatat aksi.';
+    case 'done':
+      return 'Sesi selesai.';
+  }
+}
+

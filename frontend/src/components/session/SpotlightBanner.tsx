@@ -1,61 +1,39 @@
 import React from 'react';
-import { Target, X } from 'lucide-react';
-import type { SpotlightState } from '../../types/session';
+import type { Answer, Question } from '../../types/session';
 
-interface SpotlightBannerProps {
-  spotlight: SpotlightState;
-  isModerator: boolean;
-  onJumpToFocus: () => void;
-  onClearSpotlight: () => void;
+interface Props {
+  card: Answer | null;
+  topic: Question | null;
+  isOwner: boolean;
+  onJump: () => void;
+  onClear: () => void;
 }
 
-export const SpotlightBanner: React.FC<SpotlightBannerProps> = ({
-  spotlight,
-  isModerator,
-  onJumpToFocus,
-  onClearSpotlight,
-}) => {
-  if (!spotlight.active) return null;
+function plain(html: string) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return (d.textContent || '').trim();
+}
 
-  const isCard = !!spotlight.answer_id;
-
+// Quiet banner with the card the facilitator is discussing.
+export const SpotlightBanner: React.FC<Props> = ({ card, topic, isOwner, onJump, onClear }) => {
+  if (!card) return null;
   return (
-    <aside className="spotlight-banner" role="region" aria-label="Facilitator Spotlight Broadcast">
-      <div className="spotlight-banner-left">
-        <span className="spotlight-badge">
-          <span className="pulse-dot" style={{ width: '6px', height: '6px', background: '#fff' }} />
-          LIVE FOCUS
-        </span>
-        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-          {isCard
-            ? 'Facilitator is highlighting a specific reflection card'
-            : 'Facilitator focused on the current topic'}
-        </span>
+    <section className="spot" aria-live="polite" aria-label="Kartu yang sedang dibahas">
+      <div className="spot-body">
+        <span className="spot-k">Sedang dibahas{topic ? ` · ${topic.text}` : ''}</span>
+        <p className="spot-text">{plain(card.text) || '(kartu tanpa teks)'}</p>
       </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-        <button
-          onClick={onJumpToFocus}
-          className="btn btn-primary btn-sm"
-          style={{ padding: '0.35rem 0.85rem' }}
-          title="Scroll directly to focused reflection card"
-        >
-          <Target size={14} />
-          <span>Jump to Focus (F)</span>
+      <div className="spot-acts">
+        <button type="button" className="link-btn" onClick={onJump}>
+          Lihat kartu
         </button>
-
-        {isModerator && (
-          <button
-            onClick={onClearSpotlight}
-            className="btn btn-ghost btn-sm"
-            style={{ color: 'var(--danger)', padding: '0.35rem 0.6rem' }}
-            title="Clear focus for all participants"
-          >
-            <X size={14} />
-            <span>Clear</span>
+        {isOwner && (
+          <button type="button" className="link-btn" onClick={onClear}>
+            Lepas sorotan
           </button>
         )}
       </div>
-    </aside>
+    </section>
   );
 };

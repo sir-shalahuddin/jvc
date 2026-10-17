@@ -1,4 +1,17 @@
-// Type definitions for the Retrospective Session Board
+// Types for the session board. Shapes follow tasks/API-retro-v2.md.
+
+export type Phase = 'write' | 'group' | 'vote' | 'discuss' | 'act' | 'done';
+
+export const PHASES: Phase[] = ['write', 'group', 'vote', 'discuss', 'act', 'done'];
+
+export const PHASE_LABEL: Record<Phase, string> = {
+  write: 'Tulis',
+  group: 'Kelompokkan',
+  vote: 'Vote',
+  discuss: 'Bahas',
+  act: 'Aksi',
+  done: 'Selesai',
+};
 
 export interface SessionDetail {
   id: string;
@@ -6,6 +19,7 @@ export interface SessionDetail {
   owner_email?: string;
   created_at: string;
   status?: string;
+  phase: Phase;
   is_owner?: boolean;
 }
 
@@ -30,10 +44,25 @@ export interface Answer {
   sentiment_color?: string;
   sentiment_emoji?: string;
   author_name?: string;
+  author_id?: string;
   votes: number;
   cluster_tag?: string;
   parent_id?: string;
   created_at: string;
+  hidden?: undefined;
+}
+
+/** Someone else's card during `write`: only id + topic, no content. */
+export interface HiddenAnswer {
+  id: string;
+  question_id: string;
+  hidden: true;
+}
+
+export type AnyAnswer = Answer | HiddenAnswer;
+
+export function isHidden(a: AnyAnswer): a is HiddenAnswer {
+  return (a as HiddenAnswer).hidden === true;
 }
 
 export interface ActionItem {
@@ -51,21 +80,26 @@ export interface PresenceUser {
   id: string;
   name: string;
   role: 'moderator' | 'participant';
+  last_seen?: string;
 }
 
-export interface PresenceResponse {
-  participants: PresenceUser[];
+export interface Presence {
+  session_id?: string;
   count: number;
+  participants: PresenceUser[];
   topic_counts?: Record<string, number>;
 }
 
 export interface TimerState {
+  session_id?: string;
   running: boolean;
-  end_time_unix_ms: number;
   remaining_seconds: number;
+  end_time_unix_ms: number;
+  preset_minutes?: number;
 }
 
 export interface SpotlightState {
+  session_id?: string;
   active: boolean;
   question_id: string;
   answer_id: string;
@@ -73,11 +107,35 @@ export interface SpotlightState {
 }
 
 export interface VoterStatus {
-  voter_id: string;
+  guest_name?: string;
+  guest_id?: string;
   total_votes: number;
   remaining_votes: number;
+  max_votes?: number;
   voted_answers: string[];
 }
 
-export type SortMode = 'votes' | 'newest' | 'oldest';
-export type MoodFilter = 'all' | 'positive' | 'negative' | 'ideas' | 'action';
+export interface ClusterCount {
+  tag: string;
+  count: number;
+}
+
+/** GET /api/session/state */
+export interface BoardState {
+  session: SessionDetail;
+  questions: Question[];
+  answers: AnyAnswer[];
+  voter_status: VoterStatus;
+  vote_budget: number;
+  timer: TimerState;
+  spotlight: SpotlightState;
+  presence: Presence;
+  clusters: ClusterCount[];
+  server_time_ms: number;
+}
+
+/** GET /api/session/previous-actions */
+export interface PreviousActions {
+  session: { id: string; name: string; created_at: string } | null;
+  items: ActionItem[];
+}

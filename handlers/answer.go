@@ -210,11 +210,22 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.SessionID == "" || req.QuestionID == "" {
+		writeJSONError(w, http.StatusBadRequest, "session_id and question_id required")
+		return
+	}
+	if !requirePhase(w, r, req.SessionID, models.PhaseWrite, models.PhaseDiscuss) {
+		return
+	}
+
 	p := bluemonday.UGCPolicy()
 	sanitizedText := p.Sanitize(req.Text)
 
-	fp := extractDeviceFingerprint(r, "")
-	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r, fp)
+	bodyFP := req.DeviceFingerprint
+	if bodyFP == "" {
+		bodyFP = req.VoterID
+	}
+	voterID, guestUUID, rawGuestName := requestVoterID(w, r, bodyFP)
 	guestName := resolveUniqueGuestNameForSession(r.Context(), req.SessionID, guestUUID, rawGuestName)
 	if guestName == "" {
 		guestName = "Anonymous Guest"
@@ -228,6 +239,7 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		Text:             sanitizedText,
 		GifURL:           req.GifURL,
 		AuthorName:       guestName,
+		AuthorID:         voterID,
 		SentimentEmotion: "Analyzing...",
 		SentimentColor:   "#9CA3AF",
 		SentimentEmoji:   "⏳",
@@ -254,6 +266,13 @@ func GetAnswersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "session_id required", http.StatusBadRequest)
 		return
 	}
+
+	_, phase, err := sessionPhase(r.Context(), sessionID)
+	if err != nil {
+		http.Error(w, "Session not found", http.StatusNotFound)
+		return
+	}
+	voterID, _, _ := requestVoterID(w, r, "")
 
 	answers, err := AnswerRepo.GetBySession(r.Context(), sessionID)
 	if err != nil {
@@ -307,7 +326,7 @@ func GetAnswersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(answers)
+	json.NewEncoder(w).Encode(applyAnswerVisibility(answers, phase, voterID))
 }
 
 func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
@@ -320,6 +339,7 @@ func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		SessionID         string `json:"session_id"`
 		AnswerID          string `json:"answer_id"`
 		DeviceFingerprint string `json:"device_fingerprint"`
+		VoterID           string `json:"voter_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -333,12 +353,14 @@ func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Layer 1: Hardware Fingerprint & HMAC Cookie
-	fp := req.DeviceFingerprint
-	if fp == "" {
-		fp = r.Header.Get("X-Device-Fingerprint")
+	if !requirePhase(w, r, req.SessionID, models.PhaseVote, models.PhaseDiscuss) {
+		return
 	}
-	guestUUID, _ := getOrCreateSignedGuestToken(w, r, fp)
-	voterID := computeEffectiveVoterID(guestUUID, fp)
+	bodyFP := req.DeviceFingerprint
+	if bodyFP == "" {
+		bodyFP = req.VoterID
+	}
+	voterID, _, _ := requestVoterID(w, r, bodyFP)
 
 	// 2. Layer 2: Dot Voting Quota Enforcement via Firestore Transaction
 	newVotes, remVotes, err := AnswerRepo.CastVote(r.Context(), req.SessionID, req.AnswerID, voterID, MaxVotesPerParticipant)
@@ -385,32 +407,40 @@ func VoterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fp := r.URL.Query().Get("device_fingerprint")
-	if fp == "" {
-		fp = r.Header.Get("X-Device-Fingerprint")
-	}
-	guestUUID, rawGuestName := getOrCreateSignedGuestToken(w, r, fp)
+	voterID, guestUUID, rawGuestName := requestVoterID(w, r, "")
 	guestName := resolveUniqueGuestNameForSession(r.Context(), sessionID, guestUUID, rawGuestName)
-	voterID := computeEffectiveVoterID(guestUUID, fp)
 
-	rec, err := AnswerRepo.GetVoterRecord(r.Context(), sessionID, voterID)
+	payload, err := voterStatusPayload(r.Context(), sessionID, voterID, guestUUID, guestName)
 	if err != nil {
 		http.Error(w, "Error retrieving voter status", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(payload)
+}
+
+// voterStatusPayload builds the voter-status JSON shared by the voter-status
+// and state endpoints.
+func voterStatusPayload(ctx context.Context, sessionID, voterID, guestUUID, guestName string) (map[string]interface{}, error) {
+	rec, err := AnswerRepo.GetVoterRecord(ctx, sessionID, voterID)
+	if err != nil {
+		return nil, err
+	}
 	rem := MaxVotesPerParticipant - rec.TotalVotes
 	if rem < 0 {
 		rem = 0
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	voted := rec.VotedAnswers
+	if voted == nil {
+		voted = []string{}
+	}
+	return map[string]interface{}{
 		"guest_name":      guestName,
 		"guest_id":        guestUUID,
 		"total_votes":     rec.TotalVotes,
 		"remaining_votes": rem,
 		"max_votes":       MaxVotesPerParticipant,
-		"voted_answers":   rec.VotedAnswers,
-	})
+		"voted_answers":   voted,
+	}, nil
 }

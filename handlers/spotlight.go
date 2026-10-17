@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"retro-gcp/models"
 	"sync"
 	"time"
 )
@@ -57,11 +58,7 @@ func GetSpotlightHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st := getOrCreateSpotlight(sessionID)
-
-	spotlightMu.RLock()
-	resp := *st
-	spotlightMu.RUnlock()
+	resp := snapshotSpotlight(sessionID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
@@ -92,6 +89,11 @@ func SpotlightActionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if p := session.EffectivePhase(); req.Action == "focus" && p != models.PhaseDiscuss {
+		writeJSONError(w, http.StatusConflict, "Spotlight focus is only allowed in the discuss phase (current: "+p+")")
+		return
+	}
+
 	st := getOrCreateSpotlight(req.SessionID)
 
 	spotlightMu.Lock()
@@ -116,4 +118,12 @@ func SpotlightActionHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// snapshotSpotlight returns a copy of the session spotlight state.
+func snapshotSpotlight(sessionID string) SessionSpotlightState {
+	st := getOrCreateSpotlight(sessionID)
+	spotlightMu.RLock()
+	defer spotlightMu.RUnlock()
+	return *st
 }

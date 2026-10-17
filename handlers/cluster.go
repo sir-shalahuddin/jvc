@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"retro-gcp/models"
+	"sort"
 	"strings"
 )
 
@@ -43,6 +45,10 @@ func ClusterAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized: only session moderator can cluster cards", http.StatusForbidden)
 		return
 	}
+	if p := session.EffectivePhase(); p != models.PhaseGroup && p != models.PhaseDiscuss {
+		writeJSONError(w, http.StatusConflict, "Clustering is only allowed in the group or discuss phase (current: "+p+")")
+		return
+	}
 
 	// Clean tag: remove leading hashes and excess spaces
 	cleanedTag := strings.TrimSpace(req.ClusterTag)
@@ -76,25 +82,39 @@ func GetClustersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, phase, err := sessionPhase(r.Context(), sessionID)
+	if err != nil {
+		http.Error(w, "Session not found", http.StatusNotFound)
+		return
+	}
+
 	answers, err := AnswerRepo.GetBySession(r.Context(), sessionID)
 	if err != nil {
 		http.Error(w, "Failed to fetch answers: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(computeClusters(answers, phase))
+}
+
+// computeClusters counts cards per cluster tag (sorted by tag). While the
+// session is in write, other people's cards are hidden so their tags are
+// hidden too: the list is empty.
+func computeClusters(answers []models.Answer, phase string) []ClusterTagCount {
+	results := []ClusterTagCount{}
+	if phase == models.PhaseWrite {
+		return results
+	}
 	tagCounts := make(map[string]int)
 	for _, a := range answers {
-		tag := strings.TrimSpace(a.ClusterTag)
-		if tag != "" {
+		if tag := strings.TrimSpace(a.ClusterTag); tag != "" {
 			tagCounts[tag]++
 		}
 	}
-
-	var results []ClusterTagCount
 	for tag, count := range tagCounts {
 		results = append(results, ClusterTagCount{Tag: tag, Count: count})
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	sort.Slice(results, func(i, j int) bool { return results[i].Tag < results[j].Tag })
+	return results
 }

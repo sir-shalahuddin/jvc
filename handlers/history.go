@@ -26,6 +26,10 @@ func HistoryAPIHandler(w http.ResponseWriter, r *http.Request) {
 		sessions = []models.Session{}
 	}
 
+	for i := range sessions {
+		sessions[i].Phase = sessions[i].EffectivePhase()
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"quota":    quota,

@@ -1,4 +1,4 @@
-// API Client & Type Definitions for Retro Dashboard
+// API client and types for the dashboard and admin pages.
 
 export interface User {
   authenticated: boolean;
@@ -14,6 +14,7 @@ export interface Session {
   creator_email?: string;
   created_at: string;
   status?: string;
+  phase?: string;
   is_owner?: boolean;
 }
 
@@ -22,11 +23,26 @@ export interface HistoryResponse {
   sessions: Session[];
 }
 
+export interface AdminHealth {
+  status: 'ok' | 'degraded';
+  firestore_ok: boolean;
+  firestore_ms: number;
+  uptime_seconds: number;
+  started_at_unix_ms: number;
+}
+
 export interface AdminStats {
   total_sessions: number;
   total_users: number;
   total_revenue: number;
-  recent_sessions: Session[];
+  health?: AdminHealth;
+}
+
+export interface AdminSessionsPage {
+  sessions: Session[];
+  total: number;
+  page: number;
+  page_size: number;
 }
 
 export async function fetchCurrentUser(): Promise<User> {
@@ -40,7 +56,7 @@ export async function fetchCurrentUser(): Promise<User> {
 export async function fetchHistory(): Promise<HistoryResponse> {
   const res = await fetch('/api/history');
   if (!res.ok) {
-    throw new Error('Failed to fetch user sessions history');
+    throw new Error('Gagal memuat riwayat sesi');
   }
   return res.json();
 }
@@ -53,7 +69,7 @@ export async function createSession(name: string): Promise<{ id: string }> {
   });
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(errorText || 'Failed to create session');
+    throw new Error(errorText || 'Gagal membuat sesi');
   }
   return res.json();
 }
@@ -61,17 +77,30 @@ export async function createSession(name: string): Promise<{ id: string }> {
 export async function fetchAdminStats(): Promise<AdminStats> {
   const res = await fetch('/api/admin/stats');
   if (!res.ok) {
-    throw new Error('Failed to fetch admin statistics');
+    throw new Error('Gagal memuat statistik');
   }
   return res.json();
 }
 
-export async function fetchAdminSessions(): Promise<Session[]> {
-  const res = await fetch('/api/admin/sessions');
+export async function fetchAdminSessions(
+  params: { page?: number; pageSize?: number; q?: string } = {},
+  signal?: AbortSignal
+): Promise<AdminSessionsPage> {
+  const qs = new URLSearchParams();
+  qs.set('page', String(params.page ?? 1));
+  qs.set('page_size', String(Math.min(params.pageSize ?? 20, 50)));
+  if (params.q && params.q.trim()) qs.set('q', params.q.trim());
+  const res = await fetch(`/api/admin/sessions?${qs.toString()}`, { signal });
   if (!res.ok) {
-    throw new Error('Failed to fetch admin sessions');
+    throw new Error('Gagal memuat daftar sesi');
   }
-  return res.json();
+  const data = await res.json();
+  return {
+    sessions: Array.isArray(data?.sessions) ? data.sessions : [],
+    total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    page_size: data?.page_size ?? 20,
+  };
 }
 
 export async function deleteAdminSession(sessionId: string): Promise<void> {
@@ -79,6 +108,6 @@ export async function deleteAdminSession(sessionId: string): Promise<void> {
     method: 'DELETE',
   });
   if (!res.ok) {
-    throw new Error('Failed to delete session');
+    throw new Error('Gagal menghapus sesi');
   }
 }

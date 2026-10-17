@@ -45,23 +45,7 @@ func GetTimerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st := getOrCreateTimer(sessionID)
-
-	timerMu.Lock()
-	nowMs := time.Now().UnixMilli()
-	if st.Running && st.EndTimeUnixMs > 0 {
-		rem := int((st.EndTimeUnixMs - nowMs) / 1000)
-		if rem <= 0 {
-			st.Running = false
-			st.RemainingSeconds = 0
-			st.EndTimeUnixMs = 0
-		} else {
-			st.RemainingSeconds = rem
-		}
-	}
-	// Copy state for safe response
-	resp := *st
-	timerMu.Unlock()
+	resp := snapshotTimer(sessionID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
@@ -155,4 +139,24 @@ func TimerActionHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// snapshotTimer returns a copy of the session timer, expiring it if its end time has passed.
+func snapshotTimer(sessionID string) SessionTimerState {
+	st := getOrCreateTimer(sessionID)
+
+	timerMu.Lock()
+	defer timerMu.Unlock()
+	nowMs := time.Now().UnixMilli()
+	if st.Running && st.EndTimeUnixMs > 0 {
+		rem := int((st.EndTimeUnixMs - nowMs) / 1000)
+		if rem <= 0 {
+			st.Running = false
+			st.RemainingSeconds = 0
+			st.EndTimeUnixMs = 0
+		} else {
+			st.RemainingSeconds = rem
+		}
+	}
+	return *st
 }

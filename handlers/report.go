@@ -53,9 +53,18 @@ func InvalidateSummaryCache(sessionID string) {
 
 
 func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
+	email := requireLoggedIn(w, r)
+	if email == "" {
+		return
+	}
+
 	sessionID := r.URL.Query().Get("session_id")
 	if sessionID == "" {
 		http.Error(w, "session_id required", http.StatusBadRequest)
+		return
+	}
+
+	if !requireSessionOwner(w, r, email, sessionID) {
 		return
 	}
 
@@ -64,6 +73,10 @@ func GenerateReportHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := SessionServ.SessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
 		http.Error(w, "Session not found", http.StatusNotFound)
+		return
+	}
+	if session.EffectivePhase() == models.PhaseWrite {
+		writeJSONError(w, http.StatusConflict, "Report is not available while cards are still hidden (write phase)")
 		return
 	}
 	title := session.Name

@@ -167,15 +167,7 @@ func PresenceHandler(w http.ResponseWriter, r *http.Request) {
 		st.UpdateParticipant(clientID, name, role)
 	}
 
-	active := st.GetActive(time.Now())
-	topicCounts := getTopicCounts(r.Context(), sessionID)
-
-	resp := PresenceResponse{
-		SessionID:    sessionID,
-		Count:        len(active),
-		Participants: active,
-		TopicCounts:  topicCounts,
-	}
+	resp := snapshotPresence(r.Context(), sessionID)
 
 	json.NewEncoder(w).Encode(resp)
 }
@@ -216,4 +208,18 @@ func PresenceLeaveHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"ok"}`))
+}
+
+// snapshotPresence returns the active participants and per-topic card counts.
+func snapshotPresence(ctx context.Context, sessionID string) PresenceResponse {
+	active := getOrCreatePresenceState(sessionID).GetActive(time.Now())
+	if active == nil {
+		active = []ParticipantPresence{}
+	}
+	return PresenceResponse{
+		SessionID:    sessionID,
+		Count:        len(active),
+		Participants: active,
+		TopicCounts:  getTopicCounts(ctx, sessionID),
+	}
 }

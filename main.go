@@ -35,10 +35,6 @@ func main() {
 		UserRepo:     userRepo,
 		QuestionRepo: quesRepo,
 	}
-	handlers.PaymentServ = &services.PaymentService{
-		TransactionRepo: tranRepo,
-		UserRepo:        userRepo,
-	}
 	handlers.AnswerRepo = ansRepo
 	handlers.UserRepo = userRepo
 	handlers.TranRepo = tranRepo
@@ -84,6 +80,9 @@ func main() {
 	mux.HandleFunc("/api/session/get", handlers.GetSessionHandler)
 	mux.HandleFunc("/api/session/share-link", handlers.SessionShareLinkHandler)
 	mux.HandleFunc("/api/session/update", handlers.UpdateSessionHandler)
+	mux.HandleFunc("/api/session/phase", handlers.SetPhaseHandler)
+	mux.HandleFunc("/api/session/state", handlers.StateHandler)
+	mux.HandleFunc("/api/session/previous-actions", handlers.PreviousActionsHandler)
 	mux.HandleFunc("/api/session/questions", handlers.GetQuestionsHandler)
 	mux.HandleFunc("/api/gifs/search", handlers.GiphyProxyHandler)
 	mux.HandleFunc("/api/question/add", handlers.AddQuestionHandler)
@@ -112,7 +111,7 @@ func main() {
 	mux.HandleFunc("/api/history", handlers.HistoryAPIHandler)
 	mux.HandleFunc("/api/admin/sessions", handlers.AdminAPIHandler)
 	mux.HandleFunc("/api/admin/stats", handlers.AdminStatsHandler)
-	// Payment endpoints disabled - Quota requests are handled via WhatsApp
+	// Quota top-ups are handled via WhatsApp (no payment endpoints)
 
 	// Auth Routes
 	mux.HandleFunc("/auth/google/login", handlers.GoogleLoginHandler)
@@ -124,12 +123,12 @@ func main() {
 	mux.HandleFunc("/", handlers.HomeHandler)
 	mux.HandleFunc("/dashboard", handlers.DashboardHandler)
 	mux.HandleFunc("/dashboard/", handlers.DashboardHandler)
+	mux.HandleFunc("/session/summary", handlers.SessionSummaryHandler)
 	mux.HandleFunc("/session", handlers.SessionHandler)
 	mux.HandleFunc("/session/", handlers.SessionHandler)
 	mux.HandleFunc("/admin", handlers.AdminUIHandler)
 	mux.HandleFunc("/about", handlers.AboutHandler)
 	mux.HandleFunc("/contact", handlers.ContactHandler)
-	mux.HandleFunc("/checkout", handlers.CheckoutHandler)
 
 
 	port := config.AppConfig.Port

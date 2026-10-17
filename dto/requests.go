@@ -33,15 +33,7 @@ type SubmitAnswerRequest struct {
 	Text       string `json:"text"`
 	GifURL     string `json:"gif_url"`
 	AuthorName string `json:"author_name"`
-}
-
-type ClaimTopupRequest struct {
-	TransactionID string `json:"transaction_id"`
-}
-
-type TrakteerWebhookRequest struct {
-	TransactionID string `json:"transaction_id"`
-	SupporterName string `json:"supporter_name"`
-	Quantity      int    `json:"quantity"`
-	Price         int    `json:"price"`
+	// DeviceFingerprint / VoterID identify the client; the same value the vote and voter-status calls use.
+	DeviceFingerprint string `json:"device_fingerprint"`
+	VoterID           string `json:"voter_id"`
 }

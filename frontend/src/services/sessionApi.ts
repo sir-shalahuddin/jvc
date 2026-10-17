@@ -1,16 +1,9 @@
-// API service for Retrospective Session Board endpoints
-import type {
-  SessionDetail,
-  Question,
-  Answer,
-  ActionItem,
-  PresenceResponse,
-  TimerState,
-  SpotlightState,
-  VoterStatus,
-} from '../types/session';
+// API service for the session board. Contract: tasks/API-retro-v2.md.
+import type { ActionItem, BoardState, Phase, PreviousActions, SpotlightState } from '../types/session';
 
-// Device Fingerprint Helper
+// Device fingerprint. The server derives the voter identity from this value, so the
+// SAME value must go out on every call (state, submit, vote). Never use the presence
+// client id here, or own cards come back hidden.
 export function getDeviceFingerprint(): string {
   let fp = localStorage.getItem('retro_device_fp');
   if (!fp) {
@@ -20,218 +13,144 @@ export function getDeviceFingerprint(): string {
   return fp;
 }
 
-const isMockMode = (id: string) => {
-  return (
-    id === 'demo-session' ||
-    id.startsWith('demo-') ||
-    new URLSearchParams(window.location.search).get('mock') === 'true'
+// Typed API error. Mock/demo fallbacks were removed on purpose: every failure
+// must propagate so the UI can show it instead of pretending it succeeded.
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status = 0) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+type StatusMessages = Partial<Record<number, string>>;
+
+function defaultMessage(status: number, fallback: string): string {
+  if (status === 401) return 'Silakan masuk terlebih dahulu';
+  if (status === 403) return 'Hanya pemilik sesi yang boleh melakukan ini';
+  if (status === 404) return 'Data tidak ditemukan';
+  if (status === 409) return 'Tidak bisa dilakukan di fase ini';
+  if (status === 429) return 'Terlalu banyak permintaan, coba lagi sebentar';
+  return fallback;
+}
+
+// fetch wrapper: throws ApiError on network failure or non-2xx response.
+// Server texts are English; we only pass them through when we have no Indonesian line.
+async function apiFetch(
+  url: string,
+  init: RequestInit | undefined,
+  fallback: string,
+  messages: StatusMessages = {}
+): Promise<Response> {
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (_) {
+    throw new ApiError('Koneksi gagal, periksa jaringan', 0);
+  }
+  if (!res.ok) {
+    let msg = messages[res.status] || defaultMessage(res.status, fallback);
+    const known = !!messages[res.status] || [401, 403, 404, 409, 429].includes(res.status);
+    try {
+      const text = (await res.text()).trim();
+      let j: any = null;
+      if (text.startsWith('{')) {
+        try {
+          j = JSON.parse(text);
+        } catch (_) {}
+      }
+      if (res.status === 409 && j && typeof j.phase === 'string') {
+        // Phase guard: keep the Indonesian line.
+        msg = 'Tidak bisa dilakukan di fase ini';
+      } else if (!known && text && text.length <= 120 && !text.startsWith('<')) {
+        msg = (typeof j?.message === 'string' && j.message) || (typeof j?.error === 'string' && j.error) || (j ? msg : text);
+      }
+    } catch (_) {}
+    throw new ApiError(msg, res.status);
+  }
+  return res;
+}
+
+function postJson(url: string, body: unknown, fallback: string, headers: Record<string, string> = {}, messages: StatusMessages = {}) {
+  return apiFetch(
+    url,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify(body),
+    },
+    fallback,
+    messages
   );
-};
-
-export async function fetchSessionDetails(id: string, role = 'guest'): Promise<SessionDetail> {
-  try {
-    const res = await fetch(`/api/session/get?id=${encodeURIComponent(id)}&role=${encodeURIComponent(role)}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(id) || !window.location.host.includes('8080')) {
-    return {
-      id: id || 'demo-session',
-      name: 'Sprint 42 Retrospective',
-      created_at: new Date().toISOString(),
-      is_owner: true,
-      owner_email: 'facilitator@retro.hanya.click',
-    };
-  }
-  throw new Error('Session not found');
 }
 
-let mockQuestionsList: Question[] = [
-  { id: 'q-1', session_id: 'demo-session', text: 'What went well this sprint? 🎉', created_at: new Date().toISOString(), answer_count: 5 },
-  { id: 'q-2', session_id: 'demo-session', text: 'What challenges did we encounter? 🚧', created_at: new Date().toISOString(), answer_count: 0 },
-  { id: 'q-3', session_id: 'demo-session', text: 'Innovations & Ideas for next sprint 🚀', created_at: new Date().toISOString(), answer_count: 0 },
-];
+const q = encodeURIComponent;
 
-export async function fetchQuestions(sessionId: string): Promise<Question[]> {
+// ---------- state (the only polled call) ----------
+
+export async function fetchBoardState(
+  sessionId: string,
+  presence: { clientId: string; name: string }
+): Promise<BoardState> {
+  const fp = getDeviceFingerprint();
+  const url =
+    `/api/session/state?session_id=${q(sessionId)}&voter_id=${q(fp)}` +
+    `&client_id=${q(presence.clientId)}&name=${q(presence.name)}`;
   try {
-    const res = await fetch(`/api/session/questions?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+    const res = await apiFetch(
+      url,
+      { headers: { 'X-Device-Fingerprint': fp }, cache: 'no-store' },
+      'Gagal memuat sesi'
+    );
+    const data = (await res.json()) as BoardState;
+    if (!data || !data.session || !data.session.id) throw new ApiError('Sesi tidak ditemukan', 404);
+    data.questions = Array.isArray(data.questions) ? data.questions : [];
+    data.answers = Array.isArray(data.answers) ? data.answers : [];
+    data.clusters = Array.isArray(data.clusters) ? data.clusters : [];
+    data.session.phase = data.session.phase || 'discuss';
+    return data;
+  } catch (e) {
+    if (e instanceof ApiError && (e.status === 404 || e.status === 400)) {
+      throw new ApiError('Sesi tidak ditemukan', 404);
     }
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return [...mockQuestionsList];
+    throw e;
   }
-  throw new Error('Failed to fetch questions');
 }
+
+export async function setPhaseApi(sessionId: string, phase: Phase): Promise<void> {
+  await postJson('/api/session/phase', { session_id: sessionId, phase }, 'Gagal mengganti fase');
+}
+
+export async function fetchPreviousActions(sessionId: string): Promise<PreviousActions> {
+  const res = await apiFetch(`/api/session/previous-actions?session_id=${q(sessionId)}`, undefined, 'Gagal memuat janji sesi lalu');
+  const data = await res.json();
+  return { session: data?.session ?? null, items: Array.isArray(data?.items) ? data.items : [] };
+}
+
+export function leavePresenceApi(sessionId: string, clientId: string): void {
+  const payload = JSON.stringify({ session_id: sessionId, client_id: clientId });
+  try {
+    navigator.sendBeacon('/api/session/presence/leave', new Blob([payload], { type: 'application/json' }));
+  } catch (_) {}
+}
+
+// ---------- topics ----------
 
 export async function addQuestion(sessionId: string, text: string, gifUrl = ''): Promise<{ id: string }> {
-  try {
-    const res = await fetch('/api/question/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, text, gif_url: gifUrl }),
-    });
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    const newId = 'q-' + Date.now();
-    const newQ: Question = {
-      id: newId,
-      session_id: sessionId,
-      text,
-      gif_url: gifUrl,
-      created_at: new Date().toISOString(),
-      answer_count: 0,
-    };
-    mockQuestionsList.push(newQ);
-    return { id: newId };
-  }
-  throw new Error('Failed to add topic');
+  const res = await postJson('/api/question/add', { session_id: sessionId, text, gif_url: gifUrl }, 'Gagal menambah topik');
+  return res.json();
 }
 
-export async function updateQuestion(
-  sessionId: string,
-  questionId: string,
-  text: string,
-  gifUrl = ''
-): Promise<void> {
-  try {
-    const res = await fetch('/api/question/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, id: questionId, text, gif_url: gifUrl }),
-    });
-    if (res.ok) return;
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    const idx = mockQuestionsList.findIndex((q) => q.id === questionId);
-    if (idx !== -1) {
-      mockQuestionsList[idx] = { ...mockQuestionsList[idx], text, gif_url: gifUrl };
-    }
-    return;
-  }
-  throw new Error('Failed to update topic');
+export async function updateQuestion(sessionId: string, questionId: string, text: string, gifUrl = ''): Promise<void> {
+  await postJson('/api/question/update', { session_id: sessionId, id: questionId, text, gif_url: gifUrl }, 'Gagal mengubah topik');
 }
 
 export async function deleteQuestion(sessionId: string, questionId: string): Promise<void> {
-  try {
-    const res = await fetch('/api/question/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, id: questionId }),
-    });
-    if (res.ok) return;
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    mockQuestionsList = mockQuestionsList.filter((q) => q.id !== questionId);
-    return;
-  }
-  throw new Error('Failed to delete topic');
+  await postJson('/api/question/delete', { session_id: sessionId, id: questionId }, 'Gagal menghapus topik');
 }
 
-let mockAnswersList: Answer[] = [
-  {
-    id: 'ans-1',
-    session_id: 'demo-session',
-    question_id: 'q-1',
-    text: 'Deploy ke Cloud Run sangat mulus dan zero-downtime! Pipeline CI/CD berjalan dalam 2 menit.',
-    sentiment_emoji: '🎉',
-    sentiment_emotion: 'Celebration',
-    sentiment_color: '#10b981',
-    votes: 7,
-    cluster_tag: 'devops',
-    author_name: 'Swift Falcon',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'ans-2',
-    session_id: 'demo-session',
-    question_id: 'q-1',
-    text: 'Kolaborasi dan komunikasi tim lintas divisi jauh lebih responsif dan transparan minggu ini.',
-    sentiment_emoji: '💪',
-    sentiment_emotion: 'Motivated',
-    sentiment_color: '#3b82f6',
-    votes: 5,
-    cluster_tag: 'culture',
-    author_name: 'Clever Otter',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'ans-3',
-    session_id: 'demo-session',
-    question_id: 'q-1',
-    text: 'Dokumentasi API Swagger sudah sinkron dengan backend, mempermudah integrasi frontend.',
-    sentiment_emoji: '✨',
-    sentiment_emotion: 'Delight',
-    sentiment_color: '#10b981',
-    votes: 3,
-    cluster_tag: 'docs',
-    author_name: 'Cosmic Fox',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'ans-4',
-    session_id: 'demo-session',
-    question_id: 'q-1',
-    text: 'Kopi di pantry sering habis sebelum makan siang :( butuh restock terjadwal!',
-    sentiment_emoji: '☕',
-    sentiment_emotion: 'Tired',
-    sentiment_color: '#f59e0b',
-    votes: 9,
-    cluster_tag: 'office',
-    author_name: 'Hyper Panda',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'ans-5',
-    session_id: 'demo-session',
-    question_id: 'q-1',
-    text: 'Review PR sering tertunda lebih dari 48 jam, perlu notifikasi pengingat harian.',
-    sentiment_emoji: '⏳',
-    sentiment_emotion: 'Waiting',
-    sentiment_color: '#ef4444',
-    votes: 4,
-    cluster_tag: 'process',
-    author_name: 'Quiet Bear',
-    created_at: new Date().toISOString(),
-  },
-];
-
-export async function fetchAnswers(
-  sessionId: string,
-  questionId?: string,
-  limit = 50,
-  offset = 0
-): Promise<Answer[]> {
-  if (!sessionId) return [];
-  try {
-    let url = `/api/session/answers?session_id=${encodeURIComponent(sessionId)}`;
-    if (questionId) {
-      url += `&question_id=${encodeURIComponent(questionId)}`;
-    }
-    if (limit) url += `&limit=${limit}`;
-    if (offset) url += `&offset=${offset}`;
-    const res = await fetch(url);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) return data;
-    }
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    if (questionId) {
-      return mockAnswersList.filter((a) => a.question_id === questionId);
-    }
-    return [...mockAnswersList];
-  }
-  return [];
-}
+// ---------- cards ----------
 
 export async function submitAnswer(params: {
   sessionId: string;
@@ -240,137 +159,42 @@ export async function submitAnswer(params: {
   gifUrl?: string;
 }): Promise<{ id: string; author_name?: string }> {
   const fp = getDeviceFingerprint();
-  try {
-    const res = await fetch('/api/answer/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Device-Fingerprint': fp,
-      },
-      body: JSON.stringify({
-        session_id: params.sessionId,
-        question_id: params.questionId,
-        text: params.text,
-        gif_url: params.gifUrl || '',
-        device_fingerprint: fp,
-      }),
-    });
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
-    const newAnswer: Answer = {
-      id: 'ans-' + Date.now(),
+  const res = await postJson(
+    '/api/answer/submit',
+    {
       session_id: params.sessionId,
       question_id: params.questionId,
       text: params.text,
-      gif_url: params.gifUrl,
-      sentiment_emoji: '💡',
-      sentiment_emotion: 'Idea',
-      sentiment_color: '#3b82f6',
-      votes: 0,
-      author_name: 'Clever Explorer',
-      created_at: new Date().toISOString(),
-    };
-    mockAnswersList.push(newAnswer);
-    return { id: newAnswer.id, author_name: newAnswer.author_name };
-  }
-  throw new Error('Failed to submit reflection card');
+      gif_url: params.gifUrl || '',
+      device_fingerprint: fp,
+    },
+    'Gagal mengirim kartu',
+    { 'X-Device-Fingerprint': fp }
+  );
+  return res.json();
 }
 
-export async function voteAnswer(params: {
-  sessionId: string;
-  answerId: string;
-  action: 'vote' | 'unvote';
-}): Promise<{ ok: boolean; remaining_votes?: number; message?: string }> {
+// Voting is one-way on the server (no unvote).
+export async function voteAnswer(sessionId: string, answerId: string): Promise<{ votes: number; remaining_votes: number }> {
   const fp = getDeviceFingerprint();
-  try {
-    const res = await fetch('/api/answer/vote', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Device-Fingerprint': fp,
-      },
-      body: JSON.stringify({
-        session_id: params.sessionId,
-        answer_id: params.answerId,
-        device_fingerprint: fp,
-      }),
-    });
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
-    const ans = mockAnswersList.find((a) => a.id === params.answerId);
-    if (ans) {
-      ans.votes = Math.max(0, ans.votes + (params.action === 'vote' ? 1 : -1));
-    }
-    return { ok: true };
-  }
-  return { ok: false, message: 'Vote failed' };
+  const res = await postJson(
+    '/api/answer/vote',
+    { session_id: sessionId, answer_id: answerId, device_fingerprint: fp },
+    'Gagal memberi vote',
+    { 'X-Device-Fingerprint': fp },
+    { 409: 'Kartu ini sudah kamu vote', 429: 'Vote kamu sudah habis' }
+  );
+  return res.json();
 }
 
-export async function fetchVoterStatus(sessionId: string): Promise<VoterStatus> {
-  const fp = getDeviceFingerprint();
-  try {
-    const res = await fetch(
-      `/api/session/voter-status?session_id=${encodeURIComponent(sessionId)}&device_fingerprint=${encodeURIComponent(fp)}`,
-      {
-        headers: {
-          'X-Device-Fingerprint': fp,
-        },
-      }
-    );
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  return { voter_id: fp, total_votes: 0, remaining_votes: 5, voted_answers: [] };
+export async function clusterCardApi(sessionId: string, answerId: string, tag: string): Promise<void> {
+  await postJson('/api/answer/cluster', { session_id: sessionId, answer_id: answerId, cluster_tag: tag }, 'Gagal menyimpan kelompok');
 }
 
-let mockTimerState: TimerState = { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
-
-export async function fetchTimer(sessionId: string): Promise<TimerState> {
-  try {
-    const res = await fetch(`/api/session/timer?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return mockTimerState;
-  }
-  return { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
-}
+// ---------- facilitator tools ----------
 
 export async function timerAction(sessionId: string, action: 'start' | 'reset', seconds = 300): Promise<void> {
-  try {
-    await fetch('/api/session/timer/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, action, seconds }),
-    });
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    if (action === 'start') {
-      mockTimerState = { running: true, end_time_unix_ms: Date.now() + seconds * 1000, remaining_seconds: seconds };
-    } else {
-      mockTimerState = { running: false, end_time_unix_ms: 0, remaining_seconds: 300 };
-    }
-  }
-}
-
-let mockSpotlightState: SpotlightState = { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
-
-export async function fetchSpotlight(sessionId: string): Promise<SpotlightState> {
-  try {
-    const res = await fetch(`/api/session/spotlight?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return mockSpotlightState;
-  }
-  return { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
+  await postJson('/api/session/timer/action', { session_id: sessionId, action, seconds }, 'Gagal mengubah timer');
 }
 
 export async function spotlightAction(params: {
@@ -379,76 +203,33 @@ export async function spotlightAction(params: {
   questionId?: string;
   answerId?: string;
 }): Promise<SpotlightState> {
-  try {
-    const res = await fetch('/api/session/spotlight/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: params.sessionId,
-        action: params.action,
-        question_id: params.questionId || '',
-        answer_id: params.answerId || '',
-      }),
-    });
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  if (isMockMode(params.sessionId) || !window.location.host.includes('8080')) {
-    if (params.action === 'clear') {
-      mockSpotlightState = { active: false, question_id: '', answer_id: '', updated_at_ms: Date.now() };
-    } else {
-      mockSpotlightState = {
-        active: true,
-        question_id: params.questionId || '',
-        answer_id: params.answerId || '',
-        updated_at_ms: Date.now(),
-      };
-    }
-    return mockSpotlightState;
-  }
-  return { active: false, question_id: '', answer_id: '', updated_at_ms: 0 };
-}
-
-
-export async function syncPresenceApi(params: {
-  sessionId: string;
-  clientId: string;
-  name: string;
-  role: 'moderator' | 'participant';
-}): Promise<PresenceResponse> {
-  const res = await fetch('/api/session/presence', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  const res = await postJson(
+    '/api/session/spotlight/action',
+    {
       session_id: params.sessionId,
-      client_id: params.clientId,
-      name: params.name,
-      role: params.role,
-    }),
-  });
-  if (!res.ok) return { participants: [], count: 1 };
+      action: params.action,
+      question_id: params.questionId || '',
+      answer_id: params.answerId || '',
+    },
+    'Gagal mengubah sorotan'
+  );
   return res.json();
 }
 
-export function leavePresenceApi(sessionId: string, clientId: string): void {
-  const payload = JSON.stringify({ session_id: sessionId, client_id: clientId });
-  const blob = new Blob([payload], { type: 'application/json' });
-  navigator.sendBeacon('/api/session/presence/leave', blob);
+// Invite link: the server shortens the board URL through hanya.click when it can.
+export async function fetchShareLink(sessionId: string): Promise<string> {
+  const res = await apiFetch(`/api/session/share-link?id=${q(sessionId)}`, undefined, 'Gagal membuat link undangan');
+  const data = await res.json();
+  if (!data?.short_url) throw new ApiError('Gagal membuat link undangan', 500);
+  return data.short_url as string;
 }
 
-export async function fetchActionItems(sessionId: string): Promise<ActionItem[]> {
-  try {
-    const res = await fetch(`/api/action-items/get?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
+// ---------- action items ----------
 
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return [
-      { id: 'act-1', session_id: sessionId, text: 'Setup Slack bot untuk reminder PR review harian', assignee: 'John (Tech Lead)', due_date: 'Sprint 43', completed: false, created_at: new Date().toISOString() },
-      { id: 'act-2', session_id: sessionId, text: 'Restock kopi dan snack pantry setiap Senin pagi', assignee: 'Office Ops', due_date: 'Next Week', completed: true, created_at: new Date().toISOString() },
-    ];
-  }
-  return [];
+export async function fetchActionItems(sessionId: string): Promise<ActionItem[]> {
+  const res = await apiFetch(`/api/action-items/get?session_id=${q(sessionId)}`, undefined, 'Gagal memuat aksi');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export async function addActionItemApi(params: {
@@ -458,82 +239,35 @@ export async function addActionItemApi(params: {
   dueDate?: string;
   answerId?: string;
 }): Promise<ActionItem> {
-  try {
-    const res = await fetch('/api/action-items/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: params.sessionId,
-        text: params.text,
-        assignee: params.assignee || '',
-        due_date: params.dueDate || '',
-        answer_id: params.answerId || '',
-      }),
-    });
-    if (res.ok) return await res.json();
-  } catch (_) {}
-
-  return {
-    id: 'act-' + Math.random().toString(36).substring(2, 9),
-    session_id: params.sessionId,
-    text: params.text,
-    assignee: params.assignee || 'Unassigned',
-    due_date: params.dueDate || 'Next Sprint',
-    completed: false,
-    created_at: new Date().toISOString(),
-  };
+  const res = await postJson(
+    '/api/action-items/add',
+    {
+      session_id: params.sessionId,
+      text: params.text,
+      assignee: params.assignee || '',
+      due_date: params.dueDate || '',
+      answer_id: params.answerId || '',
+    },
+    'Gagal menambah aksi'
+  );
+  return res.json();
 }
 
-export async function toggleActionItemApi(id: string, completed: boolean): Promise<void> {
-  try {
-    await fetch('/api/action-items/toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, completed }),
-    });
-  } catch (_) {}
+// Backend contract: POST {session_id, id, completed}. The server stores the value we send.
+// For "Janji sesi lalu" pass the OLD session id.
+export async function toggleActionItemApi(sessionId: string, id: string, completed: boolean): Promise<void> {
+  await postJson('/api/action-items/toggle', { session_id: sessionId, id, completed }, 'Gagal memperbarui aksi');
 }
 
-export async function deleteActionItemApi(id: string): Promise<void> {
-  try {
-    await fetch(`/api/action-items/delete?id=${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-    });
-  } catch (_) {}
+export async function deleteActionItemApi(sessionId: string, id: string): Promise<void> {
+  await postJson('/api/action-items/delete', { session_id: sessionId, id }, 'Gagal menghapus aksi');
 }
 
-export async function clusterCardApi(sessionId: string, answerId: string, tag: string): Promise<void> {
-  try {
-    await fetch('/api/answer/cluster', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, answer_id: answerId, cluster_tag: tag }),
-    });
-  } catch (_) {}
-}
-
-export async function fetchSessionClusters(sessionId: string): Promise<string[]> {
-  if (!sessionId) return [];
-  try {
-    const res = await fetch(`/api/session/clusters?session_id=${encodeURIComponent(sessionId)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data.map((item: any) => (typeof item === 'string' ? item : item?.tag || '')).filter(Boolean);
-      }
-    }
-  } catch (_) {}
-
-  if (isMockMode(sessionId) || !window.location.host.includes('8080')) {
-    return ['devops', 'culture', 'docs', 'office', 'process'];
-  }
-  return [];
-}
+// ---------- media ----------
 
 export async function searchGiphy(query: string): Promise<Array<{ id: string; url: string; previewUrl: string }>> {
   if (query.trim().length < 2) return [];
-  const res = await fetch(`/api/gifs/search?q=${encodeURIComponent(query)}`);
-  if (!res.ok) return [];
+  const res = await apiFetch(`/api/gifs/search?q=${q(query)}`, undefined, 'Gagal mencari GIF');
   const data = await res.json();
   if (!data?.data) return [];
   return data.data.map((g: any) => ({
@@ -543,14 +277,23 @@ export async function searchGiphy(query: string): Promise<Array<{ id: string; ur
   }));
 }
 
+// Requires login (/api/upload). The UI hides upload for guests.
 export async function uploadMedia(file: File): Promise<string> {
   const fd = new FormData();
   fd.append('image', file);
-  const res = await fetch('/api/upload', {
-    method: 'POST',
-    body: fd,
-  });
-  if (!res.ok) throw new Error('Failed to upload media');
+  const res = await apiFetch('/api/upload', { method: 'POST', body: fd }, 'Gagal mengunggah gambar');
   const data = await res.json();
   return data.url || '';
+}
+
+// The server's voter id: hex(sha256("hw_voter:" + fp)). Used to recognise own cards
+// outside `write`. Returns '' when SubtleCrypto is unavailable (non-secure context).
+export async function getVoterId(): Promise<string> {
+  try {
+    const bytes = new TextEncoder().encode('hw_voter:' + getDeviceFingerprint());
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  } catch (_) {
+    return '';
+  }
 }

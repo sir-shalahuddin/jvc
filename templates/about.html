@@ -1,73 +1,69 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="id" data-ui-style="brutalist">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inside Retro - Insights & Engineering</title>
-    <meta name="description" content="Learn about the engineering architecture, privacy, and scaling technology behind the Retro sprint retrospective platform.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:ital,wght@0,400..800;1,400..800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"></noscript>
-    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=210">
-    <link rel="stylesheet" href="/static/style.css?v=283">
-    <link rel="stylesheet" href="/static/css/about.css?v=283">
+    <meta name="theme-color" content="#fdfaf6" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+    <title>Tentang Retro</title>
+    <meta name="description" content="Apa yang dilakukan Retro: papan retrospektif dengan lima tahap, kartu tersembunyi saat menulis, janji sesi lalu, dan halaman ringkasan.">
     <script>
         (function () {
-            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            var s = "brutalist";
+            try {
+                var v = localStorage.getItem("ui_theme_style");
+                if (v === "modern" || v === "brutalist") s = v;
+            } catch (e) {}
+            document.documentElement.setAttribute("data-ui-style", s);
         })();
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg?v=300">
+    <link rel="stylesheet" href="/static/css/site.css?v=300">
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-    </button>
+    <header class="top wrap">
+        <a class="brand" href="/" title="Retro"><span class="mark" aria-hidden="true">R</span><span class="word">Retro</span></a>
+        <nav class="nav" aria-label="Utama">
+            <a href="/about" aria-current="page">Tentang</a>
+            <a href="/contact">Kontak</a>
+            <a href="/dashboard">Dashboard</a>
+        </nav>
+    </header>
 
-    <a href="/" class="back-to-home">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Back to Home
-    </a>
+    <main class="wrap page">
+        <h1>Tentang Retro</h1>
+        <p class="lead">Retro adalah papan untuk retrospektif tim. Fasilitator memandu tim lewat lima tahap, peserta ikut lewat link.</p>
 
-    <div class="container animate-fade-up">
-        <div class="split-layout">
-            <div class="side-title">
-                <a href="/"><img src="/static/images/logo.svg?v=210" alt="Logo" class="side-logo" width="64" height="64"></a>
-                <h1>Inside Retro</h1>
-                <p>Designed for absolute honesty, powered by industrial-grade engineering.</p>
-            </div>
-
-            <div class="bento-grid">
-                <!-- USP: Privacy -->
-                <div class="bento-item">
-                    <h3>100% Anonymous</h3>
-                    <p>No accounts required for participants. We ensure absolute privacy so your team can speak the truth without fear.</p>
-                </div>
-                <!-- USP: AI -->
-                <div class="bento-item">
-                    <h3>Read the Room</h3>
-                    <p>Our AI (Gemini) analyzes the emotional tone of every response, helping you understand the team mood instantly.</p>
-                </div>
-                <!-- Tech: Cloud & Scaling -->
-                <div class="bento-item bento-wide">
-                    <h3>Built for Infinite Scaling</h3>
-                    <p>Utilizing Google Cloud's serverless infrastructure, Retro handles everything from small teams to entire organizations with zero lag and 99.9% reliability.</p>
-                </div>
-                <!-- Tech: Real-time -->
-                <div class="bento-item">
-                    <h3>Live Sync Magic</h3>
-                    <p>Watch thoughts appear as they are typed. Powered by Firestore for a "no-refresh" real-time collaborative experience.</p>
-                </div>
-                <!-- AI Branding -->
-                <div class="bento-item">
-                    <h3>Autonomous Core</h3>
-                    <p>This entire platform was architected and built by <b>Antigravity AI</b>, a demonstration of the next generation of software engineering.</p>
-                </div>
-            </div>
+        <div class="about-list">
+            <section>
+                <h2>Lima tahap</h2>
+                <p>Tulis, Kelompokkan, Vote, Bahas, Aksi. Hanya fasilitator yang memindahkan tahap, dan boleh mundur kalau perlu. Alat yang tampil mengikuti tahap yang sedang berjalan.</p>
+            </section>
+            <section>
+                <h2>Kartu tersembunyi saat menulis</h2>
+                <p>Selama tahap Tulis, server hanya mengirim kartu milik kamu sendiri. Kartu orang lain baru terlihat setelah masuk tahap Kelompokkan. Fasilitator pun tidak mendapat pengecualian.</p>
+            </section>
+            <section>
+                <h2>Janji sesi lalu</h2>
+                <p>Saat sesi dibuka, aksi yang belum selesai dari sesi terakhir fasilitator yang sama ditampilkan. Peserta hanya membaca, fasilitator bisa mencentangnya.</p>
+            </section>
+            <section>
+                <h2>Ringkasan</h2>
+                <p>Tiap sesi punya halaman ringkasan: topik dengan kartu terurut menurut vote, kelompok, dan aksi lengkap dengan penanggung jawab serta tenggat. Siapa pun yang punya link sesi bisa membukanya.</p>
+            </section>
+            <section>
+                <h2>Tanpa akun untuk peserta</h2>
+                <p>Peserta cukup membuka link. Hanya fasilitator yang masuk dengan Google. Papan memperbarui diri secara berkala, bukan seketika, jadi kartu baru muncul dalam beberapa detik.</p>
+            </section>
         </div>
-    </div>
+    </main>
 
-    <script src="/static/js/theme.js?v=283"></script>
+    <footer class="foot wrap">
+        <span>retro.hanya.click</span>
+        <span>Juga dari kami: <a href="https://hanya.click">hanya.click</a> &mdash; pemendek link</span>
+    </footer>
 </body>
 </html>

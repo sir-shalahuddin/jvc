@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"retro-gcp/config"
 	"retro-gcp/db"
 	"retro-gcp/models"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -59,9 +61,39 @@ func getBaseURL(r *http.Request) string {
 	return scheme + "://" + host
 }
 
+func isHTTPS(r *http.Request) bool {
+	return r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
+}
+
+// setAuthCookie sets (or clears, with an expired time) the auth token cookie with hardened flags.
+func setAuthCookie(w http.ResponseWriter, r *http.Request, value string, expires time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    value,
+		Expires:  expires,
+		HttpOnly: true,
+		Secure:   isHTTPS(r),
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	})
+}
+
 func GoogleLoginHandler(w http.ResponseWriter, r *http.Request) {
 	state := generateStateOauthCookie(w)
-	
+
+	// Remember a safe same-origin `next` path for after the callback.
+	if next := safeNextPath(r.URL.Query().Get("next")); next != "" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     loginNextCookie,
+			Value:    url.QueryEscape(next),
+			Expires:  time.Now().Add(15 * time.Minute),
+			HttpOnly: true,
+			Secure:   isHTTPS(r),
+			SameSite: http.SameSiteLaxMode,
+			Path:     "/",
+		})
+	}
+
 	// Create a request-specific copy of OAuth config to dynamically set RedirectURL
 	localConfig := *googleOauthConfig
 	localConfig.RedirectURL = getBaseURL(r) + "/auth/google/callback"
@@ -140,14 +172,45 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    tokenString,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Path:     "/",
-	})
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	setAuthCookie(w, r, tokenString, time.Now().Add(24*time.Hour))
+	http.Redirect(w, r, loginRedirectTarget(w, r), http.StatusTemporaryRedirect)
+}
+
+const loginNextCookie = "oauthnext"
+
+// safeNextPath returns next if it is a same-origin absolute path, else "".
+// It rejects scheme-relative (//host), backslash tricks, and control characters.
+func safeNextPath(next string) string {
+	if next == "" || len(next) > 512 || next[0] != '/' {
+		return ""
+	}
+	if strings.HasPrefix(next, "//") || strings.Contains(next, "\\") {
+		return ""
+	}
+	for _, c := range next {
+		if c < 0x20 || c == 0x7f {
+			return ""
+		}
+	}
+	u, err := url.Parse(next)
+	if err != nil || u.Scheme != "" || u.Host != "" || !strings.HasPrefix(u.Path, "/") || strings.HasPrefix(u.Path, "//") {
+		return ""
+	}
+	return next
+}
+
+// loginRedirectTarget returns where to send the user after login: the safe
+// `next` stored at login start, otherwise /dashboard. It clears the cookie.
+func loginRedirectTarget(w http.ResponseWriter, r *http.Request) string {
+	target := "/dashboard"
+	if c, err := r.Cookie(loginNextCookie); err == nil {
+		raw, _ := url.QueryUnescape(c.Value)
+		if n := safeNextPath(raw); n != "" {
+			target = n
+		}
+		http.SetCookie(w, &http.Cookie{Name: loginNextCookie, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isHTTPS(r)})
+	}
+	return target
 }
 
 func GetUserFromRequest(r *http.Request) string {
@@ -195,12 +258,6 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    "",
-		Expires:  time.Now().Add(-1 * time.Hour),
-		HttpOnly: true,
-		Path:     "/",
-	})
+	setAuthCookie(w, r, "", time.Now().Add(-1*time.Hour))
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

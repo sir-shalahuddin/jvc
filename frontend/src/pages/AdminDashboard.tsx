@@ -1,19 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Server,
-  Users,
-  KanbanSquare,
-  Zap,
-  Trash2,
-  ExternalLink,
-  Copy,
-  AlertTriangle,
-  RefreshCw,
-  Search,
-  Check,
-} from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { AdminStats, Session, User } from '../services/api';
-import { fetchAdminStats, deleteAdminSession } from '../services/api';
+import { fetchAdminSessions, fetchAdminStats, deleteAdminSession } from '../services/api';
+import { boardUrl, copyInviteLink, copyText, formatDate } from '../services/links';
+import { PHASE_LABEL, type Phase } from '../types/session';
 
 import { MetricCard } from '../components/common/MetricCard';
 import { Modal } from '../components/common/Modal';
@@ -24,115 +13,97 @@ interface AdminDashboardProps {
   onReturnToUserDashboard: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  user,
-  onReturnToUserDashboard,
-}) => {
+const PAGE_SIZE = 20;
+const DEBOUNCE_MS = 300;
+
+function formatUptime(seconds: number): string {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d} hari ${h} jam`;
+  if (h > 0) return `${h} jam ${m} menit`;
+  return `${m} menit`;
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user, onReturnToUserDashboard }) => {
   const { showToast } = useToast();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const [query, setQuery] = useState(''); // debounced value sent to the server
+  const [loading, setLoading] = useState(true);
   const [sessionToDelete, setSessionToDelete] = useState<Session | null>(null);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isAdmin = !!user?.is_admin;
+  const abortRef = useRef<AbortController | null>(null);
 
-  const loadData = async () => {
+  // Debounce the search box; a new query goes back to page 1.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setQuery(searchInput.trim());
+      setPage(1);
+    }, DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [searchInput]);
+
+  const loadStats = useCallback(async () => {
     try {
-      setLoading(true);
-      const data = await fetchAdminStats();
-      setStats(data);
-      setSessions(data.recent_sessions || []);
+      setStats(await fetchAdminStats());
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || 'Failed to load admin statistics', 'error');
-    } finally {
+      showToast(err.message || 'Gagal memuat statistik', 'error');
+    }
+  }, [showToast]);
+
+  const loadSessions = useCallback(async () => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setLoading(true);
+    try {
+      const res = await fetchAdminSessions({ page, pageSize: PAGE_SIZE, q: query }, ctrl.signal);
+      setSessions(res.sessions);
+      setTotal(res.total);
+      setLoading(false);
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
+      showToast(err.message || 'Gagal memuat daftar sesi', 'error');
       setLoading(false);
     }
-  };
+  }, [page, query, showToast]);
 
   useEffect(() => {
-    if (user?.is_admin) {
-      loadData();
-    }
-  }, [user]);
+    if (isAdmin) loadStats();
+  }, [isAdmin, loadStats]);
 
-  if (!user?.is_admin) {
+  useEffect(() => {
+    if (isAdmin) loadSessions();
+    return () => abortRef.current?.abort();
+  }, [isAdmin, loadSessions]);
+
+  if (!isAdmin) {
     return (
-      <div
-        className="content-card"
-        style={{
-          maxWidth: '600px',
-          margin: '4rem auto',
-          textAlign: 'center',
-          padding: '3rem 2rem',
-          gap: '1.25rem',
-        }}
-      >
-        <div
-          style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--danger-bg)',
-            color: 'var(--danger)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto',
-          }}
-        >
-          <AlertTriangle size={32} />
-        </div>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Access Denied</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          This command center is reserved exclusively for the platform superadministrator.
-          Your current account does not have sufficient privileges.
-        </p>
-        <div style={{ marginTop: '0.5rem' }}>
-          <button onClick={onReturnToUserDashboard} className="btn btn-primary">
-            Return to User Dashboard
-          </button>
-        </div>
+      <div className="content-card login-card" style={{ margin: '3rem auto' }}>
+        <h1 className="content-card-title">Akses ditolak</h1>
+        <p className="content-card-desc">Halaman ini hanya untuk admin.</p>
+        <button onClick={onReturnToUserDashboard} className="btn btn-primary">
+          Kembali ke dashboard
+        </button>
       </div>
     );
   }
 
-  const filteredSessions = sessions.filter((s) => {
-    const q = searchTerm.toLowerCase();
-    const host = (s.owner_email || s.creator_email || '').toLowerCase();
-    return (
-      s.name.toLowerCase().includes(q) ||
-      s.id.toLowerCase().includes(q) ||
-      host.includes(q)
-    );
-  });
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const handleCopyLink = async (sessionId: string) => {
-    const rawUrl = `${window.location.origin}/session/?id=${encodeURIComponent(sessionId)}`;
-    let targetUrl = rawUrl;
-    try {
-      const res = await fetch(`/api/session/share-link?id=${encodeURIComponent(sessionId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.short_url) {
-          targetUrl = data.short_url;
-        }
-      }
-    } catch (err) {
-      console.warn('Share link failed, fallback to raw:', err);
-    }
-    try {
-      await navigator.clipboard.writeText(targetUrl);
-    } catch (err) {}
-    showToast('Participant join link copied!', 'success');
+  const handleCopyLink = async (id: string) => {
+    const ok = await copyInviteLink(id);
+    showToast(ok ? 'Link undangan disalin' : 'Gagal menyalin link', ok ? 'success' : 'error');
   };
 
-  const handleCopyId = (sessionId: string) => {
-    navigator.clipboard.writeText(sessionId);
-    setCopiedId(sessionId);
-    showToast(`Session ID #${sessionId.slice(0, 8)} copied!`, 'info');
-    setTimeout(() => setCopiedId(null), 2500);
+  const handleCopyId = async (id: string) => {
+    const ok = await copyText(id);
+    showToast(ok ? 'ID sesi disalin' : 'Gagal menyalin ID', ok ? 'success' : 'error');
   };
 
   const handleDeleteConfirm = async () => {
@@ -140,98 +111,66 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       setIsDeleting(true);
       await deleteAdminSession(sessionToDelete.id);
-      setSessions((prev) => prev.filter((s) => s.id !== sessionToDelete.id));
-      if (stats) {
-        setStats({
-          ...stats,
-          total_sessions: Math.max(0, stats.total_sessions - 1),
-        });
-      }
-      showToast(`Session "${sessionToDelete.name}" successfully deleted!`, 'success');
+      showToast(`Sesi "${sessionToDelete.name}" dihapus`, 'success');
       setSessionToDelete(null);
+      if (sessions.length === 1 && page > 1) setPage(page - 1);
+      else loadSessions();
+      loadStats();
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || 'Failed to delete session', 'error');
+      showToast(err.message || 'Gagal menghapus sesi', 'error');
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const h = stats?.health;
+  const healthValue = !h ? '-' : h.status === 'ok' ? 'Normal' : 'Terganggu';
+  const healthSub = !h
+    ? 'Belum ada data'
+    : h.firestore_ok
+      ? `Firestore ${h.firestore_ms} ms. Aktif ${formatUptime(h.uptime_seconds)}.`
+      : `Firestore gagal dibaca. Aktif ${formatUptime(h.uptime_seconds)}.`;
+
   return (
     <>
-      {/* Superadmin Header Banner */}
-      <section className="welcome-banner" style={{ borderColor: 'var(--primary)' }}>
-        <div className="welcome-text">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-            <span className="badge badge-primary">COMMAND CENTER</span>
-            <span className="badge badge-success">Live Monitoring</span>
-          </div>
-          <h1>Platform Superadmin Console</h1>
-          <p>
-            Global telemetry, retrospective orchestration, user quota oversight, and platform resource management.
-          </p>
-        </div>
-        <button
-          onClick={loadData}
-          className="btn btn-secondary"
-          disabled={loading}
-          style={{ gap: '0.5rem' }}
-        >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh Data</span>
-        </button>
-      </section>
-
-      {/* Global Platform KPIs */}
       <section className="metrics-grid">
+        <MetricCard label="Total sesi" value={stats?.total_sessions ?? 0} />
+        <MetricCard label="Pengguna" value={stats?.total_users ?? 0} />
+        <MetricCard label="Kuota dibagikan" value={stats?.total_revenue ?? 0} subtext="Jumlah kuota yang pernah diberikan" />
         <MetricCard
-          label="Total Global Sessions"
-          value={stats?.total_sessions ?? 0}
-          subtext="Retrospective instances in Firestore"
-          icon={<KanbanSquare size={22} color="var(--primary)" />}
-          trendBadge={{ text: 'System Wide', type: 'primary' }}
-        />
-        <MetricCard
-          label="Registered Users"
-          value={stats?.total_users ?? 0}
-          subtext="Active accounts with quota allocation"
-          icon={<Users size={22} color="var(--info)" />}
-          trendBadge={{ text: 'Global', type: 'info' }}
-        />
-        <MetricCard
-          label="Units Claimed"
-          value={stats?.total_revenue ?? 0}
-          subtext="Cumulative session quota granted"
-          icon={<Zap size={22} color="var(--warning)" />}
-        />
-        <MetricCard
-          label="System Health"
-          value="100% OK"
-          subtext="Firestore & Cloud Run active"
-          icon={<Server size={22} color="var(--success)" />}
-          trendBadge={{ text: 'Operational', type: 'success' }}
+          label="Status server"
+          value={healthValue}
+          subtext={healthSub}
+          tone={h ? (h.status === 'ok' ? 'ok' : 'danger') : undefined}
         />
       </section>
 
-      {/* Global Sessions Management Table */}
       <section className="content-card">
         <div className="content-card-header">
           <div>
-            <h2 className="content-card-title">All Retrospective Sessions</h2>
-            <p className="content-card-desc">
-              Inspect, join as Scrum Master, or prune any active session across all platform workspaces.
-            </p>
+            <h1 className="content-card-title">Semua sesi</h1>
+            <p className="content-card-desc">{total} sesi{query ? ` cocok dengan "${query}"` : ''}</p>
           </div>
           <div className="content-card-actions">
-            <div className="header-search" style={{ width: '260px' }}>
-              <Search size={16} className="header-search-icon" />
-              <input
-                type="text"
-                placeholder="Filter host, topic, or ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+            <input
+              type="search"
+              className="form-input"
+              style={{ width: '260px', maxWidth: '100%' }}
+              placeholder="Cari nama sesi atau pemilik"
+              aria-label="Cari sesi"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                loadStats();
+                loadSessions();
+              }}
+              className="btn btn-secondary btn-sm"
+              disabled={loading}
+            >
+              Muat ulang
+            </button>
           </div>
         </div>
 
@@ -239,107 +178,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <table className="modern-table">
             <thead>
               <tr>
-                <th>Host Email</th>
-                <th>Topic / Title</th>
-                <th>Session ID</th>
-                <th>Created At</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th>Pemilik</th>
+                <th>Sesi</th>
+                <th>Fase</th>
+                <th>Dibuat</th>
+                <th style={{ textAlign: 'right' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {loading && sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    Loading platform telemetry...
+                  <td colSpan={5} className="table-empty">
+                    Memuat...
                   </td>
                 </tr>
-              ) : filteredSessions.length === 0 ? (
+              ) : sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    {searchTerm ? `No sessions match "${searchTerm}"` : 'No sessions currently in the database.'}
+                  <td colSpan={5} className="table-empty">
+                    {query ? `Tidak ada sesi yang cocok dengan "${query}".` : 'Belum ada sesi.'}
                   </td>
                 </tr>
               ) : (
-                filteredSessions.map((session) => {
-                  const host = session.owner_email || session.creator_email || 'System';
+                sessions.map((s) => {
+                  const host = s.owner_email || s.creator_email || '-';
                   return (
-                    <tr key={session.id}>
+                    <tr key={s.id} style={loading ? { opacity: 0.6 } : undefined}>
                       <td style={{ maxWidth: '240px' }}>
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            display: 'block',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                          title={host}
-                        >
+                        <span className="cell-clip" title={host}>
                           {host}
                         </span>
                       </td>
                       <td style={{ maxWidth: '280px' }}>
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            color: 'var(--text-primary)',
-                            display: 'block',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                          title={session.name}
-                        >
-                          {session.name}
+                        <span className="cell-clip" style={{ fontWeight: 600 }} title={s.name}>
+                          {s.name}
                         </span>
                       </td>
-                      <td>
-                        <span
-                          className="session-id-pill"
-                          onClick={() => handleCopyId(session.id)}
-                          title="Click to copy ID"
-                        >
-                          {copiedId === session.id ? (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                              <Check size={11} /> Copied
-                            </span>
-                          ) : (
-                            `#${session.id.substring(0, 8)}`
-                          )}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>
-                        {new Date(session.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
+                      <td>{s.phase && PHASE_LABEL[s.phase as Phase] ? PHASE_LABEL[s.phase as Phase] : '-'}</td>
+                      <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{formatDate(s.created_at, true)}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
-                          <button
-                            onClick={() => handleCopyLink(session.id)}
-                            className="btn btn-ghost btn-sm"
-                            title="Copy participant link"
-                          >
-                            <Copy size={14} />
+                          <button onClick={() => handleCopyId(s.id)} className="btn btn-ghost btn-sm" title={s.id}>
+                            ID
                           </button>
-                          <a
-                            href={`/session/?id=${encodeURIComponent(session.id)}&role=sm`}
-                            className="btn btn-secondary btn-sm"
-                            title="Open session board as Scrum Master"
-                          >
-                            <ExternalLink size={14} />
-                            <span>Manage</span>
+                          <button onClick={() => handleCopyLink(s.id)} className="btn btn-ghost btn-sm">
+                            Salin link
+                          </button>
+                          <a href={boardUrl(s.id)} className="btn btn-secondary btn-sm">
+                            Buka
                           </a>
-                          <button
-                            onClick={() => setSessionToDelete(session)}
-                            className="btn btn-danger btn-sm"
-                            title="Delete session"
-                          >
-                            <Trash2 size={14} />
+                          <button onClick={() => setSessionToDelete(s)} className="btn btn-danger btn-sm">
+                            Hapus
                           </button>
                         </div>
                       </td>
@@ -350,57 +238,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </tbody>
           </table>
         </div>
+
+        {total > PAGE_SIZE && (
+          <div className="pager">
+            <button className="btn btn-secondary btn-sm" disabled={page <= 1 || loading} onClick={() => setPage(page - 1)}>
+              Sebelumnya
+            </button>
+            <span>
+              Halaman {page} dari {pageCount}
+            </span>
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={page >= pageCount || loading}
+              onClick={() => setPage(page + 1)}
+            >
+              Berikutnya
+            </button>
+          </div>
+        )}
       </section>
 
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={!!sessionToDelete}
         onClose={() => setSessionToDelete(null)}
-        title="Confirm Session Deletion"
+        title="Hapus sesi"
         footer={
           <>
-            <button
-              onClick={() => setSessionToDelete(null)}
-              className="btn btn-secondary"
-              disabled={isDeleting}
-            >
-              Cancel
+            <button onClick={() => setSessionToDelete(null)} className="btn btn-secondary" disabled={isDeleting}>
+              Batal
             </button>
-            <button
-              onClick={handleDeleteConfirm}
-              className="btn btn-danger"
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Permanently Delete'}
+            <button onClick={handleDeleteConfirm} className="btn btn-danger" disabled={isDeleting}>
+              {isDeleting ? 'Menghapus...' : 'Hapus permanen'}
             </button>
           </>
         }
       >
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-          <div
-            style={{
-              padding: '0.75rem',
-              borderRadius: 'var(--radius-full)',
-              background: 'var(--danger-bg)',
-              color: 'var(--danger)',
-              flexShrink: 0,
-            }}
-          >
-            <AlertTriangle size={24} />
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Are you sure you want to delete this session?
-            </p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              This will permanently delete session{' '}
-              <strong style={{ color: 'var(--text-primary)' }}>
-                "{sessionToDelete?.name}"
-              </strong>{' '}
-              (<code>#{sessionToDelete?.id.slice(0, 8)}</code>) along with all associated questions, answers, sentiments, and action items. This action cannot be undone.
-            </p>
-          </div>
-        </div>
+        <p style={{ lineHeight: 1.55 }}>
+          Sesi <strong>"{sessionToDelete?.name}"</strong> akan dihapus bersama semua kartu, topik, vote, dan item aksi di
+          dalamnya. Tindakan ini tidak bisa dibatalkan.
+        </p>
       </Modal>
     </>
   );

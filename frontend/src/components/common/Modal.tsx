@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -10,51 +10,59 @@ interface ModalProps {
   maxWidth?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  footer,
-  maxWidth = '520px',
-}) => {
+// Plain dialog. Esc and the backdrop close it; focus moves into the dialog on open
+// and back to the previously focused element on close.
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, maxWidth = '520px' }) => {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
+    if (!isOpen) return;
+    const prev = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onCloseRef.current();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    window.addEventListener('keydown', onKey);
+    // Focus the first form field if there is one, else the dialog itself.
+    const t = window.setTimeout(() => {
+      const el = dialogRef.current;
+      if (!el) return;
+      const field = el.querySelector<HTMLElement>('[data-autofocus], textarea, input:not([type=hidden])');
+      (field || el).focus();
+    }, 0);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.clearTimeout(t);
+      if (prev && typeof prev.focus === 'function') prev.focus();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
-        className="modal-card"
+        ref={dialogRef}
+        className="dialog"
         style={{ maxWidth }}
-        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
+        aria-labelledby={titleId}
+        tabIndex={-1}
       >
-        <div className="modal-drag-handle" />
-        <div className="modal-header">
-          <h2 id="modal-title" className="modal-title">
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            className="btn btn-ghost btn-icon btn-sm"
-            aria-label="Close dialog"
-          >
+        <div className="dialog-h">
+          <h2 id={titleId}>{title}</h2>
+          <button type="button" onClick={onClose} className="icon-btn" aria-label="Tutup">
             <X size={18} />
           </button>
         </div>
-        <div className="modal-body">{children}</div>
-        {footer && <div className="modal-footer">{footer}</div>}
+        <div className="dialog-b">{children}</div>
+        {footer && <div className="dialog-f">{footer}</div>}
       </div>
     </div>
   );

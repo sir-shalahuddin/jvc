@@ -60,33 +60,23 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "index", config.AppConfig)
 }
 
-func DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	if spa := getSPAIndexPath(); spa != "" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeFile(w, r, spa)
+// serveSPA serves the built React app. There is no legacy fallback: when
+// frontend/dist is missing the server answers 503 with a clear message.
+func serveSPA(w http.ResponseWriter, r *http.Request) {
+	spa := getSPAIndexPath()
+	if spa == "" {
+		http.Error(w, "Frontend belum dibuild (frontend/dist tidak ditemukan). Jalankan `npm run build` di folder frontend.", http.StatusServiceUnavailable)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	http.ServeFile(w, r, spa)
 }
 
-func SessionHandler(w http.ResponseWriter, r *http.Request) {
-	if spa := getSPAIndexPath(); spa != "" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeFile(w, r, spa)
-		return
-	}
-	renderTemplate(w, "session", config.AppConfig)
-}
+func DashboardHandler(w http.ResponseWriter, r *http.Request) { serveSPA(w, r) }
 
-func AdminUIHandler(w http.ResponseWriter, r *http.Request) {
-	if spa := getSPAIndexPath(); spa != "" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeFile(w, r, spa)
-		return
-	}
-	renderTemplate(w, "admin", config.AppConfig)
-}
+func SessionHandler(w http.ResponseWriter, r *http.Request) { serveSPA(w, r) }
 
+func AdminUIHandler(w http.ResponseWriter, r *http.Request) { serveSPA(w, r) }
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "about", config.AppConfig)
@@ -94,8 +84,4 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 
 func ContactHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "contact", config.AppConfig)
-}
-
-func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

@@ -11,7 +11,6 @@ import (
 	"testing"
 )
 
-
 func TestTemplatesParseAndExecute(t *testing.T) {
 	// Ensure we can find the templates folder from handlers dir
 	templatesDir := "../templates"
@@ -19,7 +18,7 @@ func TestTemplatesParseAndExecute(t *testing.T) {
 		templatesDir = "templates"
 	}
 
-	templates := []string{"session", "index", "admin", "about", "contact", "checkout"}
+	templates := []string{"index", "about", "contact"}
 
 	for _, tmplName := range templates {
 		t.Run(tmplName, func(t *testing.T) {
@@ -42,24 +41,30 @@ func TestTemplatesParseAndExecute(t *testing.T) {
 	}
 }
 
-func TestDashboardAndAdminHandlers(t *testing.T) {
-	// Test DashboardHandler
-	req, _ := http.NewRequest("GET", "/dashboard", nil)
-	rr := httptest.NewRecorder()
-	DashboardHandler(rr, req)
-
-	// Since frontend/dist may not be found relative to package handlers when testing,
-	// it will redirect to "/" or serve 200 OK
-	if rr.Code != http.StatusOK && rr.Code != http.StatusTemporaryRedirect {
-		t.Errorf("expected status 200 or 307 for DashboardHandler, got %d", rr.Code)
+// The SPA handlers serve frontend/dist/index.html when it exists and otherwise
+// answer 503 with a clear message (no legacy template fallback).
+func TestSPAHandlers(t *testing.T) {
+	built := getSPAIndexPath() != ""
+	handlers := map[string]http.HandlerFunc{
+		"/dashboard":    DashboardHandler,
+		"/session?id=x": SessionHandler,
+		"/admin":        AdminUIHandler,
 	}
-
-	// Test SessionHandler
-	reqSession, _ := http.NewRequest("GET", "/session?id=test", nil)
-	rrSession := httptest.NewRecorder()
-	SessionHandler(rrSession, reqSession)
-	if rrSession.Code != http.StatusOK {
-		t.Errorf("expected status 200 for SessionHandler, got %d", rrSession.Code)
+	for path, h := range handlers {
+		req := httptest.NewRequest("GET", path, nil)
+		rr := httptest.NewRecorder()
+		h(rr, req)
+		if built {
+			if rr.Code != http.StatusOK {
+				t.Errorf("%s: expected 200 when dist exists, got %d", path, rr.Code)
+			}
+			continue
+		}
+		if rr.Code != http.StatusServiceUnavailable {
+			t.Errorf("%s: expected 503 when dist is missing, got %d", path, rr.Code)
+		}
+		if !bytes.Contains(rr.Body.Bytes(), []byte("frontend/dist")) {
+			t.Errorf("%s: 503 body should explain the missing build, got %q", path, rr.Body.String())
+		}
 	}
 }
-

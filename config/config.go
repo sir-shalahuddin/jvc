@@ -15,8 +15,6 @@ type Config struct {
 	Port               string
 	AdminEmail         string
 	GiphyAPIKey        string
-	DuitkuMerchantCode string
-	DuitkuAPIKey       string
 	ContactEmail       string
 	ContactPhone       string
 	ContactAddress     string
@@ -37,8 +35,6 @@ func LoadConfig() {
 		Port:               getEnv("PORT", "8080"),
 		AdminEmail:         getEnv("ADMIN_EMAIL", "sirajshalahuddin@gmail.com"),
 		GiphyAPIKey:        getEnv("GIPHY_API_KEY", ""),
-		DuitkuMerchantCode: getEnv("DUITKU_MERCHANT_CODE", ""),
-		DuitkuAPIKey:       getEnv("DUITKU_API_KEY", ""),
 		ContactEmail:       getEnv("CONTACT_EMAIL", "support@hanya.click"),
 		ContactPhone:       getEnv("CONTACT_PHONE", "+62 812-3456-7890"),
 		ContactAddress:     getEnv("CONTACT_ADDRESS", "Jl. Jenderal Sudirman Kav. 52-53, Jakarta Selatan, 12190, Indonesia"),

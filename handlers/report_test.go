@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -88,3 +90,21 @@ func TestSummaryCache(t *testing.T) {
 	}
 }
 
+
+func TestGenerateReport_Authorization(t *testing.T) {
+	// Unauthenticated -> 401 (before any Gemini call)
+	w := httptest.NewRecorder()
+	GenerateReportHandler(w, httptest.NewRequest(http.MethodGet, "/api/session/report?session_id=s1", nil))
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("unauth: expected 401, got %d", w.Code)
+	}
+
+	// Non-owner -> 403 (before any Gemini call)
+	req := httptest.NewRequest(http.MethodGet, "/api/session/report?session_id=s1", nil)
+	req.AddCookie(createTestAuthCookie("participant@example.com"))
+	w = httptest.NewRecorder()
+	GenerateReportHandler(w, req)
+	if w.Code != http.StatusForbidden {
+		t.Errorf("non-owner: expected 403, got %d", w.Code)
+	}
+}

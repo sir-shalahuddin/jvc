@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"context"
 	"net/http"
 	"retro-gcp/models"
@@ -23,13 +24,48 @@ func createTestAuthCookie(email string) *http.Cookie {
 	}
 }
 
-type mockSessionRepo struct{}
+// mockSessionRepo defaults to a single owner (moderator@example.com) for any id with
+// no phase (= discuss). Set `sessions` to serve specific sessions (unknown ids return an error).
+type mockSessionRepo struct {
+	sessions       map[string]*models.Session
+	all            []models.Session
+	byOwner        map[string][]models.Session
+	phaseUpdates   map[string]string
+	deletedRelated []string
+}
+
 func (m *mockSessionRepo) Create(ctx context.Context, s models.Session) error { return nil }
-func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*models.Session, error) { return &models.Session{ID: id, OwnerEmail: "moderator@example.com"}, nil }
-func (m *mockSessionRepo) GetAll(ctx context.Context) ([]models.Session, error) { return nil, nil }
-func (m *mockSessionRepo) GetByOwner(ctx context.Context, e string) ([]models.Session, error) { return nil, nil }
+func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*models.Session, error) {
+	if m.sessions != nil {
+		s, ok := m.sessions[id]
+		if !ok {
+			return nil, errors.New("not found")
+		}
+		cp := *s
+		return &cp, nil
+	}
+	return &models.Session{ID: id, OwnerEmail: "moderator@example.com"}, nil
+}
+func (m *mockSessionRepo) GetAll(ctx context.Context) ([]models.Session, error) { return m.all, nil }
+func (m *mockSessionRepo) GetByOwner(ctx context.Context, e string) ([]models.Session, error) {
+	return m.byOwner[e], nil
+}
 func (m *mockSessionRepo) UpdateName(ctx context.Context, id string, n string) error { return nil }
-func (m *mockSessionRepo) Delete(ctx context.Context, id string) error { return nil }
+func (m *mockSessionRepo) Delete(ctx context.Context, id string) error               { return nil }
+func (m *mockSessionRepo) UpdatePhase(ctx context.Context, id string, phase string) error {
+	if m.phaseUpdates == nil {
+		m.phaseUpdates = map[string]string{}
+	}
+	m.phaseUpdates[id] = phase
+	if s, ok := m.sessions[id]; ok {
+		s.Phase = phase
+	}
+	return nil
+}
+func (m *mockSessionRepo) DeleteWithRelated(ctx context.Context, id string) error {
+	m.deletedRelated = append(m.deletedRelated, id)
+	return nil
+}
 
 type mockUserRepo struct{}
 func (m *mockUserRepo) GetByEmail(ctx context.Context, e string) (*models.User, error) { return &models.User{Email: e}, nil }
@@ -56,9 +92,6 @@ func (m *mockAnswerRepo) UpdateCluster(ctx context.Context, sid string, aid stri
 	return nil
 }
 
-type mockTransactionRepo struct{}
-func (m *mockTransactionRepo) Create(ctx context.Context, t models.Transaction) error { return nil }
-func (m *mockTransactionRepo) GetByID(ctx context.Context, id string) (*models.Transaction, error) { return nil, nil }
 
 type mockActionItemRepo struct {
 	items map[string][]models.ActionItem

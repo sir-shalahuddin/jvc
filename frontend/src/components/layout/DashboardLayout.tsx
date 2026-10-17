@@ -1,29 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import {
-  LayoutDashboard,
-  ShieldAlert,
-  Plus,
-  Search,
-  Sun,
-  Moon,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  Zap,
-  MessageCircle,
-  Palette,
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, ShieldAlert, Plus, LogOut, Menu } from 'lucide-react';
 import type { User } from '../../services/api';
+import { loginUrl } from '../../services/links';
+import { UI_STYLE_LABEL, useUiStyle } from '../../services/uiStyle';
 
+export type DashboardTab = 'overview' | 'admin';
 
 interface DashboardLayoutProps {
   user: User | null;
-  activeTab: 'overview' | 'sessions' | 'admin';
-  onTabChange: (tab: 'overview' | 'sessions' | 'admin') => void;
+  activeTab: DashboardTab;
+  onTabChange: (tab: DashboardTab) => void;
   onOpenNewSessionModal: () => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
   children: React.ReactNode;
 }
 
@@ -32,282 +19,119 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   activeTab,
   onTabChange,
   onOpenNewSessionModal,
-  searchQuery,
-  onSearchChange,
   children,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const [uiStyle, setUiStyle] = useState<'brutalist' | 'modern'>('brutalist');
+  const [uiStyle, toggleUiStyle] = useUiStyle();
 
-  useEffect(() => {
-    const saved =
-      (localStorage.getItem('theme') as 'light' | 'dark') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setTheme(saved);
-    document.documentElement.setAttribute('data-theme', saved);
+  const name = user?.email?.split('@')[0] || '';
 
-    const savedStyle =
-      (localStorage.getItem('ui_theme_style') as 'brutalist' | 'modern') || 'brutalist';
-    setUiStyle(savedStyle);
-    document.documentElement.setAttribute('data-ui-style', savedStyle);
-  }, []);
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-  };
-
-  const toggleUiStyle = () => {
-    const next = uiStyle === 'brutalist' ? 'modern' : 'brutalist';
-    setUiStyle(next);
-    localStorage.setItem('ui_theme_style', next);
-    document.documentElement.setAttribute('data-ui-style', next);
-  };
-
-  const getWhatsAppLink = () => {
-    const email = user?.email || 'User';
-    const message = encodeURIComponent(
-      `Halo Admin Retro, saya ingin request penambahan kuota sesi untuk akun ${email}. Terima kasih!`
-    );
-    return `https://wa.me/6285640390800?text=${message}`;
-  };
-
-  const getInitials = (email?: string) => {
-    if (!email) return 'U';
-    const name = email.split('@')[0];
-    return name.slice(0, 2).toUpperCase();
+  const go = (tab: DashboardTab) => {
+    onTabChange(tab);
+    setIsMobileOpen(false);
   };
 
   return (
     <div className="dashboard-layout">
-      {/* Mobile Drawer Backdrop */}
       {isMobileOpen && (
-        <div
-          className="sidebar-backdrop"
-          onClick={() => setIsMobileOpen(false)}
-          aria-label="Close mobile sidebar menu"
-        />
+        <div className="sidebar-backdrop" onClick={() => setIsMobileOpen(false)} aria-hidden="true" />
       )}
 
-      {/* Sidebar Navigation */}
-      <aside
-        className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${
-          isMobileOpen ? 'mobile-open' : ''
-        }`}
-      >
+      <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-          <a href="/" className="brand-wrapper" title="Back to Landing">
+          <a href="/" className="brand-wrapper" title="Ke beranda">
             <div className="brand-icon">R</div>
-            {!isCollapsed && (
-              <>
-                <span className="brand-text">Retro</span>
-                <span className="brand-badge">SaaS</span>
-              </>
-            )}
+            <span className="brand-text">Retro</span>
           </a>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="btn btn-ghost btn-icon btn-sm"
-            style={{ display: isMobileOpen ? 'none' : 'flex' }}
-            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
         </div>
 
         <div className="sidebar-content">
-          <div>
-            {!isCollapsed && <div className="nav-section-title">Workspace</div>}
-            <ul className="nav-list">
+          <ul className="nav-list">
+            <li>
+              <button
+                className={`nav-item-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                onClick={() => go('overview')}
+              >
+                <LayoutDashboard size={18} />
+                <span>Sesi saya</span>
+              </button>
+            </li>
+            {user?.is_admin && (
               <li>
                 <button
-                  className={`nav-item-btn ${activeTab === 'overview' ? 'active' : ''}`}
-                  onClick={() => {
-                    onTabChange('overview');
-                    setIsMobileOpen(false);
-                  }}
-                  title="Dashboard Overview"
+                  className={`nav-item-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => go('admin')}
                 >
-                  <LayoutDashboard size={18} />
-                  {!isCollapsed && <span>Overview</span>}
+                  <ShieldAlert size={18} />
+                  <span>Admin</span>
                 </button>
               </li>
-            </ul>
-          </div>
-
-          {user?.is_admin && (
-            <div>
-              {!isCollapsed && <div className="nav-section-title">Administration</div>}
-              <ul className="nav-list">
-                <li>
-                  <button
-                    className={`nav-item-btn ${activeTab === 'admin' ? 'active' : ''}`}
-                    onClick={() => {
-                      onTabChange('admin');
-                      setIsMobileOpen(false);
-                    }}
-                    title="Superadmin Command Center"
-                    style={{ color: activeTab === 'admin' ? 'var(--primary)' : undefined }}
-                  >
-                    <ShieldAlert size={18} />
-                    {!isCollapsed && (
-                      <>
-                        <span>Admin Center</span>
-                        <span className="nav-badge badge-primary">PRO</span>
-                      </>
-                    )}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-
-          {!isCollapsed && (
-            <div style={{ marginTop: 'auto' }}>
-              <div
-                style={{
-                  background: 'var(--bg-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1rem',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  <Zap size={14} color="var(--primary)" />
-                  <span>SESSION QUOTA</span>
-                </div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                  {user?.quota ?? 0} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>Units</span>
-                </div>
-                <a
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary btn-sm"
-                  style={{ width: '100%', fontSize: '0.75rem', justifyContent: 'center', gap: '0.4rem' }}
-                >
-                  <MessageCircle size={14} color="#25D366" />
-                  Top Up Kuota (WA)
-                </a>
-              </div>
-            </div>
-          )}
+            )}
+          </ul>
         </div>
 
-        {/* User profile footer */}
         <div className="sidebar-footer">
           {user?.authenticated ? (
             <>
               <div className="user-profile-box">
-                <div className="user-avatar">{getInitials(user.email)}</div>
-                {!isCollapsed && (
-                  <div className="user-details">
-                    <span className="user-name" title={user.email}>
-                      {user.email?.split('@')[0]}
-                    </span>
-                    <span className="user-quota-badge">
-                      <Zap size={12} /> {user.quota ?? 0} Kuota
-                    </span>
-                  </div>
-                )}
+                <div className="user-avatar">{(name || 'U').slice(0, 2).toUpperCase()}</div>
+                <div className="user-details">
+                  <span className="user-name" title={user.email}>
+                    {name}
+                  </span>
+                </div>
               </div>
-              {!isCollapsed && (
-                <a
-                  href="/auth/logout"
-                  className="btn btn-ghost btn-sm"
-                  style={{ justifyContent: 'flex-start', color: 'var(--danger)' }}
-                >
-                  <LogOut size={16} />
-                  <span>Sign Out</span>
-                </a>
-              )}
+              <a
+                href="/auth/logout"
+                className="btn btn-ghost btn-sm"
+                style={{ justifyContent: 'flex-start', color: 'var(--danger)' }}
+              >
+                <LogOut size={16} />
+                <span>Keluar</span>
+              </a>
             </>
           ) : (
-            <a href="/auth/google/login" className="btn btn-primary btn-sm" style={{ width: '100%' }}>
-              {!isCollapsed ? 'Sign In with Google' : 'Login'}
+            <a href={loginUrl()} className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+              Masuk dengan Google
             </a>
           )}
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="main-wrapper">
-        {/* Sticky Top Header */}
         <header className="top-header">
           <div className="header-left">
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
               className="btn btn-ghost btn-icon"
               id="mobile-menu-btn"
-              aria-label="Open navigation menu"
+              aria-label="Buka menu"
             >
               <Menu size={20} />
             </button>
             <div className="breadcrumb-trail">
-              <span>Workspace</span>
-              <span>/</span>
-              <span className="active">
-                {activeTab === 'overview' && 'Dashboard Overview'}
-                {activeTab === 'sessions' && 'My Retrospectives'}
-                {activeTab === 'admin' && 'Superadmin Command Center'}
-              </span>
+              <span className="active">{activeTab === 'admin' ? 'Admin' : 'Sesi saya'}</span>
             </div>
           </div>
 
-          <div className="header-search">
-            <Search size={16} className="header-search-icon" />
-            <input
-              type="text"
-              placeholder="Search sessions or ID..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-
           <div className="header-right">
-            {/* UI Style Selector (Neo-Brutalist Default vs Modern SaaS) */}
             <button
               type="button"
               onClick={toggleUiStyle}
               className="btn btn-secondary btn-sm"
-              title={`Switch Design Theme: Neo-Brutalist or Modern SaaS (Current: ${
-                uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'
-              })`}
-              style={{ gap: '0.45rem', fontSize: '0.78rem' }}
+              title={uiStyle === 'brutalist' ? 'Ganti tampilan ke Modern' : 'Ganti tampilan ke Brutalist'}
             >
-              <Palette size={14} />
-              <span className="btn-text-desktop">{uiStyle === 'brutalist' ? 'Neo-Brutalist' : 'Modern SaaS'}</span>
+              <span className="btn-text-desktop">Tampilan: </span>
+              {UI_STYLE_LABEL[uiStyle]}
             </button>
 
-            <button
-              onClick={toggleTheme}
-              className="btn btn-ghost btn-icon"
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-
-            <button
-              onClick={onOpenNewSessionModal}
-              className="btn btn-primary"
-              id="header-create-session-btn"
-              title="Start New Retrospective"
-            >
+            <button onClick={onOpenNewSessionModal} className="btn btn-primary" id="header-create-session-btn">
               <Plus size={16} />
-              <span className="btn-text-desktop">New Session</span>
+              <span>Sesi baru</span>
             </button>
           </div>
         </header>
 
-        {/* Scrollable Page Body */}
         <main className="page-container">{children}</main>
       </div>
     </div>

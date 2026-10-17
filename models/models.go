@@ -14,7 +14,8 @@ type Session struct {
 	OwnerEmail string    `json:"owner_email" firestore:"owner_email"`
 	CreatedAt  time.Time `json:"created_at" firestore:"created_at"`
 	Status     string    `json:"status" firestore:"status"`
-	IsOwner    bool      `json:"is_owner" firestore:"-"` // UI only
+	Phase      string    `json:"phase" firestore:"phase"` // empty in old data means "discuss"
+	IsOwner    bool      `json:"is_owner" firestore:"-"`  // UI only
 }
 
 type Question struct {
@@ -38,6 +39,7 @@ type Answer struct {
 	SentimentColor   string    `json:"sentiment_color" firestore:"sentiment_color"`
 	SentimentEmoji   string    `json:"sentiment_emoji" firestore:"sentiment_emoji"`
 	AuthorName       string    `json:"author_name" firestore:"author_name"`
+	AuthorID         string    `json:"author_id,omitempty" firestore:"author_id"`
 	Votes            int       `json:"votes" firestore:"votes"`
 	ClusterTag       string    `json:"cluster_tag,omitempty" firestore:"cluster_tag,omitempty"`
 	ParentID         string    `json:"parent_id,omitempty" firestore:"parent_id,omitempty"`
@@ -53,14 +55,6 @@ type Transaction struct {
 	ClaimedBy     string    `json:"claimed_by" firestore:"claimed_by"`
 	CreatedAt     time.Time `json:"created_at" firestore:"created_at"`
 	ClaimedAt     time.Time `json:"claimed_at" firestore:"claimed_at"`
-}
-
-type Product struct {
-	ID          string `json:"id" firestore:"id"`
-	Name        string `json:"name" firestore:"name"`
-	Description string `json:"description" firestore:"description"`
-	Price       int    `json:"price" firestore:"price"`
-	Quantity    int    `json:"quantity" firestore:"quantity"` // Session units granted
 }
 
 type VoterRecord struct {
@@ -81,4 +75,33 @@ type ActionItem struct {
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
+// Session phases. Old sessions without a phase behave as PhaseDiscuss.
+const (
+	PhaseWrite   = "write"
+	PhaseGroup   = "group"
+	PhaseVote    = "vote"
+	PhaseDiscuss = "discuss"
+	PhaseAct     = "act"
+	PhaseDone    = "done"
+)
 
+// AllPhases lists the valid phases in board order.
+var AllPhases = []string{PhaseWrite, PhaseGroup, PhaseVote, PhaseDiscuss, PhaseAct, PhaseDone}
+
+// IsValidPhase reports whether p is one of AllPhases.
+func IsValidPhase(p string) bool {
+	for _, v := range AllPhases {
+		if v == p {
+			return true
+		}
+	}
+	return false
+}
+
+// EffectivePhase returns the session's phase, treating a missing value as discuss.
+func (s *Session) EffectivePhase() string {
+	if s == nil || s.Phase == "" {
+		return PhaseDiscuss
+	}
+	return s.Phase
+}

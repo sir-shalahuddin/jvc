@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -39,6 +40,7 @@ func TestActionItemsHandlers(t *testing.T) {
 			Text:      "",
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/action-items/add", bytes.NewReader(body))
+		req.AddCookie(createTestAuthCookie("moderator@example.com"))
 		w := httptest.NewRecorder()
 		AddActionItemHandler(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -57,6 +59,7 @@ func TestActionItemsHandlers(t *testing.T) {
 			DueDate:   "Next Sprint",
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/action-items/add", bytes.NewReader(body))
+		req.AddCookie(createTestAuthCookie("moderator@example.com"))
 		w := httptest.NewRecorder()
 		AddActionItemHandler(w, req)
 
@@ -104,6 +107,7 @@ func TestActionItemsHandlers(t *testing.T) {
 			Completed: true,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/action-items/toggle", bytes.NewReader(body))
+		req.AddCookie(createTestAuthCookie("moderator@example.com"))
 		w := httptest.NewRecorder()
 		ToggleActionItemHandler(w, req)
 
@@ -119,11 +123,102 @@ func TestActionItemsHandlers(t *testing.T) {
 			ID:        createdItemID,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/action-items/delete", bytes.NewReader(body))
+		req.AddCookie(createTestAuthCookie("moderator@example.com"))
 		w := httptest.NewRecorder()
 		DeleteActionItemHandler(w, req)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected 200, got %d", w.Code)
+		}
+	})
+}
+
+func postAI(h http.HandlerFunc, path string, payload interface{}, email string) *httptest.ResponseRecorder {
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
+	if email != "" {
+		req.AddCookie(createTestAuthCookie(email))
+	}
+	w := httptest.NewRecorder()
+	h(w, req)
+	return w
+}
+
+func TestActionItemAuthorization(t *testing.T) {
+	const owner = "moderator@example.com"
+	const other = "participant@example.com"
+
+	mk := func(sid string) string {
+		w := postAI(AddActionItemHandler, "/api/action-items/add", AddActionItemRequest{SessionID: sid, Text: "x"}, owner)
+		if w.Code != http.StatusCreated {
+			t.Fatalf("setup add failed: %d", w.Code)
+		}
+		var it models.ActionItem
+		json.NewDecoder(w.Body).Decode(&it)
+		return it.ID
+	}
+
+	t.Run("Add", func(t *testing.T) {
+		p := AddActionItemRequest{SessionID: "auth-s1", Text: "x"}
+		if c := postAI(AddActionItemHandler, "/api/action-items/add", p, "").Code; c != http.StatusUnauthorized {
+			t.Errorf("unauth: expected 401, got %d", c)
+		}
+		if c := postAI(AddActionItemHandler, "/api/action-items/add", p, other).Code; c != http.StatusForbidden {
+			t.Errorf("non-owner: expected 403, got %d", c)
+		}
+		w := postAI(AddActionItemHandler, "/api/action-items/add", p, owner)
+		if w.Code != http.StatusCreated {
+			t.Errorf("owner: expected 201, got %d", w.Code)
+		}
+	})
+
+	t.Run("Toggle", func(t *testing.T) {
+		id := mk("auth-s2")
+		p := ToggleActionItemRequest{SessionID: "auth-s2", ID: id, Completed: true}
+		if c := postAI(ToggleActionItemHandler, "/api/action-items/toggle", p, "").Code; c != http.StatusUnauthorized {
+			t.Errorf("unauth: expected 401, got %d", c)
+		}
+		w := postAI(ToggleActionItemHandler, "/api/action-items/toggle", p, other)
+		if w.Code != http.StatusForbidden {
+			t.Errorf("non-owner: expected 403, got %d", w.Code)
+		}
+		var e map[string]string
+		json.Unmarshal(w.Body.Bytes(), &e)
+		if e["error"] == "" {
+			t.Errorf("expected JSON error body, got %q", w.Body.String())
+		}
+		if c := postAI(ToggleActionItemHandler, "/api/action-items/toggle", p, owner).Code; c != http.StatusOK {
+			t.Errorf("owner: expected 200, got %d", c)
+		}
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		id := mk("auth-s3")
+		p := DeleteActionItemRequest{SessionID: "auth-s3", ID: id}
+		if c := postAI(DeleteActionItemHandler, "/api/action-items/delete", p, "").Code; c != http.StatusUnauthorized {
+			t.Errorf("unauth: expected 401, got %d", c)
+		}
+		if c := postAI(DeleteActionItemHandler, "/api/action-items/delete", p, other).Code; c != http.StatusForbidden {
+			t.Errorf("non-owner: expected 403, got %d", c)
+		}
+		if c := postAI(DeleteActionItemHandler, "/api/action-items/delete", p, owner).Code; c != http.StatusOK {
+			t.Errorf("owner: expected 200, got %d", c)
+		}
+	})
+
+	t.Run("CrossSessionRejected", func(t *testing.T) {
+		id := mk("auth-sA")
+		tp := ToggleActionItemRequest{SessionID: "auth-sB", ID: id, Completed: true}
+		if c := postAI(ToggleActionItemHandler, "/api/action-items/toggle", tp, owner).Code; c != http.StatusNotFound {
+			t.Errorf("toggle cross-session: expected 404, got %d", c)
+		}
+		dp := DeleteActionItemRequest{SessionID: "auth-sB", ID: id}
+		if c := postAI(DeleteActionItemHandler, "/api/action-items/delete", dp, owner).Code; c != http.StatusNotFound {
+			t.Errorf("delete cross-session: expected 404, got %d", c)
+		}
+		items, _ := ActionItemRepo.GetBySession(context.Background(), "auth-sA")
+		if len(items) != 1 || items[0].Completed {
+			t.Errorf("item in original session was modified: %+v", items)
 		}
 	})
 }

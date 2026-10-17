@@ -18,6 +18,9 @@ type ISessionRepository interface {
 	GetByOwner(ctx context.Context, email string) ([]models.Session, error)
 	UpdateName(ctx context.Context, id string, name string) error
 	Delete(ctx context.Context, id string) error
+	UpdatePhase(ctx context.Context, id string, phase string) error
+	// DeleteWithRelated removes the session and all its subcollections (questions, answers, voters, action_items).
+	DeleteWithRelated(ctx context.Context, id string) error
 }
 
 type IUserRepository interface {
@@ -62,6 +65,7 @@ func (s *SessionService) CreateSession(ctx context.Context, email string, name s
 		OwnerEmail: email,
 		CreatedAt:  time.Now(),
 		Status:     "active",
+		Phase:      models.PhaseWrite,
 	}
 
 	if err := s.SessionRepo.Create(ctx, session); err != nil { return nil, err }
@@ -83,5 +87,6 @@ func (s *SessionService) GetSessionWithOwnership(ctx context.Context, sessionID 
 	session, err := s.SessionRepo.GetByID(ctx, sessionID)
 	if err != nil { return nil, err }
 	session.IsOwner = (userEmail != "" && userEmail == session.OwnerEmail)
+	session.Phase = session.EffectivePhase()
 	return session, nil
 }

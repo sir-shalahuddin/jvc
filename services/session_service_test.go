@@ -18,6 +18,8 @@ func (m *mockSessionRepo) GetAll(ctx context.Context) ([]models.Session, error) 
 func (m *mockSessionRepo) GetByOwner(ctx context.Context, e string) ([]models.Session, error) { return nil, nil }
 func (m *mockSessionRepo) UpdateName(ctx context.Context, id string, name string) error { return nil }
 func (m *mockSessionRepo) Delete(ctx context.Context, id string) error { return nil }
+func (m *mockSessionRepo) UpdatePhase(ctx context.Context, id string, phase string) error { return nil }
+func (m *mockSessionRepo) DeleteWithRelated(ctx context.Context, id string) error { return nil }
 
 type mockQuestionRepo struct{}
 func (m *mockQuestionRepo) Create(ctx context.Context, sid string, q models.Question) error { return nil }

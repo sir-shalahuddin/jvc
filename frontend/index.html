@@ -1,26 +1,30 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Retro - Workspace Dashboard</title>
-    <meta name="description" content="Manage your agile retrospective sessions, analyze feedback, and collaborate in real-time." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1014" media="(prefers-color-scheme: dark)" />
     <script>
-      (function() {
-        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        const savedStyle = localStorage.getItem('ui_theme_style') || 'brutalist';
-        document.documentElement.setAttribute('data-ui-style', savedStyle);
+      // Theme before first paint: Neo-Brutalist by default, "modern" if chosen.
+      (function () {
+        var s = 'brutalist';
+        try {
+          var v = localStorage.getItem('ui_theme_style');
+          if (v === 'modern' || v === 'brutalist') s = v;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-ui-style', s);
       })();
     </script>
+    <title>Retro | retro.hanya.click</title>
+    <meta name="description" content="Papan retro untuk tim: tulis, kelompokkan, vote, bahas, lalu catat aksi." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

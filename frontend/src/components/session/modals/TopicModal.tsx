@@ -1,204 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../../common/Modal';
-import { searchGiphy, uploadMedia } from '../../../services/sessionApi';
-import { useToast } from '../../common/Toast';
 import type { Question } from '../../../types/session';
 
-interface TopicModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  questionToEdit?: Question | null;
-  onSave: (text: string, gifUrl: string) => Promise<void>;
+  questionToEdit: Question | null;
+  onSave: (text: string) => Promise<boolean>;
 }
 
-const QUICK_TOPIC_GIFS = [
-  { label: '🎉 Celebration', query: 'celebrate team win' },
-  { label: '🤔 Questioning', query: 'thinking retro question' },
-  { label: '🔥 Improvements', query: 'fire work hard' },
-  { label: '🚀 Goals', query: 'rocket future goal' },
-];
+const SUGGESTIONS = ['Apa yang berjalan baik?', 'Apa yang perlu diperbaiki?', 'Ide untuk sprint berikutnya'];
 
-export const TopicModal: React.FC<TopicModalProps> = ({
-  isOpen,
-  onClose,
-  questionToEdit,
-  onSave,
-}) => {
-  const { showToast } = useToast();
+export const TopicModal: React.FC<Props> = ({ isOpen, onClose, questionToEdit, onSave }) => {
   const [text, setText] = useState('');
-  const [gifUrl, setGifUrl] = useState('');
-  const [gifQuery, setGifQuery] = useState('');
-  const [gifResults, setGifResults] = useState<Array<{ id: string; url: string; previewUrl: string }>>([]);
-  const [isSearchingGifs, setIsSearchingGifs] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (questionToEdit) {
-      setText(questionToEdit.text);
-      setGifUrl(questionToEdit.gif_url || '');
-    } else {
-      setText('');
-      setGifUrl('');
-    }
-    setGifQuery('');
-    setGifResults([]);
-  }, [questionToEdit, isOpen]);
+    if (isOpen) setText(questionToEdit?.text || '');
+  }, [isOpen, questionToEdit]);
 
-  const handleSearchGifs = async (q: string) => {
-    setGifQuery(q);
-    if (q.trim().length < 2) {
-      setGifResults([]);
-      return;
-    }
-    try {
-      setIsSearchingGifs(true);
-      const results = await searchGiphy(q);
-      setGifResults(results);
-    } catch (_) {
-    } finally {
-      setIsSearchingGifs(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      showToast('Uploading cover image...', 'info');
-      const url = await uploadMedia(file);
-      setGifUrl(url);
-      showToast('Cover image uploaded!', 'success');
-    } catch (err: any) {
-      showToast(err.message || 'Upload failed', 'error');
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!text.trim()) {
-      showToast('Please enter a topic prompt or question', 'error');
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await onSave(text.trim(), gifUrl);
-      showToast(questionToEdit ? 'Topic updated!' : 'New topic created!', 'success');
-      onClose();
-    } catch (err: any) {
-      showToast(err.message || 'Failed to save topic', 'error');
-    } finally {
-      setIsSaving(false);
-    }
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!text.trim() || saving) return;
+    setSaving(true);
+    const ok = await onSave(text.trim());
+    setSaving(false);
+    if (ok) onClose();
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={questionToEdit ? 'Edit Retrospective Topic' : 'Add Retrospective Topic'}
-      maxWidth="560px"
+      title={questionToEdit ? 'Ubah topik' : 'Tambah topik'}
+      footer={
+        <>
+          <button type="button" className="btn" onClick={onClose} disabled={saving}>
+            Batal
+          </button>
+          <button type="button" className="btn primary" onClick={() => void submit()} disabled={saving || !text.trim()}>
+            {saving ? 'Menyimpan…' : 'Simpan'}
+          </button>
+        </>
+      }
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div className="form-group">
-          <label className="form-label" htmlFor="topic-prompt-input">
-            <span>Topic Prompt or Question</span>
-            <span className="form-label-required">*</span>
-          </label>
+      <form onSubmit={submit}>
+        <div className="fgroup">
+          <label htmlFor="topic-text">Pertanyaan atau judul kolom</label>
           <input
-            id="topic-prompt-input"
-            type="text"
-            className="form-input"
+            id="topic-text"
+            className="inp"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="e.g. What went well this sprint? 🎉"
-            required
-            autoFocus
+            placeholder="Apa yang berjalan baik?"
+            maxLength={200}
           />
         </div>
-
-        {/* Cover Media Picker */}
-        <div className="form-group">
-          <label className="form-label">
-            <span>Topic Cover GIF or Image (Optional)</span>
-          </label>
-
-          {gifUrl ? (
-            <div className="card-attached-preview">
-              <img src={gifUrl} alt="Cover preview" style={{ width: '100%', height: '140px', objectFit: 'contain' }} />
-              <button
-                type="button"
-                onClick={() => setGifUrl('')}
-                className="btn btn-danger btn-sm"
-                style={{ position: 'absolute', top: '8px', right: '8px', padding: '4px 8px' }}
-                title="Remove cover media"
-              >
-                <X size={14} />
-                <span>Remove</span>
+        {!questionToEdit && (
+          <div className="chips">
+            {SUGGESTIONS.map((s) => (
+              <button key={s} type="button" className="chip" aria-pressed={text === s} onClick={() => setText(s)}>
+                {s}
               </button>
-            </div>
-          ) : (
-            <div className="form-media-picker">
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {QUICK_TOPIC_GIFS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    className={`quick-chip ${gifQuery === chip.query ? 'selected' : ''}`}
-                    onClick={() => handleSearchGifs(chip.query)}
-                  >
-                    <span>{chip.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="search"
-                  className="form-input"
-                  value={gifQuery}
-                  onChange={(e) => handleSearchGifs(e.target.value)}
-                  placeholder="Search GIPHY for cover reaction..."
-                  style={{ flex: 1 }}
-                />
-                <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.5rem 0.85rem' }} title="Upload custom file">
-                  <Upload size={14} />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-                </label>
-              </div>
-
-              {isSearchingGifs && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Searching GIPHY...</div>
-              )}
-
-              {gifResults.length > 0 && (
-                <div className="giphy-grid">
-                  {gifResults.map((gif) => (
-                    <img
-                      key={gif.id}
-                      src={gif.previewUrl}
-                      alt="reaction"
-                      className="giphy-thumbnail"
-                      onClick={() => setGifUrl(gif.url)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-          <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isSaving}>
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary" disabled={isSaving}>
-            {isSaving ? 'Saving...' : questionToEdit ? 'Save Changes' : 'Create Topic'}
-          </button>
-        </div>
+            ))}
+          </div>
+        )}
       </form>
     </Modal>
   );

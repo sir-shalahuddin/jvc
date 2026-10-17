@@ -122,3 +122,10 @@ func (r *ActionItemRepository) Delete(ctx context.Context, sessionID string, ite
 	_, err := db.Client.Collection("sessions").Doc(sessionID).Collection("action_items").Doc(itemID).Delete(ctx)
 	return err
 }
+
+// ForgetSession drops the cached action items of a deleted session.
+func (r *ActionItemRepository) ForgetSession(sessionID string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.cache, sessionID)
+}

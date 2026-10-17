@@ -11,7 +11,7 @@ Built for the **GCP Always Free Tier**, it demonstrates a highly scalable, serve
 - **Safety & Guardrails**: Automatic red-pulse highlighting for toxic or inappropriate content to help facilitators maintain a healthy environment.
 - **Smart RPM Handling**: Built-in request batching and multi-model failover to handle Gemini API rate limits effectively.
 - **Automated Reporting**: Generate professional PDF reports of your retrospective sessions with a single click.
-- **Monetization Ready**: Integrated with Trakteer webhooks for quota-based session management.
+- **Quota top-ups**: Session quota is topped up manually via WhatsApp.
 
 ## 🛠️ Tech Stack
 
@@ -34,7 +34,6 @@ GOOGLE_CLIENT_ID=your-oauth-id
 GOOGLE_CLIENT_SECRET=your-oauth-secret
 JWT_SECRET=your-random-secret
 ADMIN_EMAIL=admin@example.com
-TRAKTEER_WEBHOOK_SECRET=your-webhook-token
 ```
 
 ## 🏗️ Getting Started

@@ -1,0 +1,570 @@
+/* Neo-Brutalist theme: the DEFAULT look (tasks/SPEC-retro-v2.md, "Themes").
+   Active whenever <html data-ui-style> is not "modern" (index.html sets it before first paint).
+   Rebuilt from the original design-system.css / session.css: thick ink borders, hard offset
+   shadows, 0 radius, orange primary, Inter + Playfair Display + JetBrains Mono.
+   Still no gradients, glows, emoji icons, confetti, sound or kaomoji.
+   The "Modern" theme is tokens.css + session.css without this file's overrides. */
+
+:root:not([data-ui-style='modern']) {
+  --paper: #fdfaf6;
+  --card: #ffffff;
+  --ink: #1a1a1a;
+  --muted: #6b635b;
+  --rule: #1a1a1a;
+  --soft: #f4ede4;
+  --blue: #ff5f1f; /* primary fill (buttons) */
+  --blue-hover: #e54e12;
+  --link: #b83c0b; /* orange text that stays readable on cream */
+  --tint: #ffede6;
+  --on-blue: #1a1a1a;
+  --danger: #c0262d;
+  --warn: #a15c07;
+  --ok: #08754d;
+  --overlay: rgba(26, 26, 26, 0.55);
+  --hard: #1a1a1a; /* shadow colour */
+  --menu-shadow: 6px 6px 0 var(--hard);
+
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Playfair Display', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --r-sm: 0px;
+  --r: 0px;
+  --r-lg: 0px;
+
+  /* legacy names used by compat.css (dashboard/admin) */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-full: 0px;
+  --shadow-sm: 2px 2px 0 var(--hard);
+  --shadow-md: 4px 4px 0 var(--hard);
+  --shadow-lg: 6px 6px 0 var(--hard);
+  --shadow-dropdown: 6px 6px 0 var(--hard);
+  --bg-card: var(--card);
+  --bg-sidebar: var(--card);
+  --font-serif: var(--display);
+  --primary: var(--blue);
+  --primary-light: var(--tint);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ui-style='modern']) {
+    --paper: #1c1917;
+    --card: #272421;
+    --ink: #fdfaf6;
+    --muted: #b3a998;
+    --rule: #fdfaf6;
+    --soft: #36322d;
+    --blue: #ff7332;
+    --blue-hover: #ff8c52;
+    --link: #ff9a66;
+    --tint: #3d2a20;
+    --on-blue: #1c1917;
+    --danger: #ff8f85;
+    --warn: #fdb022;
+    --ok: #6ce9a6;
+    --overlay: rgba(0, 0, 0, 0.65);
+    --hard: #fdfaf6;
+    color-scheme: dark;
+  }
+}
+
+/* ---------- base ---------- */
+html:not([data-ui-style='modern']) body {
+  font-family: var(--sans);
+  font-size: 14.5px;
+}
+html:not([data-ui-style='modern']) kbd {
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) :focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* ---------- buttons ---------- */
+html:not([data-ui-style='modern']) .btn {
+  border: 2.5px solid var(--ink);
+  background: var(--card);
+  box-shadow: 3px 3px 0 var(--hard);
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+html:not([data-ui-style='modern']) .btn:hover:not(:disabled) {
+  border-color: var(--ink);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .btn.primary,
+html:not([data-ui-style='modern']) .btn-primary {
+  background: var(--blue);
+  color: var(--on-blue);
+  border-color: var(--ink);
+}
+html:not([data-ui-style='modern']) .btn.primary:hover:not(:disabled),
+html:not([data-ui-style='modern']) .btn-primary:hover:not(:disabled) {
+  background: var(--blue);
+  border-color: var(--ink);
+}
+html:not([data-ui-style='modern']) .btn.sm,
+html:not([data-ui-style='modern']) .btn-sm {
+  padding: 4px 9px;
+  font-size: 12px;
+  border-width: 2px;
+  box-shadow: 2px 2px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .btn.sm:hover:not(:disabled),
+html:not([data-ui-style='modern']) .btn-sm:hover:not(:disabled) {
+  box-shadow: 4px 4px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .btn-ghost {
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+}
+html:not([data-ui-style='modern']) .link-btn {
+  font-weight: 700;
+}
+html:not([data-ui-style='modern']) .icon-btn {
+  border: 2px solid var(--ink);
+  background: var(--card);
+  box-shadow: 2px 2px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .icon-btn:hover:not(:disabled),
+html:not([data-ui-style='modern']) .icon-btn[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--tint);
+}
+
+/* ---------- inputs ---------- */
+html:not([data-ui-style='modern']) .inp,
+html:not([data-ui-style='modern']) .form-input,
+html:not([data-ui-style='modern']) .header-search input {
+  border: 2.5px solid var(--ink) !important;
+  background: var(--card) !important;
+  box-shadow: 3px 3px 0 var(--hard) !important;
+  border-radius: 0 !important;
+}
+html:not([data-ui-style='modern']) .inp:focus,
+html:not([data-ui-style='modern']) .form-input:focus,
+html:not([data-ui-style='modern']) .header-search input:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 4px 4px 0 var(--hard) !important;
+}
+html:not([data-ui-style='modern']) .inp.sm {
+  border-width: 2px !important;
+  box-shadow: 2px 2px 0 var(--hard) !important;
+}
+html:not([data-ui-style='modern']) .fgroup > label,
+html:not([data-ui-style='modern']) .flabel,
+html:not([data-ui-style='modern']) .form-label {
+  font-family: var(--mono);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+}
+
+/* ---------- menus, dialog, toast ---------- */
+html:not([data-ui-style='modern']) .menu {
+  border: 3px solid var(--ink);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .menu-item:hover:not(:disabled),
+html:not([data-ui-style='modern']) .menu-item:focus-visible {
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .menu-label {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .menu-sep {
+  height: 2px;
+  background: var(--ink);
+}
+html:not([data-ui-style='modern']) .dialog {
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--hard);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .dialog-h {
+  border-bottom: 3px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .dialog-h h2 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 20px;
+}
+@media (max-width: 600px) {
+  html:not([data-ui-style='modern']) .dialog {
+    box-shadow: none;
+    border-bottom: 0;
+  }
+}
+html:not([data-ui-style='modern']) .toast {
+  border: 3px solid var(--ink);
+  border-left-width: 8px;
+  box-shadow: 4px 4px 0 var(--hard);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .toast-error {
+  border-left-color: var(--danger);
+}
+html:not([data-ui-style='modern']) .toast-success {
+  border-left-color: var(--ok);
+}
+
+/* ---------- session header ---------- */
+html:not([data-ui-style='modern']) .sh {
+  border-bottom: 3px solid var(--ink);
+  background: var(--paper);
+}
+html:not([data-ui-style='modern']) .sh-name {
+  border-left: 3px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .sh-title {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+html:not([data-ui-style='modern']) .sh-m .sh-title {
+  font-size: 16px;
+}
+html:not([data-ui-style='modern']) .sh-people {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+html:not([data-ui-style='modern']) .step {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+html:not([data-ui-style='modern']) .step + .step::before {
+  padding: 0 5px;
+}
+html:not([data-ui-style='modern']) .step > button,
+html:not([data-ui-style='modern']) .step > span {
+  padding: 3px 6px;
+  border: 2px solid transparent;
+  font-weight: 700;
+}
+html:not([data-ui-style='modern']) .step.is-current > button,
+html:not([data-ui-style='modern']) .step.is-current > span {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .step > button:not(:disabled):hover {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .timer {
+  font-family: var(--mono);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .timer-btn,
+html:not([data-ui-style='modern']) .phase-btn {
+  border: 2.5px solid var(--ink);
+  background: var(--card);
+  box-shadow: 2px 2px 0 var(--hard);
+  color: var(--ink);
+}
+html:not([data-ui-style='modern']) .timer-btn.is-running {
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .timer-btn:hover,
+html:not([data-ui-style='modern']) .timer-btn[aria-expanded='true'],
+html:not([data-ui-style='modern']) .phase-btn:hover,
+html:not([data-ui-style='modern']) .phase-btn[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .phase-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+html:not([data-ui-style='modern']) .sh-m .timer-btn,
+html:not([data-ui-style='modern']) .sh-m .phase-btn {
+  padding: 4px 5px;
+  font-size: 12px;
+}
+
+/* ---------- board ---------- */
+html:not([data-ui-style='modern']) .bar-hint {
+  color: var(--ink);
+}
+html:not([data-ui-style='modern']) .bar-votes {
+  font-family: var(--mono);
+  font-weight: 800;
+  border: 2.5px solid var(--ink);
+  background: var(--tint);
+  box-shadow: 3px 3px 0 var(--hard);
+  padding: 3px 10px;
+}
+html:not([data-ui-style='modern']) .filter button,
+html:not([data-ui-style='modern']) .tab {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+html:not([data-ui-style='modern']) .filter button[aria-pressed='true'],
+html:not([data-ui-style='modern']) .tab[aria-selected='true'] {
+  border-bottom-width: 3px;
+}
+html:not([data-ui-style='modern']) .tabs {
+  border-bottom: 3px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .tab {
+  margin-bottom: -3px;
+  border-bottom-width: 3px;
+}
+
+html:not([data-ui-style='modern']) .prev,
+html:not([data-ui-style='modern']) .panel {
+  border: 3px solid var(--ink);
+  background: var(--card);
+  box-shadow: 5px 5px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .prev-title,
+html:not([data-ui-style='modern']) .panel-h h2 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 17px;
+}
+html:not([data-ui-style='modern']) .spot {
+  border: 3px solid var(--ink);
+  border-left-width: 10px;
+  border-left-color: var(--blue);
+  background: var(--tint);
+  box-shadow: 5px 5px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .spot-k,
+html:not([data-ui-style='modern']) .act-state,
+html:not([data-ui-style='modern']) .col-count {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  font-size: 11px;
+}
+html:not([data-ui-style='modern']) .spot-text {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 19px;
+}
+
+html:not([data-ui-style='modern']) .cols {
+  --gap: 20px;
+  padding: 0 8px 12px 0; /* room for the offset shadows */
+}
+html:not([data-ui-style='modern']) .col {
+  border-top: 4px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .col.is-active {
+  border-top-color: var(--blue);
+}
+html:not([data-ui-style='modern']) .col-title h2 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1.25;
+}
+html:not([data-ui-style='modern']) .col-cards {
+  gap: 14px;
+}
+html:not([data-ui-style='modern']) .add-card {
+  color: var(--ink);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .hidden-line {
+  border: 2.5px dashed var(--ink);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--soft);
+}
+
+html:not([data-ui-style='modern']) .card {
+  border: 3px solid var(--ink);
+  background: var(--card);
+  box-shadow: 5px 5px 0 var(--hard);
+  padding: 12px 14px;
+}
+html:not([data-ui-style='modern']) .card.is-spot {
+  border-color: var(--ink);
+  box-shadow: 7px 7px 0 var(--blue);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .card-text {
+  font-size: 15px;
+  font-weight: 500;
+}
+html:not([data-ui-style='modern']) .card-sent,
+html:not([data-ui-style='modern']) .tag,
+html:not([data-ui-style='modern']) .tag-btn,
+html:not([data-ui-style='modern']) .card-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+html:not([data-ui-style='modern']) .card-sent {
+  border: 2px solid var(--ink);
+  padding: 0 5px;
+  color: var(--ink);
+  text-transform: lowercase;
+}
+html:not([data-ui-style='modern']) .tag {
+  color: var(--ink);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .card-foot {
+  border-top: 2px solid var(--ink);
+  padding-top: 8px;
+}
+html:not([data-ui-style='modern']) .card-gif {
+  border: 2px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .voted {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+html:not([data-ui-style='modern']) .act-list input[type='checkbox'] {
+  accent-color: var(--blue);
+  width: 18px;
+  height: 18px;
+}
+
+/* modal content */
+html:not([data-ui-style='modern']) .chip {
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+html:not([data-ui-style='modern']) .chip[aria-pressed='true'] {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+html:not([data-ui-style='modern']) .gif-opt,
+html:not([data-ui-style='modern']) .gif-picked img {
+  border: 2px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .state-screen h1 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 30px;
+}
+
+/* ---------- dashboard / admin (compat.css classes) ---------- */
+html:not([data-ui-style='modern']) .welcome-banner,
+html:not([data-ui-style='modern']) .content-card {
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--hard);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .welcome-text h1,
+html:not([data-ui-style='modern']) .brand-text,
+html:not([data-ui-style='modern']) .content-card-title {
+  font-family: var(--display);
+  font-weight: 900;
+}
+html:not([data-ui-style='modern']) .metric-card,
+html:not([data-ui-style='modern']) .session-box {
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--hard);
+  background: var(--card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+html:not([data-ui-style='modern']) .metric-card:hover,
+html:not([data-ui-style='modern']) .session-box:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .metric-value,
+html:not([data-ui-style='modern']) .modern-table th,
+html:not([data-ui-style='modern']) .modern-table td,
+html:not([data-ui-style='modern']) .user-quota-badge {
+  font-family: var(--mono);
+}
+html:not([data-ui-style='modern']) .modern-table th {
+  border-bottom: 3px solid var(--ink);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .modern-table td {
+  border-bottom: 2px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .session-id-pill {
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .badge {
+  border: 2px solid var(--ink);
+  font-family: var(--mono);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .sidebar {
+  border-right: 3px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .top-header {
+  border-bottom: 3px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .brand-icon {
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  color: var(--on-blue);
+}
+html:not([data-ui-style='modern']) .nav-item-btn.active {
+  background: var(--tint);
+  color: var(--ink);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .quick-chip,
+html:not([data-ui-style='modern']) .form-media-picker,
+html:not([data-ui-style='modern']) .card-attached-preview {
+  border: 2px solid var(--ink) !important;
+  box-shadow: 2px 2px 0 var(--hard) !important;
+}
+html:not([data-ui-style='modern']) .user-avatar {
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  color: var(--on-blue);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-ui-style='modern']) .btn,
+  html:not([data-ui-style='modern']) .metric-card,
+  html:not([data-ui-style='modern']) .session-box {
+    transition: none;
+  }
+  html:not([data-ui-style='modern']) .btn:hover:not(:disabled),
+  html:not([data-ui-style='modern']) .metric-card:hover,
+  html:not([data-ui-style='modern']) .session-box:hover {
+    transform: none;
+  }
+}

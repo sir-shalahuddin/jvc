@@ -1,89 +1,88 @@
-import React, { useState } from 'react';
-import { Sparkles, Upload, Send, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal } from '../../common/Modal';
 import { searchGiphy, uploadMedia } from '../../../services/sessionApi';
 import { useToast } from '../../common/Toast';
 
-interface SubmitCardModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
   topicTitle: string;
-  onSubmit: (text: string, gifUrl?: string) => Promise<void>;
-  assignedAlias: string;
+  alias: string;
+  canUpload: boolean;
+  onSubmit: (text: string, gifUrl: string) => Promise<boolean>;
 }
 
-const QUICK_GIF_CHIPS = [
-  { label: '👏 Kudos', query: 'kudos celebration' },
-  { label: '🔥 Lit', query: 'fire lit' },
-  { label: '🚀 Rocket', query: 'rocket launch' },
-  { label: '☕ Coffee', query: 'need coffee tired' },
-  { label: '🤯 Mindblown', query: 'mind blown' },
-  { label: '🤦 Oops', query: 'facepalm oops' },
-  { label: '🎉 Party', query: 'party dance' },
+const GIF_CHIPS = [
+  { label: 'Kudos', query: 'kudos celebration' },
+  { label: 'Mantap', query: 'fire lit' },
+  { label: 'Meluncur', query: 'rocket launch' },
+  { label: 'Butuh kopi', query: 'need coffee tired' },
+  { label: 'Takjub', query: 'mind blown' },
+  { label: 'Ups', query: 'facepalm oops' },
+  { label: 'Pesta', query: 'party dance' },
 ];
 
-export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
-  isOpen,
-  onClose,
-  topicTitle,
-  onSubmit,
-  assignedAlias,
-}) => {
+export const SubmitCardModal: React.FC<Props> = ({ isOpen, onClose, topicTitle, alias, canUpload, onSubmit }) => {
   const { showToast } = useToast();
   const [text, setText] = useState('');
-  const [selectedGif, setSelectedGif] = useState('');
-  const [gifSearchQuery, setGifSearchQuery] = useState('');
-  const [gifResults, setGifResults] = useState<Array<{ id: string; url: string; previewUrl: string }>>([]);
-  const [isSearchingGifs, setIsSearchingGifs] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gif, setGif] = useState('');
+  const [gifOpen, setGifOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<Array<{ id: string; url: string; previewUrl: string }>>([]);
+  const [searching, setSearching] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const searchSeq = useRef(0);
 
-  const handleSearchGifs = async (q: string) => {
-    setGifSearchQuery(q);
+  useEffect(() => {
+    if (!isOpen) return;
+    setGifOpen(false);
+    setQuery('');
+    setResults([]);
+  }, [isOpen]);
+
+  const search = async (q: string) => {
+    setQuery(q);
+    const seq = ++searchSeq.current;
     if (q.trim().length < 2) {
-      setGifResults([]);
+      setResults([]);
       return;
     }
+    setSearching(true);
     try {
-      setIsSearchingGifs(true);
-      const results = await searchGiphy(q);
-      setGifResults(results);
-    } catch (_) {
+      const r = await searchGiphy(q);
+      if (seq === searchSeq.current) setResults(r);
+    } catch (e: any) {
+      if (seq === searchSeq.current) showToast(e.message || 'Gagal mencari GIF', 'error');
     } finally {
-      setIsSearchingGifs(false);
+      if (seq === searchSeq.current) setSearching(false);
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    setUploading(true);
     try {
-      showToast('Uploading media...', 'info');
-      const url = await uploadMedia(file);
-      setSelectedGif(url);
-      showToast('Media uploaded!', 'success');
+      setGif(await uploadMedia(file));
     } catch (err: any) {
-      showToast(err.message || 'Failed to upload image', 'error');
+      showToast(err.message || 'Gagal mengunggah gambar', 'error');
+    } finally {
+      setUploading(false);
     }
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (text.trim().length < 2) {
-      showToast('Please type your reflection before posting', 'error');
-      return;
-    }
-    try {
-      setIsSubmitting(true);
-      await onSubmit(text.trim(), selectedGif);
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!text.trim() || sending) return;
+    setSending(true);
+    const ok = await onSubmit(text.trim(), gif);
+    setSending(false);
+    if (ok) {
       setText('');
-      setSelectedGif('');
-      setGifResults([]);
-      setGifSearchQuery('');
+      setGif('');
       onClose();
-    } catch (err: any) {
-      showToast(err.message || 'Failed to post reflection', 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -91,141 +90,101 @@ export const SubmitCardModal: React.FC<SubmitCardModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Post Feedback: ${topicTitle}`}
-      maxWidth="640px"
+      title={`Tulis kartu: ${topicTitle}`}
+      maxWidth="560px"
       footer={
         <>
-          <button onClick={onClose} className="btn btn-secondary" disabled={isSubmitting}>
-            Cancel
+          <button type="button" className="btn" onClick={onClose} disabled={sending}>
+            Batal
           </button>
-          <button
-            onClick={handleSubmit}
-            className="btn btn-primary"
-            disabled={isSubmitting || text.trim().length < 2}
-          >
-            <Send size={14} />
-            <span>{isSubmitting ? 'Posting...' : 'Post to Board'}</span>
+          <button type="button" className="btn primary" onClick={() => void submit()} disabled={sending || !text.trim()}>
+            {sending ? 'Mengirim…' : 'Kirim'}
           </button>
         </>
       }
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Anonymous Alias Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            POSTING ANONYMOUSLY AS:
-          </span>
-          <span className="badge badge-primary">🎭 {assignedAlias || 'Anonymous Guest'}</span>
-        </div>
+      <form onSubmit={submit}>
+        <textarea
+          className="inp"
+          rows={5}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              void submit();
+            }
+          }}
+          placeholder="Tulis satu hal per kartu."
+          aria-label="Isi kartu"
+          maxLength={2000}
+          data-autofocus
+        />
+        <p className="help">
+          Tampil sebagai <b>{alias}</b>. Orang lain baru bisa membaca kartumu di fase berikutnya. Ctrl + Enter untuk kirim.
+        </p>
 
-        {/* Reflection Content Textarea */}
-        <div className="form-group">
-          <label className="form-label" htmlFor="reflection-textarea">
-            <span>Your Reflection</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {text.length} chars
-            </span>
-          </label>
-          <textarea
-            id="reflection-textarea"
-            className="form-input"
-            rows={4}
-            placeholder="Share your honest reflection, observations, or ideas for the team..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            autoFocus
-            required
-          />
-          <div className="form-hint">
-            <span>Be candid and constructive. Your alias keeps your feedback anonymous.</span>
-          </div>
-        </div>
-
-        {/* Attached GIF / Image Preview */}
-        {selectedGif && (
-          <div className="card-attached-preview">
-            <img
-              src={selectedGif}
-              alt="Selected GIF"
-              style={{ width: '100%', height: '140px', objectFit: 'contain', background: '#000' }}
-            />
-            <button
-              type="button"
-              onClick={() => setSelectedGif('')}
-              className="btn btn-danger btn-sm"
-              style={{ position: 'absolute', top: '8px', right: '8px', padding: '4px 8px' }}
-              title="Remove GIF"
-            >
-              <X size={14} />
-              <span>Remove</span>
+        {gif && (
+          <div className="gif-picked">
+            <img src={gif} alt="GIF terpilih" />
+            <button type="button" className="link-btn danger" onClick={() => setGif('')}>
+              Hapus GIF
             </button>
           </div>
         )}
 
-        {/* Reaction GIPHY Picker Container */}
-        <div className="form-media-picker">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
-            <span className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Sparkles size={14} color="var(--primary)" />
-              <span>Attach Reaction GIF / Meme</span>
-            </span>
-            <label
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: 'var(--primary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-              }}
-            >
-              <Upload size={13} />
-              <span>Upload Image</span>
-              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-            </label>
-          </div>
+        {!gif && !gifOpen && (
+          <p className="gif-toggle">
+            <button type="button" className="link-btn" onClick={() => setGifOpen(true)}>
+              + Tambah GIF
+            </button>
+          </p>
+        )}
 
-          {/* Quick Preset Chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-            {QUICK_GIF_CHIPS.map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                className={`quick-chip ${gifSearchQuery === chip.query ? 'selected' : ''}`}
-                onClick={() => handleSearchGifs(chip.query)}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Input */}
-          <input
-            type="search"
-            className="form-input"
-            placeholder="Search memes & reaction GIFs on Giphy..."
-            value={gifSearchQuery}
-            onChange={(e) => handleSearchGifs(e.target.value)}
-          />
-
-          {/* Giphy Results Grid */}
-          {isSearchingGifs ? (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Searching GIPHY...</span>
-          ) : gifResults.length > 0 ? (
-            <div className="giphy-grid">
-              {gifResults.map((gif) => (
-                <img
-                  key={gif.id}
-                  src={gif.previewUrl}
-                  alt="GIF"
-                  className={`giphy-thumbnail ${selectedGif === gif.url ? 'selected' : ''}`}
-                  onClick={() => setSelectedGif(gif.url)}
-                />
+        {!gif && gifOpen && (
+          <div className="gif-box">
+            <div className="chips">
+              {GIF_CHIPS.map((c) => (
+                <button
+                  key={c.label}
+                  type="button"
+                  className="chip"
+                  aria-pressed={query === c.query}
+                  onClick={() => void search(c.query)}
+                >
+                  {c.label}
+                </button>
               ))}
             </div>
-          ) : null}
-        </div>
+            <div className="gif-search">
+              <input
+                type="search"
+                className="inp"
+                value={query}
+                onChange={(e) => void search(e.target.value)}
+                placeholder="Cari GIF"
+                aria-label="Cari GIF"
+              />
+              {canUpload && (
+                <label className="btn" aria-disabled={uploading}>
+                  {uploading ? 'Mengunggah…' : 'Unggah gambar'}
+                  <input type="file" accept="image/*" onChange={upload} className="sr-only" disabled={uploading} />
+                </label>
+              )}
+            </div>
+            {searching && <p className="help">Mencari…</p>}
+            {!searching && query.trim().length >= 2 && results.length === 0 && <p className="help">Tidak ada hasil.</p>}
+            {results.length > 0 && (
+              <div className="gif-grid">
+                {results.map((g) => (
+                  <button key={g.id} type="button" className="gif-opt" onClick={() => setGif(g.url)} aria-label="Pilih GIF ini">
+                    <img src={g.previewUrl} alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </form>
     </Modal>
   );

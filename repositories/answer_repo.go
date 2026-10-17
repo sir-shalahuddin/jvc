@@ -313,3 +313,10 @@ func (r *AnswerRepository) CastVote(ctx context.Context, sessionID string, answe
 	r.updateVotesInCache(sessionID, answerID)
 	return finalAnswerVotes, remainingVotes, nil
 }
+
+// ForgetSession drops the cached answers of a deleted session.
+func (r *AnswerRepository) ForgetSession(sessionID string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.cache, sessionID)
+}
