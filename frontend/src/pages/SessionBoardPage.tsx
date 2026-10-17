@@ -23,7 +23,7 @@ import { Modal } from '../components/common/Modal';
 import { useBoardState } from '../components/session/useBoardState';
 import { PresenceList, SessionHeader } from '../components/session/SessionHeader';
 import { useTimerSeconds } from '../components/session/SessionTimer';
-import { Board } from '../components/session/Board';
+import { Board, type BoardView } from '../components/session/Board';
 import { SpotlightBanner } from '../components/session/SpotlightBanner';
 import { PreviousActions } from '../components/session/PreviousActions';
 import { ActionPanel, type ActionDraft } from '../components/session/ActionPanel';
@@ -87,6 +87,15 @@ function useMediaQuery(q: string): boolean {
   return m;
 }
 
+const VIEW_KEY = 'retro_board_view';
+function readView(): BoardView {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'columns' ? 'columns' : 'focus';
+  } catch {
+    return 'focus';
+  }
+}
+
 function plainText(html: string) {
   const d = document.createElement('div');
   d.innerHTML = html;
@@ -111,6 +120,16 @@ export const SessionBoardPage: React.FC = () => {
   const [myVoterId, setMyVoterId] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [viewPref, setViewPref] = useState<BoardView>(readView);
+  const view: BoardView = isMobile ? 'focus' : viewPref;
+  const changeView = (v: BoardView) => {
+    setViewPref(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* private mode: keep the choice for this page only */
+    }
+  };
   const [clusterFilter, setClusterFilter] = useState('');
   const [phaseBusy, setPhaseBusy] = useState(false);
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
@@ -348,7 +367,7 @@ export const SessionBoardPage: React.FC = () => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         el.focus?.();
       }
-    }, 60);
+    }, 90);
   }, [spotCard, questions, clusterFilter]);
 
   const saveTopic = async (text: string): Promise<boolean> => {
@@ -525,12 +544,12 @@ export const SessionBoardPage: React.FC = () => {
       />
 
       <main className="sb-main">
-        {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} />}
+        {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} />}
 
         <SpotlightBanner card={spotCard} topic={spotTopic} isOwner={isOwner} onJump={jumpToSpotlight} onClear={clearSpotlight} />
 
         <div className="bar">
-          <p className="bar-hint">{hint}</p>
+          {view === 'columns' && <p className="bar-hint">{hint}</p>}
           {phase === 'vote' && (
             <p className="bar-votes" aria-live="polite">
               Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
@@ -582,6 +601,9 @@ export const SessionBoardPage: React.FC = () => {
         )}
 
         <Board
+          view={view}
+          setView={changeView}
+          hint={hint}
           isMobile={isMobile}
           questions={questions}
           answers={answers}

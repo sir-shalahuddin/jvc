@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
 import { Menu } from '../common/Menu';
 import { CardItem } from './CardItem';
 import { isHidden, type Answer, type AnyAnswer, type Phase, type Question } from '../../types/session';
@@ -15,8 +15,14 @@ export interface BoardHandlers {
   onMakeAction: (a: Answer) => void;
 }
 
+export type BoardView = 'focus' | 'columns';
+
 interface Props extends BoardHandlers {
+  /** Effective view: mobile is always 'focus'. */
+  view: BoardView;
+  setView: (v: BoardView) => void;
   isMobile: boolean;
+  hint: string;
   questions: Question[];
   answers: AnyAnswer[];
   phase: Phase;
@@ -47,6 +53,7 @@ function sortCards(list: Answer[], phase: Phase): Answer[] {
 
 export const Board: React.FC<Props> = (p) => {
   const colsRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
 
   const byTopic = useMemo(() => {
     const m = new Map<string, { cards: Answer[]; hidden: number }>();
@@ -67,7 +74,7 @@ export const Board: React.FC<Props> = (p) => {
 
   // Keyboard topic changes on desktop: bring that column into view.
   useEffect(() => {
-    if (p.isMobile) return;
+    if (p.view !== 'columns') return;
     // Scroll the column strip only (never the page).
     const c = colsRef.current;
     const el = c?.children[p.activeIndex] as HTMLElement | undefined;
@@ -76,7 +83,19 @@ export const Board: React.FC<Props> = (p) => {
     if (left < c.scrollLeft || left + el.offsetWidth > c.scrollLeft + c.clientWidth) {
       c.scrollTo({ left: Math.max(0, left - 8), behavior: 'smooth' });
     }
-  }, [p.activeIndex, p.isMobile]);
+  }, [p.activeIndex, p.view]);
+
+  // Focus view: keep the current step visible in the (sideways scrolling) step row.
+  useEffect(() => {
+    if (p.view !== 'focus') return;
+    const c = stepsRef.current;
+    const el = c?.children[p.activeIndex] as HTMLElement | undefined;
+    if (!c || !el || c.scrollWidth <= c.clientWidth) return;
+    const left = el.getBoundingClientRect().left - c.getBoundingClientRect().left + c.scrollLeft;
+    if (left < c.scrollLeft || left + el.offsetWidth > c.scrollLeft + c.clientWidth) {
+      c.scrollTo({ left: Math.max(0, left - 12), behavior: 'smooth' });
+    }
+  }, [p.activeIndex, p.view]);
 
   if (p.questions.length === 0) {
     return (
@@ -95,21 +114,24 @@ export const Board: React.FC<Props> = (p) => {
     );
   }
 
-  const renderColumn = (q: Question, idx: number) => {
+  const renderColumn = (q: Question, idx: number, focus = false) => {
     const slot = byTopic.get(q.id) || { cards: [], hidden: 0 };
     const total = q.answer_count ?? slot.cards.length + slot.hidden;
     return (
       <section
         key={q.id}
-        className={`col ${idx === p.activeIndex ? 'is-active' : ''}`}
+        className={`col ${focus ? 'is-focus' : idx === p.activeIndex ? 'is-active' : ''}`}
         aria-labelledby={`col-h-${q.id}`}
-        onFocusCapture={() => idx !== p.activeIndex && p.setActiveIndex(idx)}
-        onMouseDown={() => idx !== p.activeIndex && p.setActiveIndex(idx)}
+        onFocusCapture={focus ? undefined : () => idx !== p.activeIndex && p.setActiveIndex(idx)}
+        onMouseDown={focus ? undefined : () => idx !== p.activeIndex && p.setActiveIndex(idx)}
       >
         <div className="col-h">
           <div className="col-title">
             <h2 id={`col-h-${q.id}`}>{q.text}</h2>
-            <span className="col-count num">{total} kartu</span>
+            <span className="col-count num">
+              {total} kartu
+              {focus && <span className="col-hint"> · {p.hint}</span>}
+            </span>
           </div>
           {p.isOwner && (
             <Menu
@@ -141,7 +163,7 @@ export const Board: React.FC<Props> = (p) => {
           </button>
         )}
 
-        <div className="col-cards">
+        <div className={focus ? 'col-cards fgrid' : 'col-cards'}>
           {slot.cards.map((a) => (
             <CardItem
               key={a.id}
@@ -169,38 +191,59 @@ export const Board: React.FC<Props> = (p) => {
     );
   };
 
-  if (p.isMobile) {
-    const idx = Math.min(p.activeIndex, p.questions.length - 1);
+  if (p.view === 'focus') {
+    const n = p.questions.length;
+    const idx = Math.min(p.activeIndex, n - 1);
     const q = p.questions[idx];
     return (
-      <div className="board-m">
-        <div className="tabs" role="tablist" aria-label="Topik">
-          {p.questions.map((t, i) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={i === idx}
-              className="tab"
-              onClick={() => p.setActiveIndex(i)}
-            >
-              <span className="tab-name">{t.text}</span>
-              <span className="tab-n num">{t.answer_count ?? 0}</span>
+      <div className="focus">
+        <nav className="fnav" aria-label="Navigasi topik">
+          <div className="fnav-row">
+            <button type="button" className="icon-btn" disabled={idx === 0} onClick={() => p.setActiveIndex(idx - 1)} aria-label="Topik sebelumnya" title="Topik sebelumnya (←)">
+              <ChevronLeft size={18} />
             </button>
-          ))}
-        </div>
-        <div role="tabpanel">{renderColumn(q, idx)}</div>
+            <span className="fnav-pos num" aria-live="polite">
+              Topik {idx + 1} dari {n}
+            </span>
+            <button type="button" className="icon-btn" disabled={idx === n - 1} onClick={() => p.setActiveIndex(idx + 1)} aria-label="Topik berikutnya" title="Topik berikutnya (→)">
+              <ChevronRight size={18} />
+            </button>
+            {!p.isMobile && n > 1 && (
+              <div className="view-toggle" role="group" aria-label="Tampilan papan">
+                <button type="button" aria-pressed="true">Fokus</button>
+                <button type="button" aria-pressed="false" onClick={() => p.setView('columns')}>Semua kolom</button>
+              </div>
+            )}
+          </div>
+          {n > 1 && (
+            <div className="tabs steps" ref={stepsRef} role="group" aria-label="Pilih topik">
+              {p.questions.map((t, i) => (
+                <button key={t.id} type="button" className="tab" aria-current={i === idx ? 'step' : undefined} aria-selected={i === idx} onClick={() => p.setActiveIndex(i)}>
+                  <span className="tab-name">{t.text}</span>
+                  <span className="tab-n num">{t.answer_count ?? 0}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </nav>
+        {renderColumn(q, idx, true)}
       </div>
     );
   }
 
   return (
     <>
-      {p.questions.length > 4 && (
-        <p className="cols-hint">{p.questions.length} topik. Geser ke samping atau pakai ← → untuk melihat semuanya.</p>
-      )}
+      <div className="fnav-row cols-bar">
+        {p.questions.length > 4 && (
+          <p className="cols-hint">{p.questions.length} topik. Geser ke samping atau pakai ← → untuk melihat semuanya.</p>
+        )}
+        <div className="view-toggle" role="group" aria-label="Tampilan papan">
+          <button type="button" aria-pressed="false" onClick={() => p.setView('focus')}>Fokus</button>
+          <button type="button" aria-pressed="true">Semua kolom</button>
+        </div>
+      </div>
       <div className="cols" ref={colsRef} style={{ '--cols': Math.min(4, p.questions.length) } as React.CSSProperties}>
-        {p.questions.map(renderColumn)}
+        {p.questions.map((q, i) => renderColumn(q, i))}
       </div>
     </>
   );

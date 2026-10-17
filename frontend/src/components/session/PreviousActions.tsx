@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { ActionItem, PreviousActions as Prev } from '../../types/session';
+import type { ActionItem, PreviousActions as Prev, Phase } from '../../types/session';
 
 interface Props {
   data: Prev;
   canEdit: boolean;
   onToggle: (item: ActionItem, completed: boolean) => Promise<boolean>;
+  phase: Phase;
 }
-
-const KEY = 'retro_prev_actions_open';
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -17,18 +16,21 @@ function fmtDate(iso: string) {
 }
 
 // "Janji sesi lalu": open action items from the owner's previous session.
-export const PreviousActions: React.FC<Props> = ({ data, canEdit, onToggle }) => {
-  const [open, setOpen] = useState(() => sessionStorage.getItem(KEY) !== '0');
+export const PreviousActions: React.FC<Props> = ({ data, canEdit, onToggle, phase }) => {
+  const defaultOpen = phase === 'write';
+  const [open, setOpen] = useState(defaultOpen);
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<string | null>(null);
+
+  // Reset open state when phase changes
+  useEffect(() => {
+    setOpen(defaultOpen);
+  }, [phase]);
 
   if (!data.session || data.items.length === 0) return null;
   const left = data.items.filter((i) => !(done[i.id] ?? i.completed)).length;
   const toggle = () => {
-    setOpen((o) => {
-      sessionStorage.setItem(KEY, o ? '0' : '1');
-      return !o;
-    });
+    setOpen((o) => !o);
   };
 
   return (

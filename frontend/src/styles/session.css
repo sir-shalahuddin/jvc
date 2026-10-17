@@ -871,3 +871,121 @@
   color: var(--muted);
   margin-bottom: -6px;
 }
+
+/* ---------- focus view (default): one topic per screen ---------- */
+.bar:empty {
+  display: none;
+}
+.bar-add {
+  margin-left: auto;
+}
+.focus {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.fnav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fnav-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.fnav-pos {
+  font-size: 13.5px;
+  font-weight: 600;
+  min-width: 108px;
+  text-align: center;
+}
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.view-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 14px;
+}
+.view-toggle button {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.view-toggle button[aria-pressed='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+  cursor: default;
+}
+.view-toggle button:hover:not([aria-pressed='true']) {
+  color: var(--ink);
+}
+.cols-bar {
+  justify-content: space-between;
+}
+.cols-bar .cols-hint {
+  margin: 0;
+}
+.steps .tab[aria-selected='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.col.is-focus {
+  border-top: 0;
+  padding-top: 0;
+  gap: 14px;
+}
+.col.is-focus .col-title h2 {
+  font-size: clamp(24px, 3.2vw, 38px);
+  line-height: 1.15;
+  font-weight: 800;
+}
+.col.is-focus .col-title {
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.col.is-focus .col-count {
+  font-size: 14px;
+}
+.col.is-focus .add-card {
+  align-self: flex-start;
+  width: auto;
+}
+.col.is-focus .col-gif {
+  max-height: 180px;
+  align-self: flex-start;
+}
+.fgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  align-items: start;
+  gap: 14px;
+  padding: 0 8px 12px 0;
+}
+.fgrid > .hidden-line,
+.fgrid > .col-empty {
+  grid-column: 1 / -1;
+}
+@media (max-width: 600px) {
+  .fnav-pos {
+    flex: 1;
+  }
+  .col.is-focus .col-title h2 {
+    font-size: 24px;
+  }
+  .fgrid {
+    grid-template-columns: 1fr;
+    padding-right: 6px;
+  }
+}
