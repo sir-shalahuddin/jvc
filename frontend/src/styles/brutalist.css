@@ -394,7 +394,7 @@ html:not([data-ui-style='modern']) .col-title h2 {
   line-height: 1.25;
 }
 html:not([data-ui-style='modern']) .col-cards {
-  gap: 14px;
+  gap: 12px;
 }
 html:not([data-ui-style='modern']) .add-card {
   color: var(--ink);
@@ -411,8 +411,18 @@ html:not([data-ui-style='modern']) .hidden-line {
 html:not([data-ui-style='modern']) .card {
   border: 3px solid var(--ink);
   background: var(--card);
-  box-shadow: 5px 5px 0 var(--hard);
-  padding: 12px 14px;
+  box-shadow: 4px 4px 0 var(--hard);
+  padding: 9px 11px;
+}
+html:not([data-ui-style='modern']) .card-closed {
+  background: repeating-linear-gradient(45deg, var(--card) 0 7px, var(--ink) 7px 9px);
+}
+html:not([data-ui-style='modern']) .closed-label {
+  background: var(--card);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 1px 6px;
+  font-weight: 800;
 }
 html:not([data-ui-style='modern']) .card.is-spot {
   border-color: var(--ink);
@@ -420,7 +430,7 @@ html:not([data-ui-style='modern']) .card.is-spot {
   background: var(--tint);
 }
 html:not([data-ui-style='modern']) .card-text {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 500;
 }
 html:not([data-ui-style='modern']) .card-sent,
@@ -442,7 +452,7 @@ html:not([data-ui-style='modern']) .tag {
 }
 html:not([data-ui-style='modern']) .card-foot {
   border-top: 2px solid var(--ink);
-  padding-top: 8px;
+  padding-top: 6px;
 }
 html:not([data-ui-style='modern']) .card-gif {
   border: 2px solid var(--ink);
@@ -595,7 +605,7 @@ html:not([data-ui-style='modern']) .view-toggle button[aria-pressed='true'] {
   border-bottom-width: 3px;
 }
 html:not([data-ui-style='modern']) .fgrid {
-  gap: 18px;
+  gap: 14px;
   padding: 0 8px 14px 0;
 }
 html:not([data-ui-style='modern']) .col.is-focus {
@@ -612,4 +622,26 @@ html:not([data-ui-style='modern']) .col.is-focus {
 }
 html:not([data-ui-style='modern']) .fnav {
   padding-bottom: 2px;
+}
+
+/* discuss layout: action fold (narrow screens) */
+html:not([data-ui-style='modern']) .act-fold-btn {
+  border: 3px solid var(--ink);
+  background: var(--card);
+  box-shadow: 5px 5px 0 var(--hard);
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 17px;
+  border-radius: 0;
+}
+html:not([data-ui-style='modern']) .act-fold-btn .muted {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+html:not([data-ui-style='modern']) .act-fold-btn[aria-expanded='true'] {
+  box-shadow: none;
+}
+html:not([data-ui-style='modern']) .act-fold > div:not([hidden]) > .panel {
+  border-top: 0;
 }

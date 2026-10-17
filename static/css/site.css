@@ -373,7 +373,7 @@ html[data-ui-style='modern'] .panel {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   counter-reset: step;
 }
@@ -468,7 +468,7 @@ html[data-ui-style='modern'] .steps li {
     padding-top: 1.5rem;
   }
   .steps {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   .two {
     grid-template-columns: 1fr;

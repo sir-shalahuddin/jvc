@@ -11,23 +11,21 @@ The server derives the voter identity as `sha256("hw_voter:" + fp)` (or the sign
 Use the existing `getDeviceFingerprint()` value as `voter_id` in the state call. Do NOT use the presence `clientId` here, or own cards will look hidden.
 
 ## Phases
-`write | group | vote | discuss | act | done`. Missing in old data = `discuss` (the API always returns the effective phase, never an empty string, in session get / state / history / admin list). New sessions are created in `write`.
+`write | discuss | done` (three phases, 2026-10-17 decision). Missing in old data = `discuss`; legacy stored values `group`, `vote`, `act` are normalised to `discuss` on read (the API always returns the effective phase, never an empty string, in session get / state / history / admin list). `POST /api/session/phase` only accepts the three new values. New sessions are created in `write`.
 
 | Phase | Allowed (else 409) |
 |---|---|
 | write | add card (`/api/answer/submit`) |
-| group | cluster (`/api/answer/cluster`) |
-| vote | vote (`/api/answer/vote`) |
-| discuss | everything: submit, vote, cluster, spotlight focus |
-| act / done | none of the above |
+| discuss | everything: submit (kept for old sessions), vote, cluster, spotlight focus |
+| done | none of the above (read-only) |
 
 Not phase-guarded: timer (any phase), spotlight `clear`, action items (owner-only as before), question add/update/delete. `GET /api/session/report` returns 409 while phase is `write` (it would leak hidden cards).
 
-409 body: `{"error":"Not allowed in the current phase","phase":"write","allowed":["vote","discuss"]}` (cluster/spotlight/report 409s carry only `error`). Unknown session on a guarded call: 404.
+409 body: `{"error":"Not allowed in the current phase","phase":"write","allowed":["discuss"]}` (cluster/spotlight/report 409s carry only `error`). Unknown session on a guarded call: 404.
 
 ### POST /api/session/phase
-Owner only (cookie auth). Request `{"session_id": "...", "phase": "vote"}`.
-- 200 `{"status":"success","session_id":"...","phase":"vote"}`
+Owner only (cookie auth). Request `{"session_id": "...", "phase": "discuss"}`.
+- 200 `{"status":"success","session_id":"...","phase":"discuss"}`
 - 400 invalid/missing phase or session_id; 401 not logged in; 403 not owner; 405 wrong method.
 Owner may go forward or back.
 
@@ -35,16 +33,16 @@ Owner may go forward or back.
 While `phase == "write"`, every endpoint returning answers (`GET /api/session/answers`, `GET /api/session/state`) returns a mixed array:
 - own card (author_id equals caller's voter id): full `Answer` object (unchanged shape; now also `author_id`).
 - every other card, including old cards without author_id and the owner's view of others: exactly `{"id","question_id","hidden":true}`.
-Full cards have no `hidden` key. Discriminate with `a.hidden === true`. From `group` on, all cards are full. The owner has no exception. `GET /api/session/clusters` returns `[]` during write. Pagination (`limit`/`offset`) on `/api/session/answers` still works. Empty list is now `[]`, not `null`.
+Full cards have no `hidden` key. Discriminate with `a.hidden === true`. From `discuss` on, all cards are full. The owner has no exception. `GET /api/session/clusters` returns `[]` during write. Pagination (`limit`/`offset`) on `/api/session/answers` still works. Empty list is now `[]`, not `null`.
 
 ### POST /api/answer/submit (changed)
 Body adds optional `device_fingerprint` / `voter_id`. Now requires `session_id` and `question_id` (400 JSON error otherwise). Allowed in `write` and `discuss`, else 409. Response unchanged: 202 `{"id","status":"success","author_name"}`.
 
 ### POST /api/answer/vote (changed)
-Body adds optional `voter_id` alias. Allowed in `vote` and `discuss`, else 409. Other responses unchanged (409 "already voted" also exists with `{"status":"error","message"}`; tell them apart by `error` key vs `status` key, or check `phase` in the body).
+Body adds optional `voter_id` alias. Allowed in `discuss`, else 409. Other responses unchanged (409 "already voted" also exists with `{"status":"error","message"}`; tell them apart by `error` key vs `status` key, or check `phase` in the body).
 
 ### POST /api/answer/cluster (changed)
-Owner only, allowed in `group` and `discuss`, else 409 (`{"error":...}`).
+Owner only, allowed in `discuss`, else 409 (`{"error":...}`).
 
 ### POST /api/session/spotlight/action (changed)
 `action:"focus"` only in `discuss`, else 409. `clear` always allowed.
@@ -82,7 +80,7 @@ Anyone with the session id (no auth). Finds the same owner's most recent session
 ## GET /session/summary?id=
 Server-rendered HTML (`text/html`, `<meta name="robots" content="noindex">` plus `X-Robots-Tag: noindex`), Indonesian copy, escaped via html/template. Contents: session name and date ("17 Oktober 2026"), each topic with cards sorted by votes desc (text, "N suara", cluster tag), clusters, action items (assignee, due date, Selesai/Belum selesai). Plus Jakarta Sans (Google Fonts link), white/ink, `#2563EB` only on links, light/dark by system.
 - 404 HTML for missing/unknown id.
-- 409 HTML (no card text) while the session is in `write`, so the frontend should only show "Ringkasan" from `group` onward (or accept the placeholder page).
+- 409 HTML (no card text) while the session is in `write`, so the frontend should only show "Ringkasan" from `discuss` onward (or accept the placeholder page).
 Share link: use the existing `GET /api/session/share-link?id=` (it still shortens the board URL `/session/?id=`). It does not yet shorten the summary URL; if the frontend wants "Bagikan ringkasan" to shorten `/session/summary?id=...`, shorten client-side via the same hanya.click `/shorten`, or ask backend to add `kind=summary` (not implemented).
 
 ## Session responses

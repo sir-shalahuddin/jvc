@@ -32,6 +32,7 @@ import { TopicModal } from '../components/session/modals/TopicModal';
 import { ShortcutsModal } from '../components/session/modals/ShortcutsModal';
 import {
   PHASE_LABEL,
+  normalizePhase,
   isHidden,
   type ActionItem,
   type Answer,
@@ -112,6 +113,8 @@ export const SessionBoardPage: React.FC = () => {
   const clientId = useMemo(getOrCreateClientId, []);
   const localAlias = useMemo(getOrCreateUserAlias, []);
   const isMobile = useMediaQuery('(max-width: 600px)');
+  const wide = useMediaQuery('(min-width: 1200px)');
+  const [actFoldOpen, setActFoldOpen] = useState(false);
 
   const [guestName, setGuestName] = useState('');
   const alias = guestName || localAlias;
@@ -145,13 +148,14 @@ export const SessionBoardPage: React.FC = () => {
   const shareUrlRef = useRef<string | null>(null);
 
   const session = data?.session;
-  const phase: Phase = session?.phase || 'discuss';
+  const phase: Phase = normalizePhase(session?.phase);
   const isOwner = session?.is_owner === true;
   const questions = useMemo(() => data?.questions || [], [data]);
   const answers = useMemo(() => data?.answers || [], [data]);
   const timer = data?.timer || { running: false, remaining_seconds: 300, end_time_unix_ms: 0 };
   const timerSeconds = useTimerSeconds(timer, clockOffset);
   const voter = data?.voter_status;
+  const [sortTick, setSortTick] = useState(0);
   const budget = data?.vote_budget || voter?.max_votes || 0;
   const votesLeft = voter ? voter.remaining_votes : 0;
   const votedIds = useMemo(() => new Set(voter?.voted_answers || []), [voter?.voted_answers]);
@@ -188,7 +192,7 @@ export const SessionBoardPage: React.FC = () => {
   }, [clusterNames, clusterFilter]);
 
   // Action items are not in the state response; load them while they matter.
-  const showActions = phase === 'act' || phase === 'done';
+  const showActions = phase !== 'write';
   const loadActions = useCallback(async () => {
     try {
       setActionItems(await fetchActionItems(sessionId));
@@ -431,7 +435,10 @@ export const SessionBoardPage: React.FC = () => {
     }
     await loadActions().catch(() => {});
   };
-  const makeAction = (a: Answer) => setActionDraft({ text: plainText(a.text), answerId: a.id, nonce: Date.now() });
+  const makeAction = (a: Answer) => {
+    setActFoldOpen(true);
+    setActionDraft({ text: plainText(a.text), answerId: a.id, nonce: Date.now() });
+  };
 
   // Ticking a promise from last time updates the OLD session's item.
   const togglePrev = async (item: ActionItem, completed: boolean): Promise<boolean> => {
@@ -517,7 +524,7 @@ export const SessionBoardPage: React.FC = () => {
     );
   }
 
-  const hint = phaseHint(phase, isOwner);
+  const hint = phaseHint(phase);
   const showClusterFilter = phase !== 'write' && clusterNames.length > 0;
 
   return (
@@ -549,10 +556,13 @@ export const SessionBoardPage: React.FC = () => {
         <SpotlightBanner card={spotCard} topic={spotTopic} isOwner={isOwner} onJump={jumpToSpotlight} onClear={clearSpotlight} />
 
         <div className="bar">
-          {view === 'columns' && <p className="bar-hint">{hint}</p>}
-          {phase === 'vote' && (
+          <p className="bar-hint">{hint}</p>
+          {phase === 'discuss' && (
             <p className="bar-votes" aria-live="polite">
               Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
+              <button type="button" className="link-btn bar-sort" onClick={() => setSortTick((n) => n + 1)} title="Urutkan kartu berdasarkan vote, lalu kunci urutannya">
+                Urutkan by vote
+              </button>
             </p>
           )}
           {phase === 'done' && (
@@ -588,45 +598,77 @@ export const SessionBoardPage: React.FC = () => {
           </div>
         )}
 
-        {showActions && (
-          <ActionPanel
-            items={actionItems}
-            loaded={actionsLoaded}
-            canEdit={isOwner && phase === 'act'}
-            draft={actionDraft}
-            onAdd={addAction}
-            onToggle={toggleAction}
-            onDelete={removeAction}
+        <div className={showActions && wide ? 'sb-split has-aside' : 'sb-split'}>
+          <div className="sb-board">
+          <Board
+            view={view}
+            setView={changeView}
+            isMobile={isMobile}
+            questions={questions}
+            answers={answers}
+            phase={phase}
+            isOwner={isOwner}
+            myVoterId={myVoterId}
+            activeIndex={Math.min(activeIndex, Math.max(0, questions.length - 1))}
+            setActiveIndex={setActiveIndex}
+            clusterFilter={clusterFilter}
+            clusters={clusterNames}
+            votedIds={votedIds}
+            votesLeft={votesLeft}
+            sessionId={sessionId}
+            sortTick={sortTick}
+            spotlightId={spotlightId}
+            busyIds={busyIds}
+            onAddCard={(q) => setSubmitTopic(q)}
+            onAddTopic={() => setTopicModal({ open: true, edit: null })}
+            onEditTopic={(q) => setTopicModal({ open: true, edit: q })}
+            onDeleteTopic={removeTopic}
+            onVote={vote}
+            onSetCluster={setCluster}
+            onSpotlight={toggleSpotlight}
+            onMakeAction={makeAction}
           />
-        )}
-
-        <Board
-          view={view}
-          setView={changeView}
-          hint={hint}
-          isMobile={isMobile}
-          questions={questions}
-          answers={answers}
-          phase={phase}
-          isOwner={isOwner}
-          myVoterId={myVoterId}
-          activeIndex={Math.min(activeIndex, Math.max(0, questions.length - 1))}
-          setActiveIndex={setActiveIndex}
-          clusterFilter={clusterFilter}
-          clusters={clusterNames}
-          votedIds={votedIds}
-          votesLeft={votesLeft}
-          spotlightId={spotlightId}
-          busyIds={busyIds}
-          onAddCard={(q) => setSubmitTopic(q)}
-          onAddTopic={() => setTopicModal({ open: true, edit: null })}
-          onEditTopic={(q) => setTopicModal({ open: true, edit: q })}
-          onDeleteTopic={removeTopic}
-          onVote={vote}
-          onSetCluster={setCluster}
-          onSpotlight={toggleSpotlight}
-          onMakeAction={makeAction}
-        />
+          </div>
+          {showActions && wide && <aside className="sb-aside" aria-label="Aksi">
+            <ActionPanel
+              items={actionItems}
+              loaded={actionsLoaded}
+              canEdit={isOwner && phase === 'discuss'}
+              draft={actionDraft}
+              onAdd={addAction}
+              onToggle={toggleAction}
+              onDelete={removeAction}
+            />
+          </aside>}
+          {showActions && !wide && (
+            <section className="act-fold">
+              <button
+                type="button"
+                className="act-fold-btn"
+                aria-expanded={actFoldOpen}
+                aria-controls="act-fold-body"
+                onClick={() => setActFoldOpen((o) => !o)}
+              >
+                <span>Aksi</span>
+                <span className="muted num">
+                  {actionsLoaded ? `${actionItems.filter((i) => !i.completed).length} terbuka dari ${actionItems.length}` : ''}
+                </span>
+                <span aria-hidden="true" className="act-fold-ch">{actFoldOpen ? '−' : '+'}</span>
+              </button>
+              <div id="act-fold-body" hidden={!actFoldOpen}>
+                <ActionPanel
+              items={actionItems}
+              loaded={actionsLoaded}
+              canEdit={isOwner && phase === 'discuss'}
+              draft={actionDraft}
+              onAdd={addAction}
+              onToggle={toggleAction}
+              onDelete={removeAction}
+            />
+              </div>
+            </section>
+          )}
+        </div>
       </main>
 
       <SubmitCardModal
@@ -651,20 +693,13 @@ export const SessionBoardPage: React.FC = () => {
   );
 };
 
-function phaseHint(phase: Phase, owner: boolean): string {
+function phaseHint(phase: Phase): string {
   switch (phase) {
     case 'write':
-      return 'Tulis kartu. Kartu orang lain baru terlihat di fase berikutnya.';
-    case 'group':
-      return owner ? 'Beri kelompok pada kartu yang mirip.' : 'Fasilitator sedang mengelompokkan kartu.';
-    case 'vote':
-      return 'Vote kartu yang paling perlu dibahas.';
+      return 'Tulis kartu. Kartu orang lain dibuka bersamaan saat fasilitator pindah ke Bahas.';
     case 'discuss':
-      return owner ? 'Sorot kartu yang sedang dibahas. Urutan: vote terbanyak.' : 'Kartu dibahas mulai dari vote terbanyak.';
-    case 'act':
-      return owner ? 'Catat aksi: apa, siapa, kapan.' : 'Fasilitator mencatat aksi.';
+      return 'Kelompokkan, vote, lalu bahas kartu teratas dan catat aksinya.';
     case 'done':
-      return 'Sesi selesai.';
+      return 'Sesi selesai. Papan hanya bisa dibaca.';
   }
 }
-

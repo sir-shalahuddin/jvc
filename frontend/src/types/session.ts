@@ -1,17 +1,19 @@
 // Types for the session board. Shapes follow tasks/API-retro-v2.md.
 
-export type Phase = 'write' | 'group' | 'vote' | 'discuss' | 'act' | 'done';
+export type Phase = 'write' | 'discuss' | 'done';
 
-export const PHASES: Phase[] = ['write', 'group', 'vote', 'discuss', 'act', 'done'];
+export const PHASES: Phase[] = ['write', 'discuss', 'done'];
 
 export const PHASE_LABEL: Record<Phase, string> = {
   write: 'Tulis',
-  group: 'Kelompokkan',
-  vote: 'Vote',
   discuss: 'Bahas',
-  act: 'Aksi',
   done: 'Selesai',
 };
+
+/** Legacy stored phases (group, vote, act) and a missing value all mean discuss. */
+export function normalizePhase(p: string | undefined | null): Phase {
+  return p === 'write' || p === 'done' ? p : 'discuss';
+}
 
 export interface SessionDetail {
   id: string;

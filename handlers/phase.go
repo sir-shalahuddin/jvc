@@ -34,7 +34,7 @@ func SetPhaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !models.IsValidPhase(req.Phase) {
-		writeJSONError(w, http.StatusBadRequest, "Invalid phase: must be one of write, group, vote, discuss, act, done")
+		writeJSONError(w, http.StatusBadRequest, "Invalid phase: must be one of write, discuss, done")
 		return
 	}
 	if !requireSessionOwner(w, r, email, req.SessionID) {

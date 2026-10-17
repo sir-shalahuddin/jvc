@@ -75,18 +75,16 @@ type ActionItem struct {
 	CreatedAt time.Time `json:"created_at" firestore:"created_at"`
 }
 
-// Session phases. Old sessions without a phase behave as PhaseDiscuss.
+// Session phases. Old sessions without a phase behave as PhaseDiscuss, and the
+// legacy phases group/vote/act (pre three-phase model) are treated as discuss.
 const (
 	PhaseWrite   = "write"
-	PhaseGroup   = "group"
-	PhaseVote    = "vote"
 	PhaseDiscuss = "discuss"
-	PhaseAct     = "act"
 	PhaseDone    = "done"
 )
 
 // AllPhases lists the valid phases in board order.
-var AllPhases = []string{PhaseWrite, PhaseGroup, PhaseVote, PhaseDiscuss, PhaseAct, PhaseDone}
+var AllPhases = []string{PhaseWrite, PhaseDiscuss, PhaseDone}
 
 // IsValidPhase reports whether p is one of AllPhases.
 func IsValidPhase(p string) bool {
@@ -98,10 +96,20 @@ func IsValidPhase(p string) bool {
 	return false
 }
 
-// EffectivePhase returns the session's phase, treating a missing value as discuss.
+// EffectivePhase returns the session's phase normalised to the current model.
 func (s *Session) EffectivePhase() string {
-	if s == nil || s.Phase == "" {
+	if s == nil {
 		return PhaseDiscuss
 	}
-	return s.Phase
+	return NormalizePhase(s.Phase)
+}
+
+// NormalizePhase maps a stored phase to the current model: legacy group, vote
+// and act (and a missing value) become discuss.
+func NormalizePhase(p string) string {
+	switch p {
+	case PhaseWrite, PhaseDone, PhaseDiscuss:
+		return p
+	}
+	return PhaseDiscuss
 }

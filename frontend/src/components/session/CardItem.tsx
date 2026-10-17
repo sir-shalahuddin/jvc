@@ -18,8 +18,8 @@ interface Props {
   onMakeAction: (a: Answer) => void;
 }
 
-// Vote counts stay out of sight while people are still voting, to avoid anchoring.
-const SHOW_VOTES: Phase[] = ['discuss', 'act', 'done'];
+// Vote counts are visible from discuss on (voting and discussing happen together).
+const SHOW_VOTES: Phase[] = ['discuss', 'done'];
 
 export const CardItem: React.FC<Props> = ({
   answer,
@@ -41,7 +41,7 @@ export const CardItem: React.FC<Props> = ({
   const listId = useId();
   const tag = answer.cluster_tag || '';
   const sentiment = (answer.sentiment_emotion || '').trim().toLowerCase();
-  const canTag = isOwner && phase === 'group';
+  const canTag = isOwner && phase === 'discuss';
 
   const saveTag = async () => {
     const next = tagDraft.trim();
@@ -97,7 +97,7 @@ export const CardItem: React.FC<Props> = ({
     tagNode = (
       <button
         type="button"
-        className="tag-btn"
+        className={`tag-btn ${tag ? '' : 'qa'}`}
         onClick={() => {
           setTagDraft(tag);
           setEditingTag(true);
@@ -142,7 +142,7 @@ export const CardItem: React.FC<Props> = ({
           )}
         </span>
         <span className="card-acts">
-          {phase === 'vote' &&
+          {phase === 'discuss' &&
             (voted ? (
               <span className="voted">
                 <Check size={14} aria-hidden="true" /> Divote
@@ -158,17 +158,17 @@ export const CardItem: React.FC<Props> = ({
                 Vote
               </button>
             ))}
-          {phase === 'discuss' && isOwner && (
-            <button type="button" className="link-btn" onClick={() => onSpotlight(answer)} disabled={busy}>
+        </span>
+        {phase === 'discuss' && isOwner && (
+          <span className="card-qa">
+            <button type="button" className={`link-btn ${spotlighted ? '' : 'qa'}`} onClick={() => onSpotlight(answer)} disabled={busy}>
               {spotlighted ? 'Lepas sorotan' : 'Sorot'}
             </button>
-          )}
-          {phase === 'act' && isOwner && (
-            <button type="button" className="link-btn" onClick={() => onMakeAction(answer)}>
+            <button type="button" className="link-btn qa" onClick={() => onMakeAction(answer)}>
               Jadikan aksi
             </button>
-          )}
-        </span>
+          </span>
+        )}
       </div>
     </article>
   );

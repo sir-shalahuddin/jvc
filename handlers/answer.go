@@ -353,7 +353,7 @@ func VoteAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Layer 1: Hardware Fingerprint & HMAC Cookie
-	if !requirePhase(w, r, req.SessionID, models.PhaseVote, models.PhaseDiscuss) {
+	if !requirePhase(w, r, req.SessionID, models.PhaseDiscuss) {
 		return
 	}
 	bodyFP := req.DeviceFingerprint

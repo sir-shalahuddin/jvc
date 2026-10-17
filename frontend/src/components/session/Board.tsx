@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
 import { Menu } from '../common/Menu';
 import { CardItem } from './CardItem';
@@ -22,7 +22,6 @@ interface Props extends BoardHandlers {
   view: BoardView;
   setView: (v: BoardView) => void;
   isMobile: boolean;
-  hint: string;
   questions: Question[];
   answers: AnyAnswer[];
   phase: Phase;
@@ -34,43 +33,124 @@ interface Props extends BoardHandlers {
   clusters: string[];
   votedIds: Set<string>;
   votesLeft: number;
+  sessionId: string;
+  /** Bumps when the user taps "Urutkan by vote" (discuss). */
+  sortTick: number;
   spotlightId: string;
   busyIds: Set<string>;
 }
 
-function sortCards(list: Answer[], phase: Phase): Answer[] {
-  const t = (a: Answer) => new Date(a.created_at || 0).getTime() || 0;
-  const out = [...list];
-  if (phase === 'group') {
-    out.sort((a, b) => (a.cluster_tag || '￿').localeCompare(b.cluster_tag || '￿') || t(a) - t(b));
-  } else if (phase === 'discuss' || phase === 'act' || phase === 'done') {
-    out.sort((a, b) => (b.votes || 0) - (a.votes || 0) || t(a) - t(b));
-  } else {
-    out.sort((a, b) => t(a) - t(b));
-  }
-  return out;
+const byVotes = (a: Answer, b: Answer) => (b.votes || 0) - (a.votes || 0);
+
+interface Item {
+  id: string;
+  hidden: boolean;
+  a?: Answer;
 }
+
+const FLIP_MS = 500;
+
+// The back of a card someone else wrote; shown during Tulis. No text, no author.
+const ClosedCard: React.FC<{ back?: boolean }> = ({ back }) => (
+  <article className={`card card-closed ${back ? 'flip-back' : ''}`} aria-label={back ? undefined : 'Kartu tertutup'} aria-hidden={back || undefined}>
+    <span className="closed-label">Tertutup</span>
+  </article>
+);
 
 export const Board: React.FC<Props> = (p) => {
   const colsRef = useRef<HTMLDivElement>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
 
+  // Discuss: card order per topic, frozen so cards do not jump while people vote.
+  // Keyed by session|topic, component state only (not persisted). Starts as server order,
+  // new cards are appended, and "Urutkan by vote" re-sorts once and freezes again.
+  const [frozen, setFrozen] = useState<Record<string, string[]>>({});
+  useEffect(() => {
+    if (p.phase !== 'discuss') {
+      setFrozen((f) => (Object.keys(f).length ? {} : f));
+      return;
+    }
+    setFrozen((f) => {
+      const next = { ...f };
+      let changed = false;
+      const ids = new Map<string, string[]>();
+      for (const a of p.answers) if (!isHidden(a)) ids.set(a.question_id, [...(ids.get(a.question_id) || []), a.id]);
+      for (const [q, list] of ids) {
+        const k = `${p.sessionId}|${q}`;
+        const cur = f[k] || [];
+        const missing = list.filter((id) => !cur.includes(id));
+        if (missing.length || !f[k]) {
+          next[k] = [...cur, ...missing];
+          changed = true;
+        }
+      }
+      return changed ? next : f;
+    });
+  }, [p.phase, p.answers, p.sessionId]);
+  const handledTick = useRef(p.sortTick);
+  useEffect(() => {
+    if (handledTick.current === p.sortTick) return;
+    handledTick.current = p.sortTick;
+    if (p.phase !== 'discuss') return;
+    const by = new Map<string, Answer[]>();
+    for (const a of p.answers) if (!isHidden(a)) by.set(a.question_id, [...(by.get(a.question_id) || []), a]);
+    const next: Record<string, string[]> = {};
+    for (const [q, list] of by) next[`${p.sessionId}|${q}`] = [...list].sort(byVotes).map((a) => a.id);
+    setFrozen(next);
+  }, [p.sortTick, p.phase, p.answers, p.sessionId]);
+
   const byTopic = useMemo(() => {
-    const m = new Map<string, { cards: Answer[]; hidden: number }>();
-    for (const q of p.questions) m.set(q.id, { cards: [], hidden: 0 });
+    const m = new Map<string, { items: Item[]; cards: number; hidden: number }>();
+    for (const q of p.questions) m.set(q.id, { items: [], cards: 0, hidden: 0 });
     for (const a of p.answers) {
       const slot = m.get(a.question_id);
       if (!slot) continue;
-      if (isHidden(a)) slot.hidden++;
-      else slot.cards.push(a);
+      if (isHidden(a)) {
+        slot.hidden++;
+        slot.items.push({ id: a.id, hidden: true });
+      } else if (!p.clusterFilter || (a.cluster_tag || '') === p.clusterFilter) {
+        slot.cards++;
+        slot.items.push({ id: a.id, hidden: false, a });
+      }
     }
     for (const slot of m.values()) {
-      let cards = slot.cards;
-      if (p.clusterFilter) cards = cards.filter((c) => (c.cluster_tag || '') === p.clusterFilter);
-      slot.cards = sortCards(cards, p.phase);
+      if (p.phase === 'write') continue; // keep server order: own and closed cards mixed
+      const cards = slot.items.map((i) => i.a!).filter(Boolean);
+      if (p.phase === 'done') {
+        cards.sort(byVotes); // stable: ties keep server order
+      } else {
+        // discuss: order is frozen (see `frozen`); cards not yet frozen stay at the end in server order.
+        const q = cards[0]?.question_id;
+        const rank = new Map((frozen[`${p.sessionId}|${q}`] || []).map((id, i) => [id, i]));
+        const r = (a: Answer) => rank.get(a.id) ?? Infinity;
+        cards.sort((a, b) => (r(a) === r(b) ? 0 : r(a) < r(b) ? -1 : 1));
+      }
+      slot.items = cards.map((a) => ({ id: a.id, hidden: false, a }));
     }
     return m;
-  }, [p.questions, p.answers, p.phase, p.clusterFilter]);
+  }, [p.questions, p.answers, p.phase, p.clusterFilter, p.sessionId, frozen]);
+
+  // Reveal: when write ends while we are watching, the cards that were closed flip once.
+  const hiddenRef = useRef<Set<string>>(new Set());
+  const [seen, setSeen] = useState<{ phase: Phase; reveal: Set<string> | null }>({ phase: p.phase, reveal: null });
+  if (seen.phase !== p.phase) {
+    let reveal: Set<string> | null = null;
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (seen.phase === 'write' && !reduced) {
+      reveal = new Set();
+      for (const a of p.answers) if (!isHidden(a) && hiddenRef.current.has(a.id)) reveal.add(a.id);
+      if (reveal.size === 0) reveal = null;
+    }
+    setSeen({ phase: p.phase, reveal });
+  }
+  useEffect(() => {
+    if (p.phase === 'write') hiddenRef.current = new Set(p.answers.filter(isHidden).map((a) => a.id));
+  }, [p.phase, p.answers]);
+  useEffect(() => {
+    if (!seen.reveal) return;
+    const t = window.setTimeout(() => setSeen((s) => ({ ...s, reveal: null })), 1000);
+    return () => window.clearTimeout(t);
+  }, [seen.reveal]);
 
   // Keyboard topic changes on desktop: bring that column into view.
   useEffect(() => {
@@ -115,8 +195,13 @@ export const Board: React.FC<Props> = (p) => {
   }
 
   const renderColumn = (q: Question, idx: number, focus = false) => {
-    const slot = byTopic.get(q.id) || { cards: [], hidden: 0 };
-    const total = q.answer_count ?? slot.cards.length + slot.hidden;
+    const slot = byTopic.get(q.id) || { items: [], cards: 0, hidden: 0 };
+    const total = q.answer_count ?? slot.cards + slot.hidden;
+    const reveal = seen.reveal;
+    const nFlip = reveal ? slot.items.filter((i) => reveal.has(i.id)).length : 0;
+    // Whole reveal stays within ~900ms: 500ms flip + at most 400ms of stagger.
+    const step = nFlip > 1 ? Math.min(25, 400 / (nFlip - 1)) : 0;
+    let flipIdx = 0;
     return (
       <section
         key={q.id}
@@ -130,7 +215,6 @@ export const Board: React.FC<Props> = (p) => {
             <h2 id={`col-h-${q.id}`}>{q.text}</h2>
             <span className="col-count num">
               {total} kartu
-              {focus && <span className="col-hint"> · {p.hint}</span>}
             </span>
           </div>
           {p.isOwner && (
@@ -163,27 +247,41 @@ export const Board: React.FC<Props> = (p) => {
           </button>
         )}
 
+
         <div className={focus ? 'col-cards fgrid' : 'col-cards'}>
-          {slot.cards.map((a) => (
-            <CardItem
-              key={a.id}
-              answer={a}
-              phase={p.phase}
-              isOwner={p.isOwner}
-              isMine={p.phase === 'write' || (!!p.myVoterId && a.author_id === p.myVoterId)}
-              spotlighted={p.spotlightId === a.id}
-              voted={p.votedIds.has(a.id)}
-              votesLeft={p.votesLeft}
-              clusters={p.clusters}
-              busy={p.busyIds.has(a.id)}
-              onVote={p.onVote}
-              onSetCluster={p.onSetCluster}
-              onSpotlight={p.onSpotlight}
-              onMakeAction={p.onMakeAction}
-            />
-          ))}
-          {slot.hidden > 0 && <p className="hidden-line">{slot.hidden} kartu dari orang lain, dibuka di fase berikutnya</p>}
-          {slot.cards.length === 0 && slot.hidden === 0 && (
+          {slot.items.map((it) => {
+            const flipping = !!reveal && reveal.has(it.id) && !it.hidden;
+            const delay = flipping ? Math.round(flipIdx++ * step) : 0;
+            return (
+              <div
+                key={it.id}
+                className={`cw ${flipping ? 'is-flip' : ''}`}
+                style={flipping ? ({ '--flip-delay': `${delay}ms`, '--flip-ms': `${FLIP_MS}ms` } as React.CSSProperties) : undefined}
+              >
+                {flipping && <ClosedCard back />}
+                {it.hidden || !it.a ? (
+                  <ClosedCard />
+                ) : (
+                  <CardItem
+                    answer={it.a}
+                    phase={p.phase}
+                    isOwner={p.isOwner}
+                    isMine={p.phase === 'write' || (!!p.myVoterId && it.a.author_id === p.myVoterId)}
+                    spotlighted={p.spotlightId === it.id}
+                    voted={p.votedIds.has(it.id)}
+                    votesLeft={p.votesLeft}
+                    clusters={p.clusters}
+                    busy={p.busyIds.has(it.id)}
+                    onVote={p.onVote}
+                    onSetCluster={p.onSetCluster}
+                    onSpotlight={p.onSpotlight}
+                    onMakeAction={p.onMakeAction}
+                  />
+                )}
+              </div>
+            );
+          })}
+          {slot.items.length === 0 && (
             <p className="col-empty">{p.clusterFilter ? 'Tidak ada kartu di kelompok ini.' : 'Belum ada kartu.'}</p>
           )}
         </div>

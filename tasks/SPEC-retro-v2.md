@@ -4,28 +4,22 @@ Owner decisions (2026-10-17). This is the single source of truth for the agents 
 
 ## Product rules
 1. **Phases replace "everything always on".** A session has `phase`, one of:
-   - `write`
-   - `group`
-   - `vote`
-   - `discuss`
-   - `act`
-   - `done`
+   - `write` (Tulis)
+   - `discuss` (Bahas)
+   - `done` (Selesai)
 
    - Only the owner (facilitator) changes phase, and may move forward or back.
    - New sessions start in `write`.
-   - Sessions without a phase field (old data) are treated as `discuss`, so old boards look as before, with everything visible.
+   - Sessions without a phase field (old data) are treated as `discuss`; legacy stored `group`, `vote`, `act` are normalised to `discuss` on read. Old boards look as before, with everything visible.
 2. **Cards stay hidden during writing.** In `write`, the server returns full text only for the requester's own cards. Every other card comes back as `{id, question_id, hidden: true}` with no text, gif, author or sentiment, so the UI can show "3 kartu dari orang lain".
    - Own cards are identified by `author_id`. That is the same client voter id the app already uses for voting (see `VoterRecord.VoterID` and how the frontend sends it). Store it on new answers.
    - Old answers without `author_id` are hidden from everyone in `write`. This only matters if an old session is moved back to `write`.
    - The owner has no exception, because hiding exists to prevent anchoring.
-   - From `group` onward, all cards are visible.
+   - From `discuss` onward, all cards are visible. The reveal flip plays on write → discuss.
 3. **Tools by phase:**
    - `write`: add card.
-   - `group`: cluster/tag (owner) and drag or merge, if it is cheap.
-   - `vote`: vote and votes-left.
-   - `discuss`: spotlight (owner) and timer.
-   - `act`: action items.
-   - `done`: read-only, plus a summary link.
+   - `discuss`: all at once. Owner tags/clusters cards, everyone votes within the vote budget (votes-left shown once above the board), owner spotlight and timer, and the action-items panel (owner edits, participants read). Default sort is votes desc. Adding cards stays allowed here for old sessions.
+   - `done`: read-only (votes, clusters, spotlight and new cards return 409; action items are not phase-guarded), plus a summary link.
 
    The timer is available in every phase, but shows only while it is running or to the owner.
 4. **Promises from last time.** When a session opens, show the open (not completed) action items from the same owner's most recent previous session as "Janji sesi lalu". Read-only for participants. The owner can tick them, which updates the old session's item.
@@ -75,7 +69,7 @@ Reference: `C:\Users\siraj\hanya-click\shorten-link\static\hc.css` and `index.ht
 - **Shapes:** 1px rules, radius at most 10px. No gradients, glows, backdrop blur, shadows (except maybe one subtle one for floating menus), emoji used as icons, or pill badges used as decoration.
 - **Copy:** Indonesian first, plain and short, written by the maker. Keep an EN toggle only if one already exists cleanly; otherwise Indonesian only. Remove brochure lines ("industrial-grade", "99.9%", "Command Center", "telemetry", "built by Antigravity AI", the false Firestore real-time claim).
 - **Logo:** one mark everywhere (app and landing). Reuse the hanya.click "h" logo with the wordmark "retro.hanya.click", or a plain wordmark.
-- **Session header,** final: `← | Judul sesi | phase stepper (Tulis · Kelompokkan · Vote · Bahas · Aksi · Selesai) | timer | Undang | ⋯`.
+- **Session header,** final: `← | Judul sesi | phase stepper (Tulis · Bahas · Selesai) | timer | Undang | ⋯`.
   - The `⋯` menu holds: Export PDF (owner), Ringkasan, Shortcut. There is no theme item.
   - Presence is a small "7 orang" text that opens the list.
   - Participants see the stepper as read-only progress.

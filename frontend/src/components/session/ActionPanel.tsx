@@ -29,7 +29,7 @@ function when(item: ActionItem) {
   return d;
 }
 
-// Inline action items for the `act` phase (read-only in `done` and for participants).
+// Inline action items for the discuss phase (read-only in `done` and for participants).
 export const ActionPanel: React.FC<Props> = ({ items, loaded, canEdit, draft, onAdd, onToggle, onDelete }) => {
   const [text, setText] = useState('');
   const [assignee, setAssignee] = useState('');

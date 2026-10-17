@@ -45,8 +45,8 @@ func ClusterAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized: only session moderator can cluster cards", http.StatusForbidden)
 		return
 	}
-	if p := session.EffectivePhase(); p != models.PhaseGroup && p != models.PhaseDiscuss {
-		writeJSONError(w, http.StatusConflict, "Clustering is only allowed in the group or discuss phase (current: "+p+")")
+	if p := session.EffectivePhase(); p != models.PhaseDiscuss {
+		writeJSONError(w, http.StatusConflict, "Clustering is only allowed in the discuss phase (current: "+p+")")
 		return
 	}
 

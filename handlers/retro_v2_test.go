@@ -115,15 +115,23 @@ func TestSetPhaseHandler(t *testing.T) {
 	})
 	t.Run("non-owner forbidden", func(t *testing.T) {
 		repo.phaseUpdates = nil
-		w := postJSON(SetPhaseHandler, "/api/session/phase", SetPhaseRequest{SessionID: "s1", Phase: "vote"}, "other@example.com")
+		w := postJSON(SetPhaseHandler, "/api/session/phase", SetPhaseRequest{SessionID: "s1", Phase: "discuss"}, "other@example.com")
 		if w.Code != http.StatusForbidden || len(repo.phaseUpdates) != 0 {
 			t.Fatalf("expected 403 and no update, got %d %v", w.Code, repo.phaseUpdates)
 		}
 	})
 	t.Run("anonymous unauthorized", func(t *testing.T) {
-		w := postJSON(SetPhaseHandler, "/api/session/phase", SetPhaseRequest{SessionID: "s1", Phase: "vote"}, "")
+		w := postJSON(SetPhaseHandler, "/api/session/phase", SetPhaseRequest{SessionID: "s1", Phase: "discuss"}, "")
 		if w.Code != http.StatusUnauthorized {
 			t.Fatalf("expected 401, got %d", w.Code)
+		}
+	})
+	t.Run("legacy phases rejected on write", func(t *testing.T) {
+		for _, p := range []string{"group", "vote", "act"} {
+			w := postJSON(SetPhaseHandler, "/api/session/phase", SetPhaseRequest{SessionID: "s1", Phase: p}, ownerEmail)
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("%s: expected 400, got %d", p, w.Code)
+			}
 		}
 	})
 	t.Run("invalid phase", func(t *testing.T) {
@@ -189,8 +197,8 @@ func TestWritePhaseHidesOtherPeoplesCards(t *testing.T) {
 			t.Errorf("unexpected %v", out)
 		}
 	})
-	t.Run("everything visible after group", func(t *testing.T) {
-		sess.Phase = models.PhaseGroup
+	t.Run("everything visible after write, legacy group included", func(t *testing.T) {
+		sess.Phase = "group"
 		out := decodeAnswers(t, get(GetAnswersHandler, url, ""))
 		for _, a := range out {
 			if a["hidden"] != nil || a["text"] == nil {
@@ -248,10 +256,10 @@ func TestPhaseGuards(t *testing.T) {
 
 	allowed := map[string]map[string]bool{
 		models.PhaseWrite:   {"submit": true},
-		models.PhaseGroup:   {"cluster": true},
-		models.PhaseVote:    {"vote": true},
+		"group":             {"submit": true, "vote": true, "cluster": true, "spotlight": true}, // legacy = discuss
+		"vote":              {"submit": true, "vote": true, "cluster": true, "spotlight": true},
+		"act":               {"submit": true, "vote": true, "cluster": true, "spotlight": true},
 		models.PhaseDiscuss: {"submit": true, "vote": true, "cluster": true, "spotlight": true},
-		models.PhaseAct:     {},
 		models.PhaseDone:    {},
 		"":                  {"submit": true, "vote": true, "cluster": true, "spotlight": true}, // old data = discuss
 	}
@@ -461,8 +469,8 @@ func TestStateHandler(t *testing.T) {
 			t.Errorf("filter: %v", st.Answers)
 		}
 	})
-	t.Run("phase group shows all and clusters", func(t *testing.T) {
-		sess.Phase = models.PhaseGroup
+	t.Run("legacy phase group acts as discuss: shows all and clusters", func(t *testing.T) {
+		sess.Phase = "group"
 		useAnswers(t, models.Answer{ID: "c1", QuestionID: "q1", Text: "t", ClusterTag: "Infra"}, models.Answer{ID: "c2", QuestionID: "q1", Text: "u", ClusterTag: "Infra"})
 		w := get(StateHandler, "/api/session/state?session_id=s1&voter_id=zzz", "")
 		var st struct {
@@ -476,12 +484,14 @@ func TestStateHandler(t *testing.T) {
 		}
 	})
 	t.Run("old session reports discuss", func(t *testing.T) {
-		sess.Phase = ""
-		w := get(StateHandler, "/api/session/state?session_id=s1", "")
-		var st struct{ Session models.Session }
-		json.Unmarshal(w.Body.Bytes(), &st)
-		if st.Session.Phase != models.PhaseDiscuss {
-			t.Errorf("phase %q", st.Session.Phase)
+		for _, legacy := range []string{"", "group", "vote", "act"} {
+			sess.Phase = legacy
+			w := get(StateHandler, "/api/session/state?session_id=s1", "")
+			var st struct{ Session models.Session }
+			json.Unmarshal(w.Body.Bytes(), &st)
+			if st.Session.Phase != models.PhaseDiscuss {
+				t.Errorf("stored %q: phase %q", legacy, st.Session.Phase)
+			}
 		}
 	})
 	t.Run("errors", func(t *testing.T) {
@@ -612,16 +622,16 @@ func TestAdminHealth(t *testing.T) {
 
 func TestSafeNextAndLoginRedirect(t *testing.T) {
 	cases := map[string]string{
-		"/session/?id=abc":        "/session/?id=abc",
-		"/dashboard":              "/dashboard",
-		"/session/summary?id=1":   "/session/summary?id=1",
-		"//evil.com":              "",
-		"https://evil.com":        "",
-		"/\\evil.com":             "",
-		"evil.com":                "",
-		"":                        "",
-		"/ok\r\nSet-Cookie: x=1":  "",
-		"javascript:alert(1)":     "",
+		"/session/?id=abc":       "/session/?id=abc",
+		"/dashboard":             "/dashboard",
+		"/session/summary?id=1":  "/session/summary?id=1",
+		"//evil.com":             "",
+		"https://evil.com":       "",
+		"/\\evil.com":            "",
+		"evil.com":               "",
+		"":                       "",
+		"/ok\r\nSet-Cookie: x=1": "",
+		"javascript:alert(1)":    "",
 	}
 	for in, want := range cases {
 		if got := safeNextPath(in); got != want {

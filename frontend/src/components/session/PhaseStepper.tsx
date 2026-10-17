@@ -10,7 +10,7 @@ interface Props {
   onChange: (p: Phase) => void;
 }
 
-// Desktop: the six phases in a row. Clickable for the owner, read-only progress for others.
+// Desktop: the three phases in a row. Clickable for the owner, read-only progress for others.
 export const PhaseStepper: React.FC<Props> = ({ phase, isOwner, busy, onChange }) => {
   const cur = PHASES.indexOf(phase);
   return (

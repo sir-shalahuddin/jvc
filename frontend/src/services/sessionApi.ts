@@ -1,5 +1,5 @@
 // API service for the session board. Contract: tasks/API-retro-v2.md.
-import type { ActionItem, BoardState, Phase, PreviousActions, SpotlightState } from '../types/session';
+import { normalizePhase, type ActionItem, type BoardState, type Phase, type PreviousActions, type SpotlightState } from '../types/session';
 
 // Device fingerprint. The server derives the voter identity from this value, so the
 // SAME value must go out on every call (state, submit, vote). Never use the presence
@@ -108,7 +108,7 @@ export async function fetchBoardState(
     data.questions = Array.isArray(data.questions) ? data.questions : [];
     data.answers = Array.isArray(data.answers) ? data.answers : [];
     data.clusters = Array.isArray(data.clusters) ? data.clusters : [];
-    data.session.phase = data.session.phase || 'discuss';
+    data.session.phase = normalizePhase(data.session.phase);
     return data;
   } catch (e) {
     if (e instanceof ApiError && (e.status === 404 || e.status === 400)) {
