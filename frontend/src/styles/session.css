@@ -256,92 +256,8 @@
   }
 }
 
-.bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  font-size: 14px;
-}
-.bar-hint {
-  color: var(--muted);
-  flex: 1 1 260px;
-  min-width: 0;
-}
-.bar-votes {
-  font-weight: 600;
-}
-.bar-votes b {
-  font-weight: 800;
-}
-.bar-done {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-weight: 600;
-}
-.bar-add {
-  font-size: 14px;
-}
-
-.filter {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  font-size: 14px;
-}
-.filter button {
-  background: none;
-  border: 0;
-  padding: 0 0 3px;
-  border-bottom: 2px solid transparent;
-  color: var(--link);
-  font-weight: 600;
-}
-.filter button[aria-pressed='true'] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
-}
-.filter button .num {
-  font-weight: 500;
-  font-size: 12px;
-  margin-left: 2px;
-}
-
 /* previous promises */
-.prev {
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
-  padding: 0 14px;
-}
-.prev-h {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  background: none;
-  border: 0;
-  padding: 10px 0;
-  text-align: left;
-  font-size: 14px;
-  min-width: 0;
-}
-.prev-h svg {
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.prev-title {
-  font-weight: 700;
-  white-space: nowrap;
-}
-.prev-h .muted {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-}
+
 .prev-list {
   padding-bottom: 6px;
 }
@@ -552,13 +468,6 @@
   color: var(--muted);
   padding: 6px 0;
 }
-.hidden-line {
-  font-size: 13px;
-  color: var(--muted);
-  padding: 9px 12px;
-  border: 1px dashed var(--rule);
-  border-radius: var(--r);
-}
 
 .board-empty {
   display: flex;
@@ -637,42 +546,6 @@
   border-color: var(--ink);
   box-shadow: inset 3px 0 0 var(--ink);
 }
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  min-height: 18px;
-}
-.card-tag {
-  min-width: 0;
-}
-.card-sent {
-  font-size: 11.5px;
-  color: var(--muted);
-  white-space: nowrap;
-  margin-left: auto;
-}
-.tag {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-.tag-btn {
-  background: none;
-  border: 0;
-  padding: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--link);
-  text-align: left;
-  overflow-wrap: anywhere;
-}
-.tag-btn:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .tag-edit {
   display: flex;
   align-items: center;
@@ -709,30 +582,6 @@
   border-radius: var(--r-sm);
   object-fit: contain;
   background: var(--soft);
-}
-.card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 22px;
-  flex-wrap: wrap;
-}
-.card-meta {
-  font-size: 12.5px;
-  color: var(--muted);
-  min-width: 0;
-}
-.card-meta b {
-  color: var(--ink);
-  font-weight: 700;
-}
-.card-acts {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  margin-left: auto;
 }
 .voted {
   display: inline-flex;
@@ -877,61 +726,16 @@
 }
 
 /* ---------- focus view (default): one topic per screen ---------- */
-.bar:empty {
-  display: none;
-}
-.bar-add {
-  margin-left: auto;
-}
+
 .focus {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
 }
-.fnav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.fnav-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-.fnav-pos {
-  font-size: 13.5px;
-  font-weight: 600;
-  min-width: 108px;
-  text-align: center;
-}
 .icon-btn:disabled {
   opacity: 0.35;
   cursor: default;
-}
-.view-toggle {
-  margin-left: auto;
-  display: inline-flex;
-  gap: 14px;
-}
-.view-toggle button {
-  background: none;
-  border: 0;
-  padding: 4px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-}
-.view-toggle button[aria-pressed='true'] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
-  cursor: default;
-}
-.view-toggle button:hover:not([aria-pressed='true']) {
-  color: var(--ink);
 }
 .cols-bar {
   justify-content: space-between;
@@ -939,58 +743,25 @@
 .cols-bar .cols-hint {
   margin: 0;
 }
-.steps .tab[aria-selected='true'] {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
-}
-.col.is-focus {
-  border-top: 0;
-  padding-top: 0;
-  gap: 14px;
-}
-.col.is-focus .col-title h2 {
-  font-size: clamp(24px, 3.2vw, 38px);
-  line-height: 1.15;
-  font-weight: 800;
-}
-.col.is-focus .col-title {
-  padding-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.col.is-focus .col-count {
-  font-size: 14px;
-}
-.col.is-focus .add-card {
-  align-self: flex-start;
-  width: auto;
-}
-.col.is-focus .col-gif {
-  max-height: 180px;
-  align-self: flex-start;
-}
 .fgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
-  align-items: start;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: stretch;
+  gap: 24px;
   padding: 0 8px 12px 0;
 }
-.fgrid > .hidden-line,
 .fgrid > .col-empty {
   grid-column: 1 / -1;
 }
 @media (max-width: 600px) {
-  .fnav-pos {
-    flex: 1;
-  }
-  .col.is-focus .col-title h2 {
-    font-size: 24px;
-  }
   .fgrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     padding-right: 6px;
+  }
+  /* a flipped card takes the whole row so its text is readable; flipping back returns it to one cell */
+  .fgrid > .cw:has(.fc.is-flipped) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -1108,37 +879,8 @@
 
 /* Quiet owner actions: on pointer devices they show on card hover or focus-within.
    Touch devices (hover: none) always show them. Spotlight's "Lepas sorotan" is never quiet. */
-.qa {
-  transition: opacity 0.12s ease;
-}
-@media (hover: hover) {
-  .card:not(:hover):not(:focus-within) .qa {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .qa {
-    transition: none;
-  }
-}
-.bar-votes .bar-sort {
-  margin-left: 12px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--muted);
-}
-.bar-votes .bar-sort:hover {
-  color: var(--ink);
-}
+
 /* Owner row under the vote line: always takes its height so cards never jump on hover. */
-.card-qa {
-  flex: 0 0 100%;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  font-size: 13px;
-  min-height: 18px;
-}
 
 /* ---------- rich text editor (add-card dialog) ---------- */
 .rte {
@@ -1289,124 +1031,9 @@ b.rte-err {
 }
 
 /* ---------- focus view: clean one-topic page ---------- */
-.fnav-row {
-  flex-wrap: wrap;
-  position: relative;
-}
-.fnav-pos-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--r);
-  padding: 5px 8px;
-  color: var(--ink);
-  min-width: 0;
-}
-.fnav-pos-btn:hover,
-.fnav-pos-btn[aria-expanded='true'] {
-  border-color: var(--rule);
-}
-.topic-jump .menu {
-  min-width: 260px;
-  max-width: min(420px, calc(100vw - 24px));
-  padding: 4px;
-}
-.topic-menu {
-  max-height: min(60vh, 420px);
-  overflow-y: auto;
-}
-.topic-item {
-  white-space: normal;
-  gap: 10px;
-  justify-content: flex-start;
-}
-.topic-item-n {
-  flex: 0 0 auto;
-  min-width: 1.4em;
-  color: var(--muted);
-  font-size: 12px;
-}
-.topic-item-t {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.topic-item-c {
-  flex: 0 0 auto;
-  color: var(--muted);
-  font-size: 12px;
-}
-.fnav-extras {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px 16px;
-  font-size: 13.5px;
-}
-.fnav-extras .bar-add {
-  margin-left: 0;
-  font-size: 13.5px;
-}
-.view-link,
-.prev-link,
-.group-btn {
-  font-size: 13.5px;
-  font-weight: 600;
-}
-.focus-hint {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-.focus-tools {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  font-size: 14px;
-}
-.focus-tools .bar-votes,
-.focus-tools .bar-done {
-  margin: 0;
-}
-.group-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
+
 .prev-when {
   margin: 0 0 8px;
-}
-.col.is-focus .add-card-focus {
-  margin: 0;
-}
-@media (max-width: 600px) {
-  .fnav-row {
-    gap: 2px 4px;
-  }
-  .fnav-pos {
-    flex: 0 1 auto;
-    min-width: 0;
-  }
-  .fnav-extras {
-    flex: 1 0 100%;
-    margin-left: 0;
-    justify-content: flex-start;
-    gap: 2px 16px;
-    padding-left: 4px;
-  }
-  .topic-jump {
-    position: static;
-  }
-  .topic-jump .menu {
-    left: 0;
-    right: 0;
-    max-width: none;
-  }
 }
 
 /* ---------- spotlight: one slim line ---------- */
@@ -1498,4 +1125,540 @@ b.rte-err {
   color: inherit !important;
   text-decoration: none;
   font-weight: inherit !important;
+}
+
+/* ---------- focus view, old-board look: topic box, flip cards, edge arrows + dock ---------- */
+.sb-main.is-focus-view {
+  padding-bottom: 96px; /* room above the floating dock */
+}
+.focus-wrap {
+  min-width: 0;
+}
+@media (min-width: 601px) {
+  /* side gutters hold the edge arrows, so they never sit on the topic box or cards */
+  .focus-wrap {
+    padding-inline: 76px;
+  }
+}
+.focus {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  gap: 28px;
+}
+.topic-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 22px 24px 16px;
+  min-width: 0;
+}
+.tb-title {
+  font-family: var(--display);
+  font-size: clamp(24px, 2.6vw, 34px);
+  font-weight: 800;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.tb-count {
+  font-family: var(--mono);
+  font-size: 0.6em;
+  font-weight: 700;
+  color: var(--muted);
+  vertical-align: 0.2em;
+  white-space: nowrap;
+}
+.tb-gif {
+  max-height: 160px;
+}
+.tb-acts {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  max-width: 100%;
+}
+.tb-votes {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.tb-votes b {
+  color: var(--ink);
+}
+.tb-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+}
+.tb-more {
+  width: 38px;
+  height: 38px;
+  border-color: var(--rule);
+}
+.tb-hint {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  max-width: 62ch;
+}
+.board-menu .menu {
+  min-width: 232px;
+  max-height: min(660px, calc(100dvh - 150px));
+  overflow-y: auto;
+  text-align: left;
+}
+.menu-t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cols-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+}
+.cols-bar .cols-hint {
+  flex: 1;
+}
+.cols-bar .tb-votes {
+  margin-left: 8px;
+}
+
+/* flip card */
+.fgrid .card-closed {
+  min-height: 260px;
+}
+.fc {
+  --mood: var(--mood-l, var(--rule));
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  perspective: 1200px;
+  cursor: pointer;
+  scroll-margin: 120px 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .fc {
+    --mood: var(--mood-d, var(--rule));
+  }
+}
+.fc:focus-within,
+.fc.is-flipped {
+  z-index: 2;
+}
+.fc-inner {
+  position: relative;
+  height: 100%;
+  min-height: 260px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.fc.is-flipped .fc-inner {
+  transform: rotateY(180deg);
+}
+.fc-face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fc-face:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.fc-front {
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 44px 16px;
+  text-align: center;
+  user-select: none;
+  overflow: hidden;
+}
+.fc-back {
+  position: relative;
+  height: 100%;
+  transform: rotateY(180deg);
+  padding: 14px 16px;
+  gap: 10px;
+  cursor: auto;
+}
+.fc-kao {
+  font-family: var(--mono);
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ink);
+}
+.fc-kao.is-pending {
+  color: var(--muted);
+}
+.fc-mood {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-front-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fc-front-foot {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+}
+.fc-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.fc-spot-k {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--on-blue);
+  background: var(--blue);
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+}
+.fc-votes {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.fc-votes.is-voted {
+  color: var(--ok);
+}
+.fc-back-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 28px;
+}
+.fc-who {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding-top: 3px;
+}
+.fc-side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fc-author {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.fc-back-kao {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.fc-more {
+  width: 28px;
+  height: 28px;
+}
+.fc-back .card-text {
+  flex: 1 1 auto;
+}
+.fc-back-f {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.fc.is-spot .fc-face {
+  border-color: var(--ink);
+}
+/* Modern: mood shows as a quiet bottom bar, never a hard shadow. */
+.fc.has-mood .fc-face {
+  box-shadow: inset 0 -4px 0 var(--mood);
+}
+.fc.is-spot .fc-face {
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+.cols .fc-inner,
+.cols .fc-face {
+  min-height: 160px;
+}
+.cols .fc-front {
+  padding: 36px 12px;
+}
+.cols .card-closed {
+  min-height: 160px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-inner {
+    transition: none;
+  }
+}
+/* reveal (write -> discuss): the closed back turns into the kaomoji front */
+.cw.is-flip .fc,
+.cw.is-flip .fc-inner {
+  transform-style: preserve-3d;
+}
+.cw.is-flip .fc-back {
+  visibility: hidden;
+}
+
+/* edge arrows + dock (focus view) */
+.edge-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+}
+.edge-prev {
+  left: calc(var(--edge-l, 0px) + 6px);
+}
+.edge-next {
+  right: calc(var(--edge-r, 0px) + 6px);
+}
+.edge-btn:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.edge-btn:disabled,
+.dock-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tnav.is-measuring .edge-btn,
+.tnav.is-measuring .dock {
+  visibility: hidden;
+}
+.dock {
+  position: fixed;
+  bottom: 16px;
+  left: var(--edge-c, 50%);
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  max-width: calc(100vw - 24px);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  box-shadow: var(--menu-shadow);
+}
+.dock-dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.dock-dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.dock-dot::after {
+  content: '';
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--muted);
+  border-radius: 2px;
+  background: transparent;
+}
+.dock-dot:hover::after {
+  border-color: var(--ink);
+}
+.dock-dot.is-on::after {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+.dock-arrow {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  background: var(--card);
+  color: var(--ink);
+}
+.dock-pos {
+  display: none;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 3em;
+  text-align: center;
+}
+.tnav.is-many .dock-dots {
+  display: none;
+}
+.tnav.is-many .dock-pos {
+  display: block;
+}
+@media (max-width: 600px) {
+  .edge-btn {
+    display: none;
+  }
+  .dock-arrow {
+    display: flex;
+  }
+  .dock {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .topic-box {
+    padding: 18px 14px 14px;
+  }
+  .tb-title {
+    font-size: 24px;
+  }
+}
+
+/* ---------- phones: compact 2-up flip cards ---------- */
+@media (max-width: 600px) {
+  .sb-main.is-focus-view {
+    padding-bottom: 104px; /* the floating dock must never cover the last row */
+  }
+  .focus {
+    gap: 16px;
+  }
+  .topic-box {
+    padding: 14px 12px 12px;
+    gap: 10px;
+  }
+  .tb-title {
+    font-size: 22px;
+  }
+  .fgrid .card-closed {
+    min-height: 168px;
+  }
+  .fc-inner,
+  .fc-face {
+    min-height: 168px;
+  }
+  /* no 3D turn on phones (the card changes size when it flips): swap the faces with a quick fade */
+  .fc-inner {
+    transform: none !important;
+    transform-style: flat;
+    transition: none;
+  }
+  .fc-back {
+    transform: none;
+    padding: 12px;
+  }
+  .fc:not(.is-flipped) .fc-back,
+  .fc.is-flipped .fc-front {
+    display: none;
+  }
+  .fc.is-flipped .fc-back,
+  .fc:not(.is-flipped) .fc-front {
+    animation: fc-fade 0.18s ease-out both;
+  }
+  .fc-front {
+    gap: 8px;
+    padding: 30px 6px 28px;
+  }
+  .fc-kao {
+    font-size: 26px;
+    text-overflow: ellipsis;
+    letter-spacing: -0.04em;
+  }
+  .fc-mood {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .fc-front-top {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .fc-front-top .fc-tag {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fc-front-foot {
+    right: 8px;
+    bottom: 8px;
+  }
+  .fc-tag {
+    font-size: 10.5px;
+  }
+  .fc-votes {
+    font-size: 11px;
+  }
+}
+@keyframes fc-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-back,
+  .fc-front {
+    animation: none !important;
+  }
 }

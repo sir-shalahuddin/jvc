@@ -312,18 +312,7 @@ html:not([data-ui-style='modern']) .sh-m .phase-btn {
 }
 
 /* ---------- board ---------- */
-html:not([data-ui-style='modern']) .bar-hint {
-  color: var(--ink);
-}
-html:not([data-ui-style='modern']) .bar-votes {
-  font-family: var(--mono);
-  font-weight: 800;
-  border: 2.5px solid var(--ink);
-  background: var(--tint);
-  box-shadow: 3px 3px 0 var(--hard);
-  padding: 3px 10px;
-}
-html:not([data-ui-style='modern']) .filter button,
+
 html:not([data-ui-style='modern']) .tab {
   font-family: var(--mono);
   font-size: 12.5px;
@@ -331,7 +320,6 @@ html:not([data-ui-style='modern']) .tab {
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
-html:not([data-ui-style='modern']) .filter button[aria-pressed='true'],
 html:not([data-ui-style='modern']) .tab[aria-selected='true'] {
   border-bottom-width: 3px;
 }
@@ -343,13 +331,11 @@ html:not([data-ui-style='modern']) .tab {
   border-bottom-width: 3px;
 }
 
-html:not([data-ui-style='modern']) .prev,
 html:not([data-ui-style='modern']) .panel {
   border: 3px solid var(--ink);
   background: var(--card);
   box-shadow: 5px 5px 0 var(--hard);
 }
-html:not([data-ui-style='modern']) .prev-title,
 html:not([data-ui-style='modern']) .panel-h h2 {
   font-family: var(--display);
   font-weight: 900;
@@ -400,13 +386,6 @@ html:not([data-ui-style='modern']) .add-card {
   color: var(--ink);
   background: var(--tint);
 }
-html:not([data-ui-style='modern']) .hidden-line {
-  border: 2.5px dashed var(--ink);
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 12px;
-  background: var(--soft);
-}
 
 html:not([data-ui-style='modern']) .card {
   border: 3px solid var(--ink);
@@ -432,27 +411,6 @@ html:not([data-ui-style='modern']) .card.is-spot {
 html:not([data-ui-style='modern']) .card-text {
   font-size: 14.5px;
   font-weight: 500;
-}
-html:not([data-ui-style='modern']) .card-sent,
-html:not([data-ui-style='modern']) .tag,
-html:not([data-ui-style='modern']) .tag-btn,
-html:not([data-ui-style='modern']) .card-meta {
-  font-family: var(--mono);
-  font-size: 11.5px;
-}
-html:not([data-ui-style='modern']) .card-sent {
-  border: 2px solid var(--ink);
-  padding: 0 5px;
-  color: var(--ink);
-  text-transform: lowercase;
-}
-html:not([data-ui-style='modern']) .tag {
-  color: var(--ink);
-  font-weight: 800;
-}
-html:not([data-ui-style='modern']) .card-foot {
-  border-top: 2px solid var(--ink);
-  padding-top: 6px;
 }
 html:not([data-ui-style='modern']) .card-gif {
   border: 2px solid var(--ink);
@@ -580,48 +538,10 @@ html:not([data-ui-style='modern']) .user-avatar {
 }
 
 /* focus view */
-html:not([data-ui-style='modern']) .col.is-focus .col-title h2 {
-  font-family: var(--display);
-  font-weight: 900;
-  font-size: clamp(26px, 3.4vw, 42px);
-  line-height: 1.1;
-}
-html:not([data-ui-style='modern']) .col-hint {
-  text-transform: none;
-  letter-spacing: 0;
-  font-family: inherit;
-  font-weight: 500;
-  font-size: 13px;
-}
-html:not([data-ui-style='modern']) .fnav-pos,
-html:not([data-ui-style='modern']) .view-toggle button {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-html:not([data-ui-style='modern']) .view-toggle button[aria-pressed='true'] {
-  border-bottom-width: 3px;
-}
+
 html:not([data-ui-style='modern']) .fgrid {
   gap: 14px;
   padding: 0 8px 14px 0;
-}
-html:not([data-ui-style='modern']) .col.is-focus {
-  gap: 16px;
-}
-@media (max-width: 600px) {
-  html:not([data-ui-style='modern']) .col.is-focus .col-title h2 {
-    font-size: 26px;
-  }
-}
-html:not([data-ui-style='modern']) .col.is-focus {
-  border-top: 0;
-  padding-top: 6px;
-}
-html:not([data-ui-style='modern']) .fnav {
-  padding-bottom: 2px;
 }
 
 /* discuss layout: action fold (narrow screens) */
@@ -697,33 +617,7 @@ html:not([data-ui-style='modern']) .card-text a {
 }
 
 /* ---------- clean focus view ---------- */
-html:not([data-ui-style='modern']) .fnav-pos-btn {
-  border-radius: 0;
-  border-width: 2px;
-}
-html:not([data-ui-style='modern']) .fnav-pos-btn:hover,
-html:not([data-ui-style='modern']) .fnav-pos-btn[aria-expanded='true'] {
-  border-color: var(--ink);
-  background: var(--tint);
-}
-html:not([data-ui-style='modern']) .view-link,
-html:not([data-ui-style='modern']) .prev-link,
-html:not([data-ui-style='modern']) .group-btn,
-html:not([data-ui-style='modern']) .fnav-extras .bar-add {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-html:not([data-ui-style='modern']) .focus-hint {
-  color: var(--ink);
-}
-html:not([data-ui-style='modern']) .topic-item-n,
-html:not([data-ui-style='modern']) .topic-item-c {
-  font-family: var(--mono);
-  font-weight: 700;
-}
+
 html:not([data-ui-style='modern']) .menu-item[aria-current='true'] {
   background: var(--tint);
   font-weight: 800;
@@ -756,4 +650,271 @@ html:not([data-ui-style='modern']) .aside-hide {
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+/* ---------- old-board look (focus view): topic box, kaomoji flip cards, edge arrows, dock ---------- */
+html:not([data-ui-style='modern']) .topic-box {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: 6px 6px 0 var(--hard);
+  padding: 24px 28px 16px;
+  gap: 14px;
+}
+html:not([data-ui-style='modern']) .tb-title {
+  font-family: var(--display);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+html:not([data-ui-style='modern']) .tb-count {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.55em;
+  font-weight: 800;
+  color: var(--link);
+  background: var(--tint);
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+  padding: 0 7px;
+  vertical-align: 0.3em;
+  line-height: 1.5;
+}
+html:not([data-ui-style='modern']) .tb-votes {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+html:not([data-ui-style='modern']) .tb-filter {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+html:not([data-ui-style='modern']) .tb-more {
+  width: 40px;
+  height: 40px;
+  border-width: 2.5px;
+  box-shadow: 3px 3px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .tb-add {
+  font-size: 13.5px;
+  padding: 9px 18px;
+}
+html:not([data-ui-style='modern']) .tb-hint {
+  align-self: stretch;
+  max-width: none;
+  border-top: 2px dashed var(--ink);
+  padding-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+html:not([data-ui-style='modern']) .fgrid {
+  gap: 24px;
+  padding: 0 8px 14px 0;
+}
+html:not([data-ui-style='modern']) .fc {
+  --mood: var(--mood-l, var(--hard));
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-ui-style='modern']) .fc {
+    --mood: var(--mood-d, var(--hard));
+  }
+}
+html:not([data-ui-style='modern']) .fc-face,
+html:not([data-ui-style='modern']) .fc.has-mood .fc-face {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: 6px 6px 0 var(--mood);
+  transition: box-shadow 0.15s ease;
+}
+html:not([data-ui-style='modern']) .fc:hover .fc-face {
+  box-shadow: 8px 8px 0 var(--mood);
+}
+html:not([data-ui-style='modern']) .fc.is-spot .fc-face {
+  box-shadow: 7px 7px 0 var(--blue);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .fc-face:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+html:not([data-ui-style='modern']) .fc-kao {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(30px, 3vw, 40px);
+}
+html:not([data-ui-style='modern']) .fc-mood {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: var(--card);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--hard);
+  padding: 4px 12px;
+}
+html:not([data-ui-style='modern']) .fc-mood.is-pending {
+  color: var(--muted);
+}
+html:not([data-ui-style='modern']) .fc-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink);
+  background: var(--tint);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+  padding: 0 6px;
+}
+html:not([data-ui-style='modern']) .fc-spot-k {
+  font-family: var(--mono);
+  font-weight: 800;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .fc-votes {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--hard);
+  padding: 1px 7px;
+}
+html:not([data-ui-style='modern']) .fc-votes.is-voted {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+html:not([data-ui-style='modern']) .fc-author {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--link);
+}
+html:not([data-ui-style='modern']) .fc-back-kao {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 0 5px;
+}
+html:not([data-ui-style='modern']) .fc-back-f {
+  border-top: 2px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .fgrid .card-closed {
+  box-shadow: 6px 6px 0 var(--hard);
+}
+
+html:not([data-ui-style='modern']) .edge-btn {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--link);
+  box-shadow: 4px 4px 0 var(--hard);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+html:not([data-ui-style='modern']) .edge-btn:hover:not(:disabled) {
+  transform: translate(-2px, calc(-50% - 2px));
+  box-shadow: 6px 6px 0 var(--hard);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .edge-btn:active:not(:disabled) {
+  transform: translate(2px, calc(-50% + 2px));
+  box-shadow: 0 0 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .dock {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--hard);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .dock-dot::after {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--soft);
+}
+html:not([data-ui-style='modern']) .dock-dot.is-on::after {
+  background: var(--blue);
+  border-color: var(--ink);
+}
+html:not([data-ui-style='modern']) .dock-arrow {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .dock-pos {
+  font-family: var(--mono);
+  font-weight: 800;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-ui-style='modern']) .edge-btn,
+  html:not([data-ui-style='modern']) .fc-face {
+    transition: none;
+  }
+  html:not([data-ui-style='modern']) .edge-btn:hover:not(:disabled),
+  html:not([data-ui-style='modern']) .edge-btn:active:not(:disabled) {
+    transform: translateY(-50%);
+  }
+}
+html:not([data-ui-style='modern']) .cols .fc-kao,
+.cols .fc-kao {
+  font-size: 24px;
+}
+
+/* phones: thinner borders and shadows on the compact 2-up cards */
+@media (max-width: 600px) {
+  html:not([data-ui-style='modern']) .fgrid {
+    gap: 12px;
+    padding: 0 4px 10px 0;
+  }
+  html:not([data-ui-style='modern']) .fc-face,
+  html:not([data-ui-style='modern']) .fc.has-mood .fc-face {
+    border-width: 2px;
+    box-shadow: 4px 4px 0 var(--mood);
+  }
+  html:not([data-ui-style='modern']) .fc:hover .fc-face {
+    box-shadow: 4px 4px 0 var(--mood);
+  }
+  html:not([data-ui-style='modern']) .fc.is-spot .fc-face {
+    box-shadow: 4px 4px 0 var(--blue);
+  }
+  html:not([data-ui-style='modern']) .fgrid .card-closed {
+    border-width: 2px;
+    box-shadow: 4px 4px 0 var(--hard);
+  }
+  html:not([data-ui-style='modern']) .fc-kao {
+    font-size: 26px;
+  }
+  html:not([data-ui-style='modern']) .fc-mood {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    border-width: 2px;
+    box-shadow: 2px 2px 0 var(--hard);
+    padding: 2px 7px;
+  }
+  html:not([data-ui-style='modern']) .fc-tag {
+    font-size: 10px;
+    border-width: 1.5px;
+    box-shadow: 1px 1px 0 var(--hard);
+    padding: 0 4px;
+  }
+  html:not([data-ui-style='modern']) .fc-votes {
+    font-size: 11px;
+    border-width: 1.5px;
+    box-shadow: 1px 1px 0 var(--hard);
+    padding: 0 5px;
+  }
+  html:not([data-ui-style='modern']) .topic-box {
+    padding: 14px 12px 12px;
+    border-width: 2px;
+    box-shadow: 4px 4px 0 var(--hard);
+  }
 }

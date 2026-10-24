@@ -21,14 +21,13 @@ import { fetchCurrentUser } from '../services/api';
 import { copyText, resolveInviteUrl } from '../services/links';
 import { useToast } from '../components/common/Toast';
 import { Modal } from '../components/common/Modal';
-import { Menu } from '../components/common/Menu';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useBoardState } from '../components/session/useBoardState';
 import { PresenceList, SessionHeader } from '../components/session/SessionHeader';
 import { useTimerSeconds } from '../components/session/SessionTimer';
 import { Board, type BoardView } from '../components/session/Board';
 import { SpotlightBanner } from '../components/session/SpotlightBanner';
-import { PreviousActions } from '../components/session/PreviousActions';
+import { PreviousActions, openPromises } from '../components/session/PreviousActions';
 import { ActionPanel, type ActionDraft } from '../components/session/ActionPanel';
 import { SubmitCardModal } from '../components/session/modals/SubmitCardModal';
 import { TopicModal } from '../components/session/modals/TopicModal';
@@ -155,6 +154,7 @@ export const SessionBoardPage: React.FC = () => {
   const [actionsLoaded, setActionsLoaded] = useState(false);
   const [actionDraft, setActionDraft] = useState<ActionDraft | null>(null);
   const [prev, setPrev] = useState<Prev | null>(null);
+  const [prevOpen, setPrevOpen] = useState(false);
 
   const [submitTopic, setSubmitTopic] = useState<Question | null>(null);
   const [topicModal, setTopicModal] = useState<{ open: boolean; edit: Question | null }>({ open: false, edit: null });
@@ -384,7 +384,7 @@ export const SessionBoardPage: React.FC = () => {
       const el = document.getElementById(`card-${spotCard.id}`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        el.focus?.();
+        (el.querySelector('[data-face="on"]') as HTMLElement | null)?.focus({ preventScroll: true });
       }
     }, 90);
   }, [spotCard, questions, clusterFilter]);
@@ -460,6 +460,7 @@ export const SessionBoardPage: React.FC = () => {
   const togglePrev = async (item: ActionItem, completed: boolean): Promise<boolean> => {
     try {
       await toggleActionItemApi(item.session_id || prev?.session?.id || '', item.id, completed);
+      setPrev((d) => (d ? { ...d, items: d.items.map((i) => (i.id === item.id ? { ...i, completed } : i)) } : d));
       return true;
     } catch (e) {
       showToast(msg(e, 'Gagal memperbarui janji'), 'error');
@@ -541,73 +542,7 @@ export const SessionBoardPage: React.FC = () => {
   }
 
   const hint = phaseHint(phase);
-  const showClusterFilter = phase !== 'write' && clusterNames.length > 0;
-  const focusView = view === 'focus';
-
-  const votesNode = (
-    <p className="bar-votes" aria-live="polite">
-      Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
-      <button type="button" className="link-btn bar-sort" onClick={() => setSortTick((n) => n + 1)} title="Urutkan kartu berdasarkan vote, lalu kunci urutannya">
-        Urutkan by vote
-      </button>
-    </p>
-  );
-  const doneNode = (
-    <p className="bar-done">
-      <a href={`/session/summary?id=${encodeURIComponent(sessionId)}`} target="_blank" rel="noopener">
-        Lihat ringkasan
-      </a>
-      {isOwner && (
-        <button type="button" className="btn sm" onClick={shareSummary}>
-          Bagikan ringkasan
-        </button>
-      )}
-    </p>
-  );
-  const addTopicBtn = (
-    <button type="button" className="link-btn bar-add" onClick={() => setTopicModal({ open: true, edit: null })}>
-      + Topik
-    </button>
-  );
-  const clusterMenu = showClusterFilter && (
-    <Menu
-      label="Filter kelompok"
-      align="left"
-      trigger={(t) => (
-        <button type="button" {...t} className="link-btn group-btn">
-          Kelompok: {clusterFilter || 'Semua'} <ChevronDown size={14} aria-hidden="true" />
-        </button>
-      )}
-    >
-      {(close) => (
-        <>
-          <button type="button" role="menuitem" className="menu-item" aria-current={!clusterFilter ? 'true' : undefined} onClick={() => (close(), setClusterFilter(''))}>
-            Semua
-          </button>
-          {(data.clusters || []).map((c) => (
-            <button key={c.tag} type="button" role="menuitem" className="menu-item" aria-current={clusterFilter === c.tag ? 'true' : undefined} onClick={() => (close(), setClusterFilter(c.tag))}>
-              {c.tag} <span className="hint num">{c.count}</span>
-            </button>
-          ))}
-        </>
-      )}
-    </Menu>
-  );
-  const focusTools =
-    phase === 'write' ? null : (
-      <div className="focus-tools">
-        {phase === 'discuss' && votesNode}
-        {clusterMenu}
-        {phase === 'done' && doneNode}
-      </div>
-    );
-  const navExtras = (
-    <>
-      {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} variant="link" />}
-      {isOwner && phase !== 'done' && addTopicBtn}
-    </>
-  );
-
+  const summaryHref = `/session/summary?id=${encodeURIComponent(sessionId)}`;
   return (
     <div className="sb">
       <SessionHeader
@@ -626,40 +561,13 @@ export const SessionBoardPage: React.FC = () => {
         onInvite={invite}
         canExport={isOwner && phase !== 'write'}
         onExport={exportPdf}
-        summaryHref={phase !== 'write' ? `/session/summary?id=${encodeURIComponent(sessionId)}` : null}
+        summaryHref={phase !== 'write' ? summaryHref : null}
         onShortcuts={() => setShortcutsOpen(true)}
         offline={offline}
       />
 
-      <main className="sb-main">
-        {!focusView && prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} />}
-
+      <main className={`sb-main ${view === 'focus' ? 'is-focus-view' : ''}`}>
         <SpotlightBanner card={spotCard} topic={spotTopic} isOwner={isOwner} onJump={jumpToSpotlight} onClear={clearSpotlight} />
-
-        {!focusView && (
-          <>
-            <div className="bar">
-              <p className="bar-hint">{hint}</p>
-              {phase === 'discuss' && votesNode}
-              {phase === 'done' && doneNode}
-              {isOwner && phase !== 'done' && addTopicBtn}
-            </div>
-
-            {showClusterFilter && (
-              <div className="filter" role="group" aria-label="Filter kelompok">
-                <span className="muted">Kelompok:</span>
-                <button type="button" aria-pressed={!clusterFilter} onClick={() => setClusterFilter('')}>
-                  Semua
-                </button>
-                {(data.clusters || []).map((c) => (
-                  <button key={c.tag} type="button" aria-pressed={clusterFilter === c.tag} onClick={() => setClusterFilter(c.tag)}>
-                    {c.tag} <span className="num muted">{c.count}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
-        )}
 
         <div className={showActions && wide ? `sb-split has-aside ${asideOpen ? '' : 'aside-closed'}` : 'sb-split'}>
           <div className="sb-board">
@@ -675,11 +583,14 @@ export const SessionBoardPage: React.FC = () => {
             activeIndex={Math.min(activeIndex, Math.max(0, questions.length - 1))}
             setActiveIndex={setActiveIndex}
             clusterFilter={clusterFilter}
-            clusters={clusterNames}
+            setClusterFilter={setClusterFilter}
+            clusterCounts={phase === 'write' ? [] : (data.clusters || []).filter((c) => c.tag)}
             votedIds={votedIds}
             votesLeft={votesLeft}
+            budget={budget}
             sessionId={sessionId}
             sortTick={sortTick}
+            onSort={() => setSortTick((n) => n + 1)}
             spotlightId={spotlightId}
             busyIds={busyIds}
             onAddCard={(q) => setSubmitTopic(q)}
@@ -691,8 +602,10 @@ export const SessionBoardPage: React.FC = () => {
             onSpotlight={toggleSpotlight}
             onMakeAction={makeAction}
             hint={hint}
-            tools={focusTools}
-            navExtras={navExtras}
+            prevOpen={openPromises(prev)}
+            onOpenPrev={() => setPrevOpen(true)}
+            summaryHref={phase === 'done' ? summaryHref : null}
+            onShareSummary={shareSummary}
           />
           </div>
           {showActions && wide && asideOpen && (
@@ -761,6 +674,7 @@ export const SessionBoardPage: React.FC = () => {
         questionToEdit={topicModal.edit}
         onSave={saveTopic}
       />
+      {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} isOpen={prevOpen} onClose={() => setPrevOpen(false)} />}
       <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} isOwner={isOwner} />
       <Modal isOpen={presenceOpen} onClose={() => setPresenceOpen(false)} title="Peserta" maxWidth="400px">
         <PresenceList presence={data.presence || { count: 1, participants: [] }} />
@@ -772,9 +686,9 @@ export const SessionBoardPage: React.FC = () => {
 function phaseHint(phase: Phase): string {
   switch (phase) {
     case 'write':
-      return 'Tulis kartu. Kartu orang lain dibuka bersamaan saat fasilitator pindah ke Bahas.';
+      return 'Kartu orang lain terbuka bersamaan saat fasilitator pindah ke Bahas. Klik kartumu untuk membaliknya.';
     case 'discuss':
-      return 'Kelompokkan, vote, lalu bahas kartu teratas dan catat aksinya.';
+      return 'Klik kartu untuk membaliknya. Vote, lalu bahas kartu teratas dan catat aksinya.';
     case 'done':
       return 'Sesi selesai. Papan hanya bisa dibaca.';
   }
