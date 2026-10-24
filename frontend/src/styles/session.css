@@ -1662,3 +1662,15 @@ b.rte-err {
     animation: none !important;
   }
 }
+.tb-sum {
+  font-size: 13.5px;
+  padding: 8px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .tb-sum {
+    font-size: 13px;
+    padding: 7px 11px;
+  }
+}

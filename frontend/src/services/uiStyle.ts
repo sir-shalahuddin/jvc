@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 export type UiStyle = 'brutalist' | 'modern';
-const KEY = 'ui_theme_style';
+const KEY = 'retro_ui_style';
 const EVENT = 'retro:ui-style';
 
 export const UI_STYLE_LABEL: Record<UiStyle, string> = { brutalist: 'Brutalist', modern: 'Modern' };

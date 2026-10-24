@@ -918,3 +918,7 @@ html:not([data-ui-style='modern']) .cols .fc-kao,
     box-shadow: 4px 4px 0 var(--hard);
   }
 }
+html:not([data-ui-style='modern']) .tb-sum {
+  font-size: 13px;
+  padding: 8px 14px;
+}

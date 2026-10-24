@@ -50,6 +50,8 @@ interface Props extends BoardHandlers {
   /** Done: summary link and (owner) share. */
   summaryHref: string | null;
   onShareSummary: () => void;
+  /** Done, owner only: open the PDF report. */
+  onExport: () => void;
 }
 
 const byVotes = (a: Answer, b: Answer) => (b.votes || 0) - (a.votes || 0);
@@ -317,14 +319,14 @@ export const Board: React.FC<Props> = (p) => {
                 )}
               </>
             )}
-            {(p.prevOpen !== null || (p.phase === 'done' && p.summaryHref)) && <div className="menu-sep" role="separator" />}
+            {(p.prevOpen !== null || (p.phase === 'done' && p.summaryHref && !q)) && <div className="menu-sep" role="separator" />}
             {p.prevOpen !== null && item(`Janji sesi lalu (${p.prevOpen})`, p.onOpenPrev)}
-            {p.phase === 'done' && p.summaryHref && (
+            {p.phase === 'done' && p.summaryHref && !q && (
               <a role="menuitem" className="menu-item" href={p.summaryHref} target="_blank" rel="noopener" onClick={close}>
                 Lihat ringkasan
               </a>
             )}
-            {p.phase === 'done' && p.isOwner && item('Bagikan ringkasan', p.onShareSummary)}
+            {p.phase === 'done' && p.isOwner && !q && item('Bagikan ringkasan', p.onShareSummary)}
             {p.isOwner && (p.phase !== 'done' || q) && (
               <>
                 <div className="menu-sep" role="separator" />
@@ -432,6 +434,23 @@ export const Board: React.FC<Props> = (p) => {
                 <button type="button" className="btn primary tb-add" onClick={() => p.onAddCard(q)}>
                   <Plus size={16} aria-hidden="true" /> Tulis kartu
                 </button>
+              )}
+              {p.phase === 'done' && p.summaryHref && (
+                <>
+                  <a className="btn primary tb-sum" href={p.summaryHref} target="_blank" rel="noopener">
+                    Lihat ringkasan
+                  </a>
+                  {p.isOwner && (
+                    <button type="button" className="btn tb-sum" onClick={p.onExport}>
+                      Export PDF
+                    </button>
+                  )}
+                  {p.isOwner && (
+                    <button type="button" className="btn tb-sum" onClick={p.onShareSummary}>
+                      Bagikan ringkasan
+                    </button>
+                  )}
+                </>
               )}
               {p.phase === 'discuss' && (
                 <p className="tb-votes" aria-live="polite">

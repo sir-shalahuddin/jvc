@@ -93,9 +93,10 @@ function useMediaQuery(q: string): boolean {
 const ASIDE_KEY = 'retro_aside_open';
 function readAside(): boolean {
   try {
-    return localStorage.getItem(ASIDE_KEY) !== '0';
+    // Closed by default; opens only after the user chose to open it.
+    return localStorage.getItem(ASIDE_KEY) === '1';
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -606,6 +607,7 @@ export const SessionBoardPage: React.FC = () => {
             onOpenPrev={() => setPrevOpen(true)}
             summaryHref={phase === 'done' ? summaryHref : null}
             onShareSummary={shareSummary}
+            onExport={exportPdf}
           />
           </div>
           {showActions && wide && asideOpen && (
