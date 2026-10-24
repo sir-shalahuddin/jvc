@@ -645,3 +645,115 @@ html:not([data-ui-style='modern']) .act-fold-btn[aria-expanded='true'] {
 html:not([data-ui-style='modern']) .act-fold > div:not([hidden]) > .panel {
   border-top: 0;
 }
+
+/* ---------- rich text editor + formatted cards ---------- */
+html:not([data-ui-style='modern']) .rte {
+  border: 2.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: 3px 3px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .rte:focus-within {
+  border-color: var(--blue);
+}
+html:not([data-ui-style='modern']) .rte-bar {
+  border-bottom: 2.5px solid var(--ink);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .rte-btn {
+  border-radius: 0;
+  border-width: 2px;
+}
+html:not([data-ui-style='modern']) .rte-btn:hover {
+  border-color: var(--ink);
+  background: var(--card);
+}
+html:not([data-ui-style='modern']) .rte-btn[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--blue);
+  color: var(--on-blue);
+}
+html:not([data-ui-style='modern']) .rte-sep {
+  width: 2px;
+  background: var(--ink);
+}
+html:not([data-ui-style='modern']) .rte-link {
+  border-bottom: 2.5px solid var(--ink);
+}
+html:not([data-ui-style='modern']) .rte-content {
+  font-weight: 500;
+}
+html:not([data-ui-style='modern']) .rte-content code,
+html:not([data-ui-style='modern']) .card-text code {
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--tint);
+  font-weight: 600;
+}
+html:not([data-ui-style='modern']) .rte-content a,
+html:not([data-ui-style='modern']) .card-text a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* ---------- clean focus view ---------- */
+html:not([data-ui-style='modern']) .fnav-pos-btn {
+  border-radius: 0;
+  border-width: 2px;
+}
+html:not([data-ui-style='modern']) .fnav-pos-btn:hover,
+html:not([data-ui-style='modern']) .fnav-pos-btn[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--tint);
+}
+html:not([data-ui-style='modern']) .view-link,
+html:not([data-ui-style='modern']) .prev-link,
+html:not([data-ui-style='modern']) .group-btn,
+html:not([data-ui-style='modern']) .fnav-extras .bar-add {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+html:not([data-ui-style='modern']) .focus-hint {
+  color: var(--ink);
+}
+html:not([data-ui-style='modern']) .topic-item-n,
+html:not([data-ui-style='modern']) .topic-item-c {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+html:not([data-ui-style='modern']) .menu-item[aria-current='true'] {
+  background: var(--tint);
+  font-weight: 800;
+}
+html:not([data-ui-style='modern']) .spot {
+  border-width: 2.5px;
+  border-left-width: 8px;
+  box-shadow: 3px 3px 0 var(--hard);
+}
+html:not([data-ui-style='modern']) .spot-line .spot-k {
+  font-size: 11px;
+}
+html:not([data-ui-style='modern']) .spot-line .spot-text {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14.5px;
+}
+html:not([data-ui-style='modern']) .aside-tab {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: 3px 3px 0 var(--hard);
+  font-family: var(--mono);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+html:not([data-ui-style='modern']) .aside-hide {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}

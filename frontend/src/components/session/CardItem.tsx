@@ -1,6 +1,7 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import type { Answer, Phase } from '../../types/session';
+import { sanitizeCardHtml } from '../../lib/cardHtml';
 
 interface Props {
   answer: Answer;
@@ -39,6 +40,7 @@ export const CardItem: React.FC<Props> = ({
   const [editingTag, setEditingTag] = useState(false);
   const [tagDraft, setTagDraft] = useState('');
   const listId = useId();
+  const html = useMemo(() => sanitizeCardHtml(answer.text), [answer.text]);
   const tag = answer.cluster_tag || '';
   const sentiment = (answer.sentiment_emotion || '').trim().toLowerCase();
   const canTag = isOwner && phase === 'discuss';
@@ -129,7 +131,7 @@ export const CardItem: React.FC<Props> = ({
           )}
         </div>
       )}
-      <div className="card-text" dangerouslySetInnerHTML={{ __html: answer.text }} />
+      <div className="card-text" dangerouslySetInnerHTML={{ __html: html }} />
       {answer.gif_url && <img className="card-gif" src={answer.gif_url} alt="" loading="lazy" />}
       <div className="card-foot">
         <span className="card-meta">

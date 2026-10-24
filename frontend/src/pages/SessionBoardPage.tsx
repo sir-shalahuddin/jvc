@@ -16,10 +16,13 @@ import {
   updateQuestion,
   voteAnswer,
 } from '../services/sessionApi';
+import { cardPlainText } from '../lib/cardHtml';
 import { fetchCurrentUser } from '../services/api';
 import { copyText, resolveInviteUrl } from '../services/links';
 import { useToast } from '../components/common/Toast';
 import { Modal } from '../components/common/Modal';
+import { Menu } from '../components/common/Menu';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useBoardState } from '../components/session/useBoardState';
 import { PresenceList, SessionHeader } from '../components/session/SessionHeader';
 import { useTimerSeconds } from '../components/session/SessionTimer';
@@ -88,6 +91,15 @@ function useMediaQuery(q: string): boolean {
   return m;
 }
 
+const ASIDE_KEY = 'retro_aside_open';
+function readAside(): boolean {
+  try {
+    return localStorage.getItem(ASIDE_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
 const VIEW_KEY = 'retro_board_view';
 function readView(): BoardView {
   try {
@@ -95,12 +107,6 @@ function readView(): BoardView {
   } catch {
     return 'focus';
   }
-}
-
-function plainText(html: string) {
-  const d = document.createElement('div');
-  d.innerHTML = html;
-  return (d.textContent || '').trim();
 }
 
 const msg = (e: unknown, fallback: string) => (e instanceof Error && e.message) || fallback;
@@ -115,6 +121,15 @@ export const SessionBoardPage: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 600px)');
   const wide = useMediaQuery('(min-width: 1200px)');
   const [actFoldOpen, setActFoldOpen] = useState(false);
+  const [asideOpen, setAsideOpen] = useState(readAside);
+  const toggleAside = (open: boolean) => {
+    setAsideOpen(open);
+    try {
+      localStorage.setItem(ASIDE_KEY, open ? '1' : '0');
+    } catch {
+      /* private mode */
+    }
+  };
 
   const [guestName, setGuestName] = useState('');
   const alias = guestName || localAlias;
@@ -437,7 +452,8 @@ export const SessionBoardPage: React.FC = () => {
   };
   const makeAction = (a: Answer) => {
     setActFoldOpen(true);
-    setActionDraft({ text: plainText(a.text), answerId: a.id, nonce: Date.now() });
+    setAsideOpen(true);
+    setActionDraft({ text: cardPlainText(a.text), answerId: a.id, nonce: Date.now() });
   };
 
   // Ticking a promise from last time updates the OLD session's item.
@@ -526,6 +542,71 @@ export const SessionBoardPage: React.FC = () => {
 
   const hint = phaseHint(phase);
   const showClusterFilter = phase !== 'write' && clusterNames.length > 0;
+  const focusView = view === 'focus';
+
+  const votesNode = (
+    <p className="bar-votes" aria-live="polite">
+      Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
+      <button type="button" className="link-btn bar-sort" onClick={() => setSortTick((n) => n + 1)} title="Urutkan kartu berdasarkan vote, lalu kunci urutannya">
+        Urutkan by vote
+      </button>
+    </p>
+  );
+  const doneNode = (
+    <p className="bar-done">
+      <a href={`/session/summary?id=${encodeURIComponent(sessionId)}`} target="_blank" rel="noopener">
+        Lihat ringkasan
+      </a>
+      {isOwner && (
+        <button type="button" className="btn sm" onClick={shareSummary}>
+          Bagikan ringkasan
+        </button>
+      )}
+    </p>
+  );
+  const addTopicBtn = (
+    <button type="button" className="link-btn bar-add" onClick={() => setTopicModal({ open: true, edit: null })}>
+      + Topik
+    </button>
+  );
+  const clusterMenu = showClusterFilter && (
+    <Menu
+      label="Filter kelompok"
+      align="left"
+      trigger={(t) => (
+        <button type="button" {...t} className="link-btn group-btn">
+          Kelompok: {clusterFilter || 'Semua'} <ChevronDown size={14} aria-hidden="true" />
+        </button>
+      )}
+    >
+      {(close) => (
+        <>
+          <button type="button" role="menuitem" className="menu-item" aria-current={!clusterFilter ? 'true' : undefined} onClick={() => (close(), setClusterFilter(''))}>
+            Semua
+          </button>
+          {(data.clusters || []).map((c) => (
+            <button key={c.tag} type="button" role="menuitem" className="menu-item" aria-current={clusterFilter === c.tag ? 'true' : undefined} onClick={() => (close(), setClusterFilter(c.tag))}>
+              {c.tag} <span className="hint num">{c.count}</span>
+            </button>
+          ))}
+        </>
+      )}
+    </Menu>
+  );
+  const focusTools =
+    phase === 'write' ? null : (
+      <div className="focus-tools">
+        {phase === 'discuss' && votesNode}
+        {clusterMenu}
+        {phase === 'done' && doneNode}
+      </div>
+    );
+  const navExtras = (
+    <>
+      {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} variant="link" />}
+      {isOwner && phase !== 'done' && addTopicBtn}
+    </>
+  );
 
   return (
     <div className="sb">
@@ -551,54 +632,36 @@ export const SessionBoardPage: React.FC = () => {
       />
 
       <main className="sb-main">
-        {prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} />}
+        {!focusView && prev && <PreviousActions data={prev} canEdit={isOwner} onToggle={togglePrev} phase={phase} />}
 
         <SpotlightBanner card={spotCard} topic={spotTopic} isOwner={isOwner} onJump={jumpToSpotlight} onClear={clearSpotlight} />
 
-        <div className="bar">
-          <p className="bar-hint">{hint}</p>
-          {phase === 'discuss' && (
-            <p className="bar-votes" aria-live="polite">
-              Sisa <b className="num">{votesLeft}</b> vote{budget ? ` dari ${budget}` : ''}
-              <button type="button" className="link-btn bar-sort" onClick={() => setSortTick((n) => n + 1)} title="Urutkan kartu berdasarkan vote, lalu kunci urutannya">
-                Urutkan by vote
-              </button>
-            </p>
-          )}
-          {phase === 'done' && (
-            <p className="bar-done">
-              <a href={`/session/summary?id=${encodeURIComponent(sessionId)}`} target="_blank" rel="noopener">
-                Lihat ringkasan
-              </a>
-              {isOwner && (
-                <button type="button" className="btn sm" onClick={shareSummary}>
-                  Bagikan ringkasan
-                </button>
-              )}
-            </p>
-          )}
-          {isOwner && phase !== 'done' && (
-            <button type="button" className="link-btn bar-add" onClick={() => setTopicModal({ open: true, edit: null })}>
-              + Topik
-            </button>
-          )}
-        </div>
+        {!focusView && (
+          <>
+            <div className="bar">
+              <p className="bar-hint">{hint}</p>
+              {phase === 'discuss' && votesNode}
+              {phase === 'done' && doneNode}
+              {isOwner && phase !== 'done' && addTopicBtn}
+            </div>
 
-        {showClusterFilter && (
-          <div className="filter" role="group" aria-label="Filter kelompok">
-            <span className="muted">Kelompok:</span>
-            <button type="button" aria-pressed={!clusterFilter} onClick={() => setClusterFilter('')}>
-              Semua
-            </button>
-            {(data.clusters || []).map((c) => (
-              <button key={c.tag} type="button" aria-pressed={clusterFilter === c.tag} onClick={() => setClusterFilter(c.tag)}>
-                {c.tag} <span className="num muted">{c.count}</span>
-              </button>
-            ))}
-          </div>
+            {showClusterFilter && (
+              <div className="filter" role="group" aria-label="Filter kelompok">
+                <span className="muted">Kelompok:</span>
+                <button type="button" aria-pressed={!clusterFilter} onClick={() => setClusterFilter('')}>
+                  Semua
+                </button>
+                {(data.clusters || []).map((c) => (
+                  <button key={c.tag} type="button" aria-pressed={clusterFilter === c.tag} onClick={() => setClusterFilter(c.tag)}>
+                    {c.tag} <span className="num muted">{c.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
-        <div className={showActions && wide ? 'sb-split has-aside' : 'sb-split'}>
+        <div className={showActions && wide ? `sb-split has-aside ${asideOpen ? '' : 'aside-closed'}` : 'sb-split'}>
           <div className="sb-board">
           <Board
             view={view}
@@ -627,19 +690,32 @@ export const SessionBoardPage: React.FC = () => {
             onSetCluster={setCluster}
             onSpotlight={toggleSpotlight}
             onMakeAction={makeAction}
+            hint={hint}
+            tools={focusTools}
+            navExtras={navExtras}
           />
           </div>
-          {showActions && wide && <aside className="sb-aside" aria-label="Aksi">
-            <ActionPanel
-              items={actionItems}
-              loaded={actionsLoaded}
-              canEdit={isOwner && phase === 'discuss'}
-              draft={actionDraft}
-              onAdd={addAction}
-              onToggle={toggleAction}
-              onDelete={removeAction}
-            />
-          </aside>}
+          {showActions && wide && asideOpen && (
+            <aside className="sb-aside" aria-label="Aksi">
+              <button type="button" className="aside-hide link-btn" onClick={() => toggleAside(false)} aria-label="Sembunyikan panel aksi" title="Sembunyikan panel aksi">
+                Sembunyikan <ChevronRight size={14} aria-hidden="true" />
+              </button>
+              <ActionPanel
+                items={actionItems}
+                loaded={actionsLoaded}
+                canEdit={isOwner && phase === 'discuss'}
+                draft={actionDraft}
+                onAdd={addAction}
+                onToggle={toggleAction}
+                onDelete={removeAction}
+              />
+            </aside>
+          )}
+          {showActions && wide && !asideOpen && (
+            <button type="button" className="aside-tab" onClick={() => toggleAside(true)} aria-label={`Buka panel aksi, ${actionItems.length} aksi`} aria-expanded="false" title="Buka panel aksi">
+              <span>Aksi ({actionItems.length})</span>
+            </button>
+          )}
           {showActions && !wide && (
             <section className="act-fold">
               <button

@@ -1,7 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Modal } from '../../common/Modal';
 import { searchGiphy, uploadMedia } from '../../../services/sessionApi';
 import { useToast } from '../../common/Toast';
+// Tiptap is ~400 kB: load it only when someone opens the dialog.
+const RichTextEditor = lazy(() => import('../../common/RichTextEditor').then((m) => ({ default: m.RichTextEditor })));
+
+const MAX_CHARS = 2000;
 
 interface Props {
   isOpen: boolean;
@@ -24,7 +28,8 @@ const GIF_CHIPS = [
 
 export const SubmitCardModal: React.FC<Props> = ({ isOpen, onClose, topicTitle, alias, canUpload, onSubmit }) => {
   const { showToast } = useToast();
-  const [text, setText] = useState('');
+  const [html, setHtml] = useState('');
+  const [plain, setPlain] = useState('');
   const [gif, setGif] = useState('');
   const [gifOpen, setGifOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -36,6 +41,8 @@ export const SubmitCardModal: React.FC<Props> = ({ isOpen, onClose, topicTitle, 
 
   useEffect(() => {
     if (!isOpen) return;
+    setHtml('');
+    setPlain('');
     setGifOpen(false);
     setQuery('');
     setResults([]);
@@ -75,12 +82,13 @@ export const SubmitCardModal: React.FC<Props> = ({ isOpen, onClose, topicTitle, 
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!text.trim() || sending) return;
+    if (!plain.trim() || plain.length > MAX_CHARS || sending) return;
     setSending(true);
-    const ok = await onSubmit(text.trim(), gif);
+    const ok = await onSubmit(html, gif);
     setSending(false);
     if (ok) {
-      setText('');
+      setHtml('');
+      setPlain('');
       setGif('');
       onClose();
     }
@@ -97,31 +105,27 @@ export const SubmitCardModal: React.FC<Props> = ({ isOpen, onClose, topicTitle, 
           <button type="button" className="btn" onClick={onClose} disabled={sending}>
             Batal
           </button>
-          <button type="button" className="btn primary" onClick={() => void submit()} disabled={sending || !text.trim()}>
+          <button type="button" className="btn primary" onClick={() => void submit()} disabled={sending || !plain.trim() || plain.length > MAX_CHARS}>
             {sending ? 'Mengirim…' : 'Kirim'}
           </button>
         </>
       }
     >
       <form onSubmit={submit}>
-        <textarea
-          className="inp"
-          rows={5}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-              e.preventDefault();
-              void submit();
-            }
-          }}
-          placeholder="Tulis satu hal per kartu."
-          aria-label="Isi kartu"
-          maxLength={2000}
-          data-autofocus
-        />
+        <Suspense fallback={<div className="rte rte-loading" aria-busy="true" />}>
+          <RichTextEditor
+            ariaLabel="Isi kartu"
+            placeholder="Tulis satu hal per kartu."
+            onChange={(h, t) => {
+              setHtml(h);
+              setPlain(t);
+            }}
+            onSubmit={() => void submit()}
+          />
+        </Suspense>
         <p className="help">
           Tampil sebagai <b>{alias}</b>. Orang lain baru bisa membaca kartumu di fase berikutnya. Ctrl + Enter untuk kirim.
+          {plain.length > MAX_CHARS && <b className="rte-err"> Terlalu panjang ({plain.length}/{MAX_CHARS}).</b>}
         </p>
 
         {gif && (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
 import { Menu } from '../common/Menu';
 import { CardItem } from './CardItem';
 import { isHidden, type Answer, type AnyAnswer, type Phase, type Question } from '../../types/session';
@@ -38,6 +38,12 @@ interface Props extends BoardHandlers {
   sortTick: number;
   spotlightId: string;
   busyIds: Set<string>;
+  /** Focus view: the phase hint line under the title. */
+  hint: string;
+  /** Focus view, discuss/done: the line with the vote budget, sort and group filter. */
+  tools: React.ReactNode;
+  /** Focus view: small links beside the topic navigation (previous promises, + Topik). */
+  navExtras: React.ReactNode;
 }
 
 const byVotes = (a: Answer, b: Answer) => (b.votes || 0) - (a.votes || 0);
@@ -59,7 +65,6 @@ const ClosedCard: React.FC<{ back?: boolean }> = ({ back }) => (
 
 export const Board: React.FC<Props> = (p) => {
   const colsRef = useRef<HTMLDivElement>(null);
-  const stepsRef = useRef<HTMLDivElement>(null);
 
   // Discuss: card order per topic, frozen so cards do not jump while people vote.
   // Keyed by session|topic, component state only (not persisted). Starts as server order,
@@ -165,18 +170,6 @@ export const Board: React.FC<Props> = (p) => {
     }
   }, [p.activeIndex, p.view]);
 
-  // Focus view: keep the current step visible in the (sideways scrolling) step row.
-  useEffect(() => {
-    if (p.view !== 'focus') return;
-    const c = stepsRef.current;
-    const el = c?.children[p.activeIndex] as HTMLElement | undefined;
-    if (!c || !el || c.scrollWidth <= c.clientWidth) return;
-    const left = el.getBoundingClientRect().left - c.getBoundingClientRect().left + c.scrollLeft;
-    if (left < c.scrollLeft || left + el.offsetWidth > c.scrollLeft + c.clientWidth) {
-      c.scrollTo({ left: Math.max(0, left - 12), behavior: 'smooth' });
-    }
-  }, [p.activeIndex, p.view]);
-
   if (p.questions.length === 0) {
     return (
       <div className="board-empty">
@@ -193,6 +186,67 @@ export const Board: React.FC<Props> = (p) => {
       </div>
     );
   }
+
+  // Focus view, under the title: prev/next, "Topik N dari M" menu, small links, then the hint.
+  const focusHead = (_q: Question, idx: number) => {
+    const n = p.questions.length;
+    return (
+      <>
+        <div className="fnav-row">
+          <button type="button" className="icon-btn" disabled={idx === 0} onClick={() => p.setActiveIndex(idx - 1)} aria-label="Topik sebelumnya" title="Topik sebelumnya (←)">
+            <ChevronLeft size={18} />
+          </button>
+          {n > 1 ? (
+            <Menu
+              label="Pilih topik"
+              align="left"
+              className="topic-jump"
+              trigger={(t) => (
+                <button type="button" {...t} className="fnav-pos fnav-pos-btn num" aria-live="polite">
+                  Topik {idx + 1} dari {n} <ChevronDown size={14} aria-hidden="true" />
+                </button>
+              )}
+            >
+              {(close) => (
+                <div className="topic-menu">
+                  {p.questions.map((t, i) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="menuitem"
+                      className="menu-item topic-item"
+                      aria-current={i === idx ? 'true' : undefined}
+                      onClick={() => (close(), p.setActiveIndex(i))}
+                    >
+                      <span className="topic-item-n num">{i + 1}</span>
+                      <span className="topic-item-t">{t.text}</span>
+                      <span className="topic-item-c num">{t.answer_count ?? 0}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Menu>
+          ) : (
+            <span className="fnav-pos num" aria-live="polite">
+              Topik {idx + 1} dari {n}
+            </span>
+          )}
+          <button type="button" className="icon-btn" disabled={idx === n - 1} onClick={() => p.setActiveIndex(idx + 1)} aria-label="Topik berikutnya" title="Topik berikutnya (→)">
+            <ChevronRight size={18} />
+          </button>
+          <div className="fnav-extras">
+            {p.navExtras}
+            {!p.isMobile && n > 1 && (
+              <button type="button" className="link-btn view-link" onClick={() => p.setView('columns')}>
+                Semua kolom
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="focus-hint">{p.hint}</p>
+      </>
+    );
+  };
 
   const renderColumn = (q: Question, idx: number, focus = false) => {
     const slot = byTopic.get(q.id) || { items: [], cards: 0, hidden: 0 };
@@ -241,11 +295,14 @@ export const Board: React.FC<Props> = (p) => {
         </div>
         {q.gif_url && <img className="col-gif" src={q.gif_url} alt="" loading="lazy" />}
 
+        {focus && focusHead(q, idx)}
+
         {p.phase === 'write' && (
-          <button type="button" className="btn block add-card" onClick={() => p.onAddCard(q)}>
+          <button type="button" className={`btn block add-card ${focus ? 'add-card-focus' : ''}`} onClick={() => p.onAddCard(q)}>
             <Plus size={16} aria-hidden="true" /> Tulis kartu
           </button>
         )}
+        {focus && p.phase !== 'write' && p.tools}
 
 
         <div className={focus ? 'col-cards fgrid' : 'col-cards'}>
@@ -295,35 +352,6 @@ export const Board: React.FC<Props> = (p) => {
     const q = p.questions[idx];
     return (
       <div className="focus">
-        <nav className="fnav" aria-label="Navigasi topik">
-          <div className="fnav-row">
-            <button type="button" className="icon-btn" disabled={idx === 0} onClick={() => p.setActiveIndex(idx - 1)} aria-label="Topik sebelumnya" title="Topik sebelumnya (←)">
-              <ChevronLeft size={18} />
-            </button>
-            <span className="fnav-pos num" aria-live="polite">
-              Topik {idx + 1} dari {n}
-            </span>
-            <button type="button" className="icon-btn" disabled={idx === n - 1} onClick={() => p.setActiveIndex(idx + 1)} aria-label="Topik berikutnya" title="Topik berikutnya (→)">
-              <ChevronRight size={18} />
-            </button>
-            {!p.isMobile && n > 1 && (
-              <div className="view-toggle" role="group" aria-label="Tampilan papan">
-                <button type="button" aria-pressed="true">Fokus</button>
-                <button type="button" aria-pressed="false" onClick={() => p.setView('columns')}>Semua kolom</button>
-              </div>
-            )}
-          </div>
-          {n > 1 && (
-            <div className="tabs steps" ref={stepsRef} role="group" aria-label="Pilih topik">
-              {p.questions.map((t, i) => (
-                <button key={t.id} type="button" className="tab" aria-current={i === idx ? 'step' : undefined} aria-selected={i === idx} onClick={() => p.setActiveIndex(i)}>
-                  <span className="tab-name">{t.text}</span>
-                  <span className="tab-n num">{t.answer_count ?? 0}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </nav>
         {renderColumn(q, idx, true)}
       </div>
     );

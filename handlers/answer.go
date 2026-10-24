@@ -203,6 +203,27 @@ func computeEffectiveVoterID(guestUUID string, deviceFingerprint string) string 
 	return hex.EncodeToString(h[:])
 }
 
+// cardPolicy is the strict allowlist for card text (rich text from the editor):
+// p, br, strong/b, em/i, s/del/strike, ul, ol, li, code, and http/https links.
+// Links get rel="nofollow noreferrer noopener" and target="_blank".
+var cardPolicy = func() *bluemonday.Policy {
+	p := bluemonday.NewPolicy()
+	p.AllowElements("p", "br", "strong", "b", "em", "i", "s", "del", "strike", "ul", "ol", "li", "code")
+	p.AllowAttrs("href").OnElements("a")
+	p.AllowURLSchemes("http", "https")
+	p.AllowRelativeURLs(false)
+	p.RequireParseableURLs(true)
+	p.RequireNoFollowOnLinks(true)
+	p.RequireNoReferrerOnLinks(true)
+	p.AddTargetBlankToFullyQualifiedLinks(true)
+	return p
+}()
+
+// SanitizeCardHTML cleans user card text. Every path that stores card text must use it.
+func SanitizeCardHTML(in string) string {
+	return cardPolicy.Sanitize(in)
+}
+
 func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 	var req dto.SubmitAnswerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -218,8 +239,7 @@ func SubmitAnswerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := bluemonday.UGCPolicy()
-	sanitizedText := p.Sanitize(req.Text)
+	sanitizedText := SanitizeCardHTML(req.Text)
 
 	bodyFP := req.DeviceFingerprint
 	if bodyFP == "" {
